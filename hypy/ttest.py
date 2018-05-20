@@ -6,6 +6,13 @@ from hypy._lib import _student_t_pvalue, _t_conf_int
 from hypy.dof import degrees_of_freedom
 
 
+class tTest(object):
+
+    def __init__(self, y1, y2=None, mu=None, var_equal=False, paired=False):
+        pass
+
+
+
 def ttest(y1, y2=None, mu=None, var_equal=False):
     r"""
     Performs one and two-sample t-tests.

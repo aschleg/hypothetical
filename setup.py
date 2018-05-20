@@ -8,7 +8,7 @@ setup(
     author='Aaron Schlegel',
     author_email='aaron@aaronschlegel.com',
     description=('Hypothesis testing and other testing methods.'),
-    packages=find_packages(exclude=['docs', 'tests*']),
+    packages=find_packages(exclude=['docs', 'notebooks', 'tests*']),
     include_package_data=True,
     long_description=open('README.md').read(),
     install_requires=['numpy', 'patsy'],

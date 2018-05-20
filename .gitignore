@@ -1,2 +1,6 @@
 $ cat .gitignore
 
+.idea/
+.idea/*
+*.xml
+*.iml
