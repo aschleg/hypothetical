@@ -1,118 +1,177 @@
-from collections import namedtuple
+# encoding=utf-8
 
 import numpy as np
+import patsy
+from scipy.stats import t
 
-from hypy._lib import _student_t_pvalue, _t_conf_int
-from hypy.dof import degrees_of_freedom
+
+def t_test(formula, data={}, mu=None, var_equal=False, paired=False, alternative='two-sided'):
+    pass
 
 
 class tTest(object):
 
-    def __init__(self, y1, y2=None, mu=None, var_equal=False, paired=False):
-        pass
+    def __init__(self, formula, data={}, mu=None, var_equal=False, paired=False, alternative='two-sided'):
 
-
-
-def ttest(y1, y2=None, mu=None, var_equal=False):
-    r"""
-    Performs one and two-sample t-tests.
-
-    Parameters
-    ----------
-    y1
-        First sample to test
-    y2
-        Second sample. Optional
-    mu
-        Optional, sets the mean for comparison in the one sample t-test. Default 0.
-    var_equal
-        Optional, default False. If False, Welch's t-test for unequal variance and
-        sample sizes is used. If True, equal variance between samples is assumed
-        and Student's t-test is used.
-
-    Returns
-    -------
-    namedtuple
-        Namedtuple containing following values:
-        t-value
-        degrees of freedom
-        p-value
-        confidence intervals
-        sample means
-
-    Notes
-    -----
-    Welch's t-test is an adaption of Student's t test and is more performant when the
-    sample variances and size are unequal. The test still depends on the assumption of
-    the underlying population distributions being normally distributed.
-
-    Welch's t test is defined as:
-
-    .. math::
-
-        t = \frac{\bar{X_1} - \bar{X_2}}{\sqrt{\frac{s_{1}^{2}}{N_1} + \frac{s_{2}^{2}}{N_2}}}
-
-    where:
-
-    :math:`\bar{X}` is the sample mean, :math:`s^2` is the sample variance, :math:`n` is the sample size
-
-    If the :code:`var_equal` argument is True, Student's t-test is used, which assumes the two samples
-    have equal variance. The t statistic is computed as:
-
-    .. math::
-
-        t = \frac{\bar{X}_1 - \bar{X}_2}{s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}
-
-    where:
-
-    .. math::
-
-        s_p = \sqrt{\frac{(n_1 - 1)s^2_{X_1} + (n_2 - 1)s^2_{X_2}}{n_1 + n_2 - 2}
-
-    References
-    ----------
-    Rencher, A. C., & Christensen, W. F. (2012). Methods of multivariate analysis (3rd Edition).
-
-    Student's t-test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
-        From https://en.wikipedia.org/w/index.php?title=Student%27s_t-test&oldid=786562367
-
-    """
-    y1 = np.array(y1)
-
-    n1 = len(y1)
-    s1 = np.var(y1)
-    ybar1 = np.mean(y1)
-
-    if y2 is not None:
-        y2 = np.array(y2)
-        n2 = len(y2)
-        s2 = np.var(y2)
-        ybar2 = np.mean(y2)
-
-        if var_equal is False:
-            tval = float((ybar1 - ybar2) / np.sqrt(s1 / n1 + s2 / n2))
+        if len(data.keys()) != 1:
+            self.y1, self.y2 = patsy.dmatrices(formula, data, 1)
         else:
-            sp = np.sqrt(((n1 - 1.) * s1 + (n2 - 1.) * s2) / (n1 + n2 - 2.))
-            tval = float((ybar1 - ybar2) / (sp * np.sqrt(1. / n1 + 1. / n2)))
+            self.y1 = patsy.dmatrix(formula, data, 1)
+            self.y2 = None
 
-    else:
-        ybar2, n2, s2 = 0.0, 1.0, 0.0
-        if mu is None:
-            mu = 0.0
+        self.alternative = alternative
+        self.mu = mu
+        self.sample_statistics = {'y1_sample_statistics': self.sample_stats(self.y1)}
 
-        tval = float((ybar1 - mu) / np.sqrt(s1 / n1))
+        if self.y2 is not None:
+            self.sample_statistics['y2_sample_statistics'] = self.sample_stats(self.y2)
 
-    dof = degrees_of_freedom(y1, y2)
-    pvalue = _student_t_pvalue(np.absolute(tval), dof)
-    intervals = _t_conf_int((ybar1, n1, s1), dof=dof, y=(ybar2, n2, s2))
+        if var_equal:
+            self.method = "Student's t-test"
+            self.var_equal = True
+        else:
+            self.method = "Welch's t-test"
+            self.var_equal = var_equal
 
-    if y2 is not None:
-        tTestResult = namedtuple('tTestResult', ['tvalue', 'dof', 'pvalue', 'confint', 'x_mean', 'y_mean'])
+        self.parameter = self.degrees_of_freedom()
+        self.t_statistic = self.test_statistic()
+        self.p_value = self.pval()
+        self.confidence_interval = self.conf_int()
 
-        tt = tTestResult(tvalue=tval, dof=dof, pvalue=pvalue, confint=intervals, x_mean=ybar1, y_mean=ybar2)
+    def pval(self):
+        p = t.cdf(self.t_statistic, self.parameter)
 
-    else:
-        tTestResult = namedtuple('tTestResult', ['tvalue', 'dof', 'pvalue', 'confint', 'x_mean'])
-        tt = tTestResult(tvalue=tval, dof=dof, pvalue=pvalue, confint=intervals, x_mean=ybar1)
+        if self.alternative == 'two-sided':
+            p *= 2.
 
-    return tt
+        return p
+
+    def test_statistic(self):
+        n1, s1, ybar1 = self.sample_statistics['y1_sample_statistics']['obs'], \
+                        self.sample_statistics['y1_sample_statistics']['variance'], \
+                        self.sample_statistics['y1_sample_statistics']['mean']
+
+        if self.y2 is not None:
+            n2, s2, ybar2 = self.sample_statistics['y2_sample_statistics']['obs'], \
+                            self.sample_statistics['y2_sample_statistics']['variance'], \
+                            self.sample_statistics['y2_sample_statistics']['mean']
+
+            if self.var_equal:
+                sp = np.sqrt(((n1 - 1.) * s1 + (n2 - 1.) * s2) / (n1 + n2 - 2.))
+                tval = float((ybar1 - ybar2) / (sp * np.sqrt(1. / n1 + 1. / n2)))
+            else:
+                tval = float((ybar1 - ybar2) / np.sqrt(s1 / n1 + s2 / n2))
+
+        else:
+            ybar2, n2, s2 = 0.0, 1.0, 0.0
+
+            if self.mu is None:
+                mu = 0.0
+            else:
+                mu = self.mu
+
+            tval = float((ybar2 - mu) / np.sqrt(s2 / n2))
+
+        return tval
+
+    def conf_int(self):
+
+        xn, xvar, xbar = self.sample_statistics['y1_sample_statistics']['obs'], \
+                         self.sample_statistics['y1_sample_statistics']['variance'], \
+                         self.sample_statistics['y1_sample_statistics']['mean']
+
+        if self.y2 is not None:
+            yn, yvar, ybar = self.sample_statistics['y2_sample_statistics']['obs'], \
+                             self.sample_statistics['y2_sample_statistics']['variance'], \
+                             self.sample_statistics['y2_sample_statistics']['mean']
+
+            low_interval = (xbar - ybar) + t.ppf(0.025, self.parameter) * np.sqrt(xvar / xn + yvar / yn)
+            high_interval = (xbar - ybar) - t.ppf(0.025, self.parameter) * np.sqrt(xvar / xn + yvar / yn)
+        else:
+            low_interval = xbar + 1.96 * np.sqrt((xbar * (1 - xbar)) / xn)
+            high_interval = xbar - 1.96 * np.sqrt((xbar * (1 - xbar)) / xn)
+
+        return float(low_interval), float(high_interval)
+
+    def degrees_of_freedom(self):
+        r"""
+        Computes the degrees of freedom of one or two samples.
+
+        Parameters
+        ----------
+        y1
+            First sample to test
+        y2
+            Second sample. Optional.
+        var_equal
+            Optional, default False. If False, Welch's t-test for unequal variance and
+            sample sizes is used. If True, equal variance between samples is assumed
+            and Student's t-test is used.
+
+        Returns
+        -------
+        float
+            the degrees of freedom
+
+        Notes
+        -----
+        When Welch's t test is used, the Welch-Satterthwaite equation for approximating the degrees
+        of freedom should be used and is defined as:
+
+        .. math::
+
+            \large v \approx \frac{\left(\frac{s_{1}^2}{N_1} +
+            \frac{s_{2}^2}{N_2}\right)^2}{\frac{\left(\frac{s_1^2}{N_1^{2}}\right)^2}{v_1} +
+            \frac{\left(\frac{s_2^2}{N_2^{2}}\right)^2}{v_2}}
+
+        If the two samples are assumed to have equal variance, the degrees of freedoms become simply:
+
+        .. math::
+
+            v = n_1 + n_2 - 2
+
+        In the case of one sample, the degrees of freedom are:
+
+        .. math::
+
+            v = n - 1
+
+        References
+        ----------
+        Rencher, A. C., & Christensen, W. F. (2012). Methods of multivariate analysis (3rd Edition).
+
+        Welch's t-test. (2017, June 16). In Wikipedia, The Free Encyclopedia.
+            From https://en.wikipedia.org/w/index.php?title=Welch%27s_t-test&oldid=785961228
+
+        """
+        n1, s1 = self.sample_statistics['y1_sample_statistics']['obs'], self.sample_statistics['y1_sample_statistics'][
+            'variance']
+
+        v1 = n1 - 1
+
+        if self.y2 is not None:
+            n2, s2 = self.sample_statistics['y2_sample_statistics']['obs'], \
+                     self.sample_statistics['y2_sample_statistics']['variance']
+
+            v2 = n2 - 1
+
+            if self.var_equal:
+                v = n1 + n2 - 2
+            else:
+                v = np.power((s1 / n1 + s2 / n2), 2) / (np.power((s1 / n1), 2) / v1 + np.power((s2 / n2), 2) / v2)
+
+        else:
+            v = v1
+
+        return float(v)
+
+    @staticmethod
+    def sample_stats(sample_vector):
+
+        sample_stats = {
+            'obs': len(sample_vector),
+            'variance': np.var(sample_vector),
+            'mean': np.mean(sample_vector)
+        }
+
+        return sample_stats

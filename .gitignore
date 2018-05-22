@@ -1,6 +1,12 @@
 $ cat .gitignore
 
 .idea/
-.idea/*
+build/
+dist/
+*.egg-info
+notebooks/
+tests/data/
+tests/R/
 *.xml
 *.iml
+*.pyc
