@@ -1,12 +1,11 @@
 # encoding=utf-8
 
-from collections import namedtuple
-
 import numpy as np
+import numpy_indexed as npi
 from scipy.stats import rankdata, norm
 
 
-def mann_whitney(y1, y2, continuity=True):
+def mann_whitney(y1, y2=None, group=None, continuity=True):
     r"""
     Performs the nonparametric Mann-Whitney U test of two independent sample groups.
 
@@ -60,30 +59,129 @@ def mann_whitney(y1, y2, continuity=True):
         From https://en.wikipedia.org/w/index.php?title=Mann%E2%80%93Whitney_U_test&oldid=786593885
 
     """
-    n1, n2 = len(y1), len(y2)
+    return MannWhitney(y1=y1, y2=y2, group=group, continuity=continuity)
 
-    ranks = np.concatenate((y1, y2))
 
-    ranks = rankdata(ranks, 'average')
+class MannWhitney(object):
 
-    ranks = ranks[:n1]
+    def __init__(self, y1, y2=None, group=None, continuity=True):
 
-    n = n1 + n2
+        if group is None:
+            self.y1 = y1
+            self.y2 = y2
+        else:
+            if len(group.unique()) > 2:
+                raise ValueError('there cannot be more than two groups')
 
-    u1 = n1 * n2 + (n1 * (n1 + 1)) / 2. - np.sum(ranks)
-    u2 = n1 * n2 - u1
+            obs_matrix = npi.group_by(group, y1)
+            self.y1 = obs_matrix[1][0]
+            self.y2 = obs_matrix[1][1]
 
-    u = np.minimum(u1, u2)
-    mu = (n1 * n2) / 2. + (0.5 * continuity)
+        self.n1 = len(self.y1)
+        self.n2 = len(self.y2)
+        self.n = self.n1 + self.n2
 
-    rankcounts = np.unique(ranks, return_counts=True)[1]
+        self.continuity = continuity
+        self._ranks = self._rank()
+        self.U = self._u()
+        self.meanrank = self._mu()
+        self.sigma = self._sigma()
+        self.z_value = self._zvalue()
+        self.p_value = self._pvalue()
 
-    sigma = np.sqrt(((n1 * n2) * (n + 1)) / 12. * (1 - np.sum(rankcounts ** 3 - rankcounts) / float(n ** 3 - n)))
-    z = (np.absolute(u - mu)) / sigma
-    p = 1-norm.cdf(z)
+    def _rank(self):
+        ranks = np.concatenate((self.y1, self.y2))
 
-    MannWhitneyResult = namedtuple('MannWhitneyResult', ['u', 'meanrank', 'sigma', 'zvalue', 'pvalue'])
+        ranks = rankdata(ranks, 'average')
 
-    mwr = MannWhitneyResult(u=u, meanrank=mu, sigma=sigma, zvalue=z, pvalue=p)
+        ranks = ranks[:self.n1]
 
-    return mwr
+        return ranks
+
+    def _u(self):
+        u1 = self.n1 * self.n2 + (self.n1 * (self.n1 + 1)) / 2. - np.sum(self._ranks)
+        u2 = self.n1 * self.n2 - u1
+
+        u = np.minimum(u1, u2)
+
+        return u
+
+    def _mu(self):
+
+        mu = (self.n1 * self.n2) / 2. + (0.5 * self.continuity)
+
+        return mu
+
+    def _sigma(self):
+        rankcounts = np.unique(self._ranks, return_counts=True)[1]
+
+        sigma = np.sqrt(((self.n1 * self.n2) * (self.n + 1)) / 12. * (
+                    1 - np.sum(rankcounts ** 3 - rankcounts) / float(self.n ** 3 - self.n)))
+
+        return sigma
+
+    def _zvalue(self):
+        z = (np.absolute(self.U - self.meanrank)) / self.sigma
+
+        return z
+
+    def _pvalue(self):
+        p = 1 - norm.cdf(self.z_value)
+
+        return p * 2
+
+    def summary(self):
+        mw_results = {
+            'U': self.U,
+            'mu meanrank': self.meanrank,
+            'sigma': self.sigma,
+            'z-value': self.z_value,
+            'p-value': self.p_value
+        }
+
+        return mw_results
+
+
+class WilcoxonTest(object):
+
+    def __init__(self, y1, paired=False, mu=0):
+        self.y1 = y1
+        self.n = len(self.y1)
+        self.paired = paired
+        self.mu = mu
+
+        if paired:
+            pass
+        else:
+            self.W = self._one_sample_test()
+
+        if self.n >= 30:
+            self.z = self._zvalue()
+
+    def _one_sample_test(self):
+        y_mu_signed = self.y1 - self.mu
+        y_mu_unsigned = np.absolute(y_mu_signed)
+
+        ranks_signed = rankdata(y_mu_signed, 'average')
+        ranks_unsigned = rankdata(y_mu_unsigned, 'average')
+
+        z = np.where(ranks_signed > 0, 1, 0)
+
+        w = np.sum(np.multiply(ranks_unsigned, z))
+
+        return w
+
+    def paired(self):
+        pass
+
+    def _zvalue(self):
+        sigma_w = np.sqrt((self.n * (self.n + 1) * (2 * self.n + 1)) / 6.)
+
+        z = self.W / sigma_w
+
+        return z
+
+    def _pvalue(self):
+        p = 1 - norm.cdf(np.abs(self.z))
+
+        return p * 2
