@@ -13,28 +13,22 @@ def t_test(y1, y2=None, group=None, mu=None, var_equal=False, paired=False, alte
 class tTest(object):
 
     def __init__(self, y1, y2=None, group=None, mu=None, var_equal=False, paired=False, alternative='two-sided'):
+        self.group = group
+        self.paired = paired
 
-        if group is None:
-            self.y1 = y1
-            self.sample_statistics = {'y1_sample_statistics': self._sample_stats(self.y1)}
+        if self.paired and y2 is None:
+            raise ValueError('second sample is missing for paired test')
 
-            if y2 is not None:
-                self.y2 = y2
-                self.sample_statistics['y2_sample_statistics'] = self._sample_stats(self.y2)
+        if self.paired:
+            self.y1 = self._paired(y1, y2)
+            self._y1_summary_stat_name = 'Sample Difference'
+            self.y2 = None
         else:
-            if len(group.unique()) > 2:
-                raise ValueError('there cannot be more than two groups')
-
-            obs_matrix = npi.group_by(group, y1)
-
-            self.y1 = obs_matrix[1][0]
-            self.sample_statistics = {'y1_sample_statistics': self._sample_stats(self.y1)}
-
-            if len(obs_matrix[0]) == 2:
-                self.y2 = obs_matrix[1][1]
-                self.sample_statistics['y2_sample_statistics'] = self._sample_stats(self.y2)
+            self._y1_summary_stat_name = 'Sample 1'
+            if group is None:
+                self.y1, self.y2 = y1, y2
             else:
-                self.y2 = None
+                self.y1, self.y2 = self._split_groups()
 
         self.alternative = alternative
         self.mu = mu
@@ -46,6 +40,18 @@ class tTest(object):
             self.method = "Welch's t-test"
             self.var_equal = var_equal
 
+        self.sample_statistics = {self._y1_summary_stat_name: self._sample_stats(self.y1)}
+
+        if self.paired:
+            self.test_description = 'Paired One-Sample'
+            self.y2 = None
+        elif y2 is None:
+            self.test_description = 'One-Sample'
+        else:
+            self.test_description = 'Two-Sample'
+            self.y2 = y2
+            self.sample_statistics['Sample 2'] = self._sample_stats(self.y2)
+
         self.parameter = self._degrees_of_freedom()
         self.t_statistic = self._test_statistic()
         self.p_value = self._pvalue()
@@ -53,76 +59,19 @@ class tTest(object):
 
     def summary(self):
         test_results = {
-            't statistic': self.t_statistic,
-            'p value': self.p_value,
+            't-statistic': self.t_statistic,
+            'p-value': self.p_value,
             'confidence interval': self.confidence_interval,
             'degrees of freedom': self.parameter,
             'alternative': self.alternative,
-            'method': self.method,
-            'sample 1 mean': self.sample_statistics['y1_sample_statistics']['mean']
+            'test description': self.test_description + ' ' + self.method,
+            self._y1_summary_stat_name + ' Mean': self.sample_statistics[self._y1_summary_stat_name]['mean']
         }
 
         if self.y2 is not None:
-            test_results['sample 2 mean'] = self.sample_statistics['y2_sample_statistics']['mean']
-        else:
-            test_results['mu'] = self.mu
+            test_results['Sample 2 Mean'] = self.sample_statistics['Sample 2']['mean']
 
         return test_results
-
-    def _pvalue(self):
-        p = t.cdf(self.t_statistic, self.parameter)
-
-        if self.alternative == 'two-sided':
-            p *= 2.
-
-        return p
-
-    def _test_statistic(self):
-        n1, s1, ybar1 = self.sample_statistics['y1_sample_statistics']['obs'], \
-                        self.sample_statistics['y1_sample_statistics']['variance'], \
-                        self.sample_statistics['y1_sample_statistics']['mean']
-
-        if self.y2 is not None:
-            n2, s2, ybar2 = self.sample_statistics['y2_sample_statistics']['obs'], \
-                            self.sample_statistics['y2_sample_statistics']['variance'], \
-                            self.sample_statistics['y2_sample_statistics']['mean']
-
-            if self.var_equal:
-                sp = np.sqrt(((n1 - 1.) * s1 + (n2 - 1.) * s2) / (n1 + n2 - 2.))
-                tval = float((ybar1 - ybar2) / (sp * np.sqrt(1. / n1 + 1. / n2)))
-            else:
-                tval = float((ybar1 - ybar2) / np.sqrt(s1 / n1 + s2 / n2))
-
-        else:
-            ybar2, n2, s2 = 0.0, 1.0, 0.0
-
-            if self.mu is None:
-                mu = 0.0
-            else:
-                mu = self.mu
-
-            tval = float((ybar2 - mu) / np.sqrt(s2 / n2))
-
-        return tval
-
-    def _conf_int(self):
-
-        xn, xvar, xbar = self.sample_statistics['y1_sample_statistics']['obs'], \
-                         self.sample_statistics['y1_sample_statistics']['variance'], \
-                         self.sample_statistics['y1_sample_statistics']['mean']
-
-        if self.y2 is not None:
-            yn, yvar, ybar = self.sample_statistics['y2_sample_statistics']['obs'], \
-                             self.sample_statistics['y2_sample_statistics']['variance'], \
-                             self.sample_statistics['y2_sample_statistics']['mean']
-
-            low_interval = (xbar - ybar) + t.ppf(0.025, self.parameter) * np.sqrt(xvar / xn + yvar / yn)
-            high_interval = (xbar - ybar) - t.ppf(0.025, self.parameter) * np.sqrt(xvar / xn + yvar / yn)
-        else:
-            low_interval = xbar + 1.96 * np.sqrt((xbar * (1 - xbar)) / xn)
-            high_interval = xbar - 1.96 * np.sqrt((xbar * (1 - xbar)) / xn)
-
-        return float(low_interval), float(high_interval)
 
     def _degrees_of_freedom(self):
         r"""
@@ -175,14 +124,14 @@ class tTest(object):
             From https://en.wikipedia.org/w/index.php?title=Welch%27s_t-test&oldid=785961228
 
         """
-        n1, s1 = self.sample_statistics['y1_sample_statistics']['obs'], self.sample_statistics['y1_sample_statistics'][
-            'variance']
+        n1, s1 = self.sample_statistics[self._y1_summary_stat_name]['obs'], \
+                 self.sample_statistics[self._y1_summary_stat_name]['variance']
 
         v1 = n1 - 1
 
         if self.y2 is not None:
-            n2, s2 = self.sample_statistics['y2_sample_statistics']['obs'], \
-                     self.sample_statistics['y2_sample_statistics']['variance']
+            n2, s2 = self.sample_statistics['Sample 2']['obs'], \
+                     self.sample_statistics['Sample 2']['variance']
 
             v2 = n2 - 1
 
@@ -196,11 +145,97 @@ class tTest(object):
 
         return float(v)
 
+    def _test_statistic(self):
+        n1, s1, ybar1 = self.sample_statistics[self._y1_summary_stat_name]['obs'], \
+                        self.sample_statistics[self._y1_summary_stat_name]['variance'], \
+                        self.sample_statistics[self._y1_summary_stat_name]['mean']
+
+        if self.y2 is not None:
+            n2, s2, ybar2 = self.sample_statistics['Sample 2']['obs'], \
+                            self.sample_statistics['Sample 2']['variance'], \
+                            self.sample_statistics['Sample 2']['mean']
+
+            if self.var_equal:
+                sp = np.sqrt(((n1 - 1.) * s1 + (n2 - 1.) * s2) / (n1 + n2 - 2.))
+                tval = float((ybar1 - ybar2) / (sp * np.sqrt(1. / n1 + 1. / n2)))
+            else:
+                tval = float((ybar1 - ybar2) / np.sqrt(s1 / n1 + s2 / n2))
+
+        else:
+
+            if self.mu is None:
+                mu = 0.0
+            else:
+                mu = self.mu
+
+            tval = float((ybar1 - mu) / np.sqrt(s1 / n1))
+
+        return tval
+
+    def _pvalue(self):
+        p = t.cdf(self.t_statistic, self.parameter)
+
+        if self.alternative == 'two-sided':
+            p *= 2.
+
+        if p == 2.0:
+            p = np.finfo(float).eps
+
+        return p
+
+    def _conf_int(self):
+        xn, xvar, xbar = self.sample_statistics[self._y1_summary_stat_name]['obs'], \
+                         self.sample_statistics[self._y1_summary_stat_name]['variance'], \
+                         self.sample_statistics[self._y1_summary_stat_name]['mean']
+
+        if self.y2 is not None:
+            yn, yvar, ybar = self.sample_statistics['Sample 2']['obs'], \
+                             self.sample_statistics['Sample 2']['variance'], \
+                             self.sample_statistics['Sample 2']['mean']
+
+            low_interval = (xbar - ybar) + t.ppf(0.025, self.parameter) * np.sqrt(xvar / xn + yvar / yn)
+            high_interval = (xbar - ybar) - t.ppf(0.025, self.parameter) * np.sqrt(xvar / xn + yvar / yn)
+
+        else:
+            low_interval = xbar + 1.96 * np.sqrt(xvar / xn)
+            high_interval = xbar - 1.96 * np.sqrt(xvar / xn)
+
+        return float(low_interval), float(high_interval)
+
+    def _split_groups(self):
+        if len(np.unique(self.group)) > 2:
+            raise ValueError('there cannot be more than two groups')
+
+        obs_matrix = npi.group_by(self.group, self.y1)
+
+        y1 = obs_matrix[1][0]
+        self.sample_statistics = {'y1_sample_statistics': self._sample_stats(y1)}
+
+        if len(obs_matrix[0]) == 2:
+            y2 = obs_matrix[1][1]
+            self.sample_statistics['y2_sample_statistics'] = self._sample_stats(y2)
+        else:
+            y2 = None
+
+        return y1, y2
+
+    @staticmethod
+    def _paired(y1, y2):
+
+        if y2 is not None:
+            if len(y1) != len(y2):
+                raise ValueError('paired samples must have the same number of observations')
+
+            x = np.array(y1) - np.array(y2)
+        else:
+            x = y1
+
+        return x
+
     @staticmethod
     def _sample_stats(sample_vector):
-
         sample_stats = {
-            'obs': float(len(sample_vector)),
+            'obs': int(len(sample_vector)),
             'variance': float(np.var(sample_vector)),
             'mean': float(np.mean(sample_vector))
         }
