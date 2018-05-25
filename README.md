@@ -1,5 +1,9 @@
 # hypy - Hypothesis and Statistical Testing in Python
 
+[![Build Status](https://travis-ci.org/aschleg/hypy.svg?branch=master)](https://travis-ci.org/aschleg/hypy)
+[![Build status](https://ci.appveyor.com/api/projects/status/i1i1blt9ny3tyi6a?svg=true)](https://ci.appveyor.com/project/aschleg/hypy)
+[![Coverage Status](https://coveralls.io/repos/github/aschleg/hypy/badge.svg)](https://coveralls.io/github/aschleg/hypy)
+
 Python library for conducting hypothesis and other group comparison tests.
 
 ## Available Methods
