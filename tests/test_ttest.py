@@ -89,6 +89,19 @@ def test_one_sample_test(test_data):
 
     assert len(sal_a) - 1 == test_summary['degrees of freedom']
 
+    ttest_mu = hypy.t_test(y1=sal_a, mu=100000)
+
+    test_mu_summary = ttest_mu.summary()
+
+    np.testing.assert_almost_equal(test_mu_summary['Sample 1 Mean'], np.mean(sal_a))
+    np.testing.assert_almost_equal(test_mu_summary['p-value'], 0.0002159346891279501)
+    np.testing.assert_almost_equal(test_mu_summary['t-statistic'], 3.776470249422699)
+
+    assert test_mu_summary['alternative'] == 'two-sided'
+    assert test_mu_summary['test description'] == 'One-Sample t-test'
+    assert test_mu_summary['mu'] == 100000
+    assert len(sal_a) - 1 == test_mu_summary['degrees of freedom']
+
 
 def test_paired_sample_test(test_data):
     sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
@@ -108,6 +121,20 @@ def test_paired_sample_test(test_data):
     assert test_summary['test description'] == 'Paired t-test'
 
     assert len(sal_a) - 1 == test_summary['degrees of freedom']
+
+
+def test_alternatives(test_data):
+    sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
+    sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
+
+    ttest = hypy.t_test(y1=sal_a, y2=sal_b, alternative='greater')
+
+    test_summary = ttest.summary()
+
+    np.testing.assert_almost_equal(test_summary['p-value'], 0.9990848459959981)
+    np.testing.assert_almost_equal(test_summary['t-statistic'], -3.1386989278486013)
+
+    assert test_summary['alternative'] == 'greater'
 
 
 def test_ttest_exceptions(test_data, test_multiclass_data):

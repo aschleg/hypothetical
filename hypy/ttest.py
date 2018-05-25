@@ -76,6 +76,9 @@ class tTest(object):
         if self.y2 is not None:
             test_results['Sample 2 Mean'] = self.sample_statistics['Sample 2']['mean']
 
+        if self.mu is not None:
+            test_results['mu'] = self.mu
+
         return test_results
 
     def _degrees_of_freedom(self):
@@ -185,6 +188,9 @@ class tTest(object):
         elif self.alternative == 'greater':
             p = 1 - p
 
+        if 1.0 < p < 2.0:
+            p = 2 - p
+
         if p == 2.0:
             p = np.finfo(float).eps
 
@@ -207,7 +213,14 @@ class tTest(object):
             low_interval = xbar + 1.96 * np.sqrt(xvar / xn)
             high_interval = xbar - 1.96 * np.sqrt(xvar / xn)
 
-        return float(low_interval), float(high_interval)
+        if self.alternative == 'greater':
+            intervals = np.inf, float(high_interval)
+        elif self.alternative == 'less':
+            intervals = -np.inf, float(low_interval)
+        else:
+            intervals = float(low_interval), float(high_interval)
+
+        return intervals
 
     def _split_groups(self, x):
         if len(np.unique(self.group)) > 2:
