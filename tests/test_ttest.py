@@ -14,6 +14,14 @@ def test_data():
     return salaries
 
 
+@pytest.fixture
+def test_multiclass_data():
+    datapath = os.path.dirname(os.path.abspath(__file__))
+    insectsprays = pd.read_csv(os.path.join(datapath, 'test_data/InsectSprays.csv'))
+
+    return insectsprays
+
+
 def test_two_sample_welch_test(test_data):
     sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
     sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
@@ -31,6 +39,18 @@ def test_two_sample_welch_test(test_data):
 
     assert test_summary['alternative'] == 'two-sided'
     assert test_summary['test description'] == "Two-Sample Welch's t-test"
+
+    ttest_group = hypy.t_test(group=test_data['discipline'], y1=test_data['salary'])
+    test_group_summary = ttest_group.summary()
+
+    np.testing.assert_almost_equal(test_summary['Sample 1 Mean'], test_group_summary['Sample 1 Mean'])
+    np.testing.assert_almost_equal(test_summary['Sample 2 Mean'], test_group_summary['Sample 2 Mean'])
+    np.testing.assert_almost_equal(test_summary['p-value'], test_group_summary['p-value'])
+    np.testing.assert_almost_equal(test_summary['degrees of freedom'], test_group_summary['degrees of freedom'], 5)
+    np.testing.assert_almost_equal(test_summary['t-statistic'], test_group_summary['t-statistic'])
+
+    assert test_group_summary['alternative'] == 'two-sided'
+    assert test_group_summary['test description'] == "Two-Sample Welch's t-test"
 
 
 def test_two_sample_students_test(test_data):
@@ -90,7 +110,7 @@ def test_paired_sample_test(test_data):
     assert len(sal_a) - 1 == test_summary['degrees of freedom']
 
 
-def test_ttest_exceptions(test_data):
+def test_ttest_exceptions(test_data, test_multiclass_data):
     sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
     sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
 
@@ -102,3 +122,6 @@ def test_ttest_exceptions(test_data):
 
     with pytest.raises(ValueError):
         hypy.t_test(sal_a, sal_b, alternative='asdh')
+
+    with pytest.raises(ValueError):
+        hypy.t_test(group=test_multiclass_data['spray'], y1=test_multiclass_data['count'])

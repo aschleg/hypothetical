@@ -24,17 +24,6 @@ class tTest(object):
         if self.paired and y2 is None:
             raise ValueError('second sample is missing for paired test')
 
-        if self.paired:
-            self.y1 = self._paired(y1, y2)
-            self._y1_summary_stat_name = 'Sample Difference'
-            self.y2 = None
-        else:
-            self._y1_summary_stat_name = 'Sample 1'
-            if group is None:
-                self.y1, self.y2 = y1, y2
-            else:
-                self.y1, self.y2 = self._split_groups()
-
         self.mu = mu
 
         if var_equal:
@@ -44,16 +33,28 @@ class tTest(object):
             self.method = "Welch's t-test"
             self.var_equal = var_equal
 
-        self.sample_statistics = {self._y1_summary_stat_name: self._sample_stats(self.y1)}
-
         if self.paired:
             self.test_description = 'Paired t-test'
+            self.y1 = self._paired(y1, y2)
+            self._y1_summary_stat_name = 'Sample Difference'
             self.y2 = None
-        elif y2 is None:
+            self.sample_statistics = {self._y1_summary_stat_name: self._sample_stats(self.y1)}
+        elif y2 is None and group is None:
             self.test_description = 'One-Sample t-test'
+            self._y1_summary_stat_name = 'Sample 1'
+            self.y1, self.y2 = y1, None
+            self.sample_statistics = {self._y1_summary_stat_name: self._sample_stats(self.y1)}
         else:
             self.test_description = 'Two-Sample' + ' ' + self.method
-            self.y2 = y2
+            self._y1_summary_stat_name = 'Sample 1'
+
+            if group is None:
+                self.y1, self.y2 = y1, y2
+            else:
+                self.y1, self.y2 = self._split_groups(y1)
+
+            self.sample_statistics = {self._y1_summary_stat_name: self._sample_stats(self.y1)}
+
             self.sample_statistics['Sample 2'] = self._sample_stats(self.y2)
 
         self.parameter = self._degrees_of_freedom()
@@ -208,11 +209,11 @@ class tTest(object):
 
         return float(low_interval), float(high_interval)
 
-    def _split_groups(self):
+    def _split_groups(self, x):
         if len(np.unique(self.group)) > 2:
             raise ValueError('there cannot be more than two groups')
 
-        obs_matrix = npi.group_by(self.group, self.y1)
+        obs_matrix = npi.group_by(self.group, x)
 
         y1 = obs_matrix[1][0]
         self.sample_statistics = {'y1_sample_statistics': self._sample_stats(y1)}
