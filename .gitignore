@@ -1,11 +1,11 @@
 $ cat .gitignore
 
+.cache/
 .idea/
 build/
 dist/
 *.egg-info
 notebooks/
-tests/data/
 tests/R/
 *.xml
 *.iml

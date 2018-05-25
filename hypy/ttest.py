@@ -16,6 +16,11 @@ class tTest(object):
         self.group = group
         self.paired = paired
 
+        if alternative not in ('two-sided', 'greater', 'less'):
+            raise ValueError("alternative must be one of 'two-sided', 'greater', or 'lesser'")
+
+        self.alternative = alternative
+
         if self.paired and y2 is None:
             raise ValueError('second sample is missing for paired test')
 
@@ -30,7 +35,6 @@ class tTest(object):
             else:
                 self.y1, self.y2 = self._split_groups()
 
-        self.alternative = alternative
         self.mu = mu
 
         if var_equal:
@@ -43,12 +47,12 @@ class tTest(object):
         self.sample_statistics = {self._y1_summary_stat_name: self._sample_stats(self.y1)}
 
         if self.paired:
-            self.test_description = 'Paired One-Sample'
+            self.test_description = 'Paired t-test'
             self.y2 = None
         elif y2 is None:
-            self.test_description = 'One-Sample'
+            self.test_description = 'One-Sample t-test'
         else:
-            self.test_description = 'Two-Sample'
+            self.test_description = 'Two-Sample' + ' ' + self.method
             self.y2 = y2
             self.sample_statistics['Sample 2'] = self._sample_stats(self.y2)
 
@@ -64,7 +68,7 @@ class tTest(object):
             'confidence interval': self.confidence_interval,
             'degrees of freedom': self.parameter,
             'alternative': self.alternative,
-            'test description': self.test_description + ' ' + self.method,
+            'test description': self.test_description,
             self._y1_summary_stat_name + ' Mean': self.sample_statistics[self._y1_summary_stat_name]['mean']
         }
 
@@ -177,6 +181,8 @@ class tTest(object):
 
         if self.alternative == 'two-sided':
             p *= 2.
+        elif self.alternative == 'greater':
+            p = 1 - p
 
         if p == 2.0:
             p = np.finfo(float).eps
