@@ -132,6 +132,7 @@ class MannWhitney(object):
 
     def summary(self):
         mw_results = {
+            'continuity': self.continuity,
             'U': self.U,
             'mu meanrank': self.meanrank,
             'sigma': self.sigma,
