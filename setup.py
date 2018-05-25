@@ -11,7 +11,7 @@ setup(
     packages=find_packages(exclude=['docs', 'notebooks', 'tests*']),
     include_package_data=True,
     long_description=open('README.md').read(),
-    install_requires=['numpy', 'patsy'],
+    install_requires=['numpy>=1.13.0', 'numpy_indexed>=0.3.5', 'pandas>=0.22.0', 'scipy>=1.1.0'],
     home_page='',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
