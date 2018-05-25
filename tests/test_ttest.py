@@ -136,6 +136,14 @@ def test_alternatives(test_data):
 
     assert test_summary['alternative'] == 'greater'
 
+    ttest_less = hypy.t_test(y1=sal_a, y2=sal_b, alternative='less')
+
+    test_less_summary = ttest_less.summary()
+
+    assert test_less_summary['alternative'] == 'less'
+    np.testing.assert_almost_equal(test_less_summary['t-statistic'], -3.1386989278486013)
+    np.testing.assert_almost_equal(test_less_summary['p-value'], 0.0009151540040019292)
+    
 
 def test_ttest_exceptions(test_data, test_multiclass_data):
     sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']

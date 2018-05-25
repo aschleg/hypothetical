@@ -242,13 +242,10 @@ class tTest(object):
     @staticmethod
     def _paired(y1, y2):
 
-        if y2 is not None:
-            if len(y1) != len(y2):
-                raise ValueError('paired samples must have the same number of observations')
+        if len(y1) != len(y2):
+            raise ValueError('paired samples must have the same number of observations')
 
-            x = np.array(y1) - np.array(y2)
-        else:
-            x = y1
+        x = np.array(y1) - np.array(y2)
 
         return x
 
