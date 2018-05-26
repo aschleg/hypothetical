@@ -8,7 +8,7 @@ def w_critical_value(n, alpha, alternative):
     if isinstance(n, str):
         n = int(n)
     if isinstance(alpha, str):
-        alpha = int(alpha)
+        alpha = float(alpha)
 
     if n > 30:
         raise ValueError('W critical values are only provided for n >= 30.')

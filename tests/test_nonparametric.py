@@ -44,3 +44,33 @@ def test_mann_whitney(test_data):
     np.testing.assert_almost_equal(no_cont_result['z-value'], 3.370454082928931)
 
     assert no_cont_result['continuity'] is False
+
+    mw2 = hypy.mann_whitney(sal_a).summary()
+    w = hypy.nonparametric.WilcoxonTest(sal_a).summary()
+
+    assert mw2 == w
+
+
+def test_wilcox_test(test_data):
+    sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
+    sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
+
+    w = hypy.wilcox_test(sal_a)
+
+    test_result = w.summary()
+
+    np.testing.assert_equal(test_result['V'], 16471.0)
+    np.testing.assert_almost_equal(test_result['p-value'], np.finfo(float).eps)
+    np.testing.assert_almost_equal(test_result['z-value'], 11.667217617844829)
+
+    mw = hypy.mann_whitney(sal_a, sal_b).summary()
+    w2 = hypy.wilcox_test(sal_a, sal_b).summary()
+
+    assert mw == w2
+
+    assert test_result['test description'] == 'Wilcoxon signed rank test'
+
+    with pytest.raises(ValueError):
+        hypy.wilcox_test(sal_a, sal_b, paired=True)
+    with pytest.raises(ValueError):
+        hypy.wilcox_test(sal_a, paired=True)

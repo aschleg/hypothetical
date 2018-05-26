@@ -2,8 +2,9 @@
 
 import numpy as np
 import numpy_indexed as npi
-from collections import namedtuple
 from scipy.stats import f
+
+from hypy._lib import _build_des_mat
 
 
 def anova_one_way(group, x, *args):
@@ -97,10 +98,13 @@ class AnovaOneWay(object):
         Brigham Young University: John Wiley & Sons, Inc.
 
     """
-    def __init__(self, group, x, *args):
-        self.group = group
+    def __init__(self, x, group=None, *args):
         self.x = x
-        self.design_matrix = _build_des_mat(group, x, *args)
+
+        if group is not None:
+            self.group = group
+
+        self.design_matrix = _build_des_mat(group, self.x, *args)
         self.group_statistics = self._group_statistics()
         self.group_names = np.unique(self.group)
         self.k = len(self.group_names)
@@ -374,22 +378,3 @@ class ManovaOneWay(object):
     @staticmethod
     def _dot_inve_h(h, e):
         return np.dot(np.linalg.inv(e), h)
-
-
-def _build_des_mat(group, x, *args):
-
-    if args is not ():
-        c = args[0]
-        for i in np.arange(1, len(args)):
-            c = np.column_stack((c, args[i]))
-        mat = np.column_stack((x, c))
-
-    else:
-        mat = x.copy()
-
-    if mat.ndim > 1:
-        mat = np.sum(mat, axis=1)
-
-    data = np.column_stack([group, mat])
-
-    return data

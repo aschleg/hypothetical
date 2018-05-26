@@ -17,7 +17,6 @@ Python library for conducting hypothesis and other group comparison tests.
 ### Analysis of Variance
 
 * Analysis of Variance
-* Multiple Analysis of Variance
 
 ## Features
 

@@ -3,7 +3,9 @@
 import numpy as np
 import numpy_indexed as npi
 from scipy.stats import rankdata, norm
-from hypy.critical import w_critical_value
+
+from hypy._lib import _build_des_mat
+from hypy.aov import AnovaOneWay
 
 
 def mann_whitney(y1, y2=None, group=None, continuity=True):
@@ -60,7 +62,21 @@ def mann_whitney(y1, y2=None, group=None, continuity=True):
         From https://en.wikipedia.org/w/index.php?title=Mann%E2%80%93Whitney_U_test&oldid=786593885
 
     """
-    return MannWhitney(y1=y1, y2=y2, group=group, continuity=continuity)
+    if y2 is None and group is None:
+        res = WilcoxonTest(y1=y1)
+    else:
+        res = MannWhitney(y1=y1, y2=y2, group=group, continuity=continuity)
+
+    return res
+
+
+def wilcox_test(y1, y2=None, paired=False, median=0, continuity=True):
+    if y2 is not None and paired is False:
+        res = MannWhitney(y1=y1, y2=y2, continuity=continuity)
+    else:
+        res = WilcoxonTest(y1=y1, y2=y2, paired=paired, median=median, continuity=continuity)
+
+    return res
 
 
 class MannWhitney(object):
@@ -147,56 +163,63 @@ class MannWhitney(object):
 
 class WilcoxonTest(object):
 
-    def __init__(self, y1, y2=None, paired=False, mu=0, continuity=True, alpha=0.05, alternative='two-sided'):
-        self.y1 = y1
-        self.n = len(self.y1)
+    def __init__(self, y1, y2=None, paired=False, median=0, continuity=True, alpha=0.05, alternative='two-sided'):
         self.paired = paired
-        self.mu = mu
+        self.median = median
         self.continuity = continuity
+        self.test_description = 'Wilcoxon signed rank test'
 
         if paired:
-            self.test_description = 'Wilcoxon signed rank test'
             if y2 is None:
                 raise ValueError('sample 2 is missing for paired test')
+            if len(y1) != len(y2):
+                raise ValueError('samples must have same length for paired test')
 
             self.y1 = np.array(y1) - np.array(y2)
 
         else:
-            self.V = self._one_sample_test()
-            self.test_description = 'Wilcoxon signed rank test'
+            self.y1 = y1
 
-        if self.n > 30:
-            self.z = self._zvalue()
-        else:
-            self.alpha = alpha
-            self.alternative = alternative
-            if alpha not in (0.01, 0.05):
-                raise ValueError('alpha must be 0.05, or 0.01 when sample size is less than 30.')
+        self.n = len(self.y1)
 
-            if self.alternative == 'two-sided':
-                alt = 'two-tail'
-            elif self.alternative in ('greater', 'less'):
-                alt = 'one-tail'
+        self.V = self._test()
 
-            w_crit = w_critical_value(self.n, self.alpha, alt)
+        self.z = self._zvalue()
+        self.p = self._pvalue()
 
-
+        # if self.n > 10:
+        #     self.z = self._zvalue()
+        # else:
+        #     self.alpha = alpha
+        #     self.alternative = alternative
+        #
+        #     if self.alternative == 'two-sided':
+        #         alt = 'two-tail'
+        #     else:
+        #         alt = 'one-tail'
+        #
+        #     w_crit = w_critical_value(self.n, self.alpha, alt)
 
     def summary(self):
         test_results = {
             'V': self.V,
             'z-value': self.z,
+            'p-value': self.p,
             'test description': self.test_description
         }
 
         return test_results
 
-    def _one_sample_test(self):
-        y_mu_signed = self.y1 - self.mu
-        y_mu_unsigned = np.absolute(y_mu_signed)
+    def _test(self):
+        if self.paired:
+            y_median_signed = self.y1
+        else:
+            y_median_signed = self.y1 - self.median
 
-        ranks_signed = rankdata(y_mu_signed, 'average')
-        ranks_unsigned = rankdata(y_mu_unsigned, 'average')
+        y_median_unsigned = np.absolute(y_median_signed)
+
+        ranks_signed = rankdata(y_median_signed, 'average')
+        ranks_unsigned = rankdata(y_median_unsigned, 'average')
 
         z = np.where(ranks_signed > 0, 1, 0)
 
@@ -212,6 +235,34 @@ class WilcoxonTest(object):
         return z
 
     def _pvalue(self):
-        p = 1 - norm.cdf(np.abs(self.z))
+        p = (1 - norm.cdf(np.abs(self.z))) * 2
 
-        return p * 2
+        if p == 0:
+            p = np.finfo(float).eps
+
+        return p
+
+
+class KruskalWallis(AnovaOneWay):
+
+    def __init__(self, x, group=None, *args):
+        super().__init__(self)
+
+        self.x = x
+
+        if group is not None:
+            self.group = group
+
+        self.design_matrix = _build_des_mat(group, self.x, *args)
+
+    def _tie_correction(self):
+        pass
+
+    def _h_value(self):
+        pass
+
+    def _p_value(self):
+        pass
+
+    def _t_value(self):
+        pass
