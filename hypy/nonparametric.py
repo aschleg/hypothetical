@@ -3,6 +3,7 @@
 import numpy as np
 import numpy_indexed as npi
 from scipy.stats import rankdata, norm
+from hypy.critical import w_critical_value
 
 
 def mann_whitney(y1, y2=None, group=None, continuity=True):
@@ -137,7 +138,8 @@ class MannWhitney(object):
             'mu meanrank': self.meanrank,
             'sigma': self.sigma,
             'z-value': self.z_value,
-            'p-value': self.p_value
+            'p-value': self.p_value,
+            'test description': 'Mann-Whitney U test'
         }
 
         return mw_results
@@ -145,19 +147,49 @@ class MannWhitney(object):
 
 class WilcoxonTest(object):
 
-    def __init__(self, y1, paired=False, mu=0):
+    def __init__(self, y1, y2=None, paired=False, mu=0, continuity=True, alpha=0.05, alternative='two-sided'):
         self.y1 = y1
         self.n = len(self.y1)
         self.paired = paired
         self.mu = mu
+        self.continuity = continuity
 
         if paired:
-            pass
-        else:
-            self.W = self._one_sample_test()
+            self.test_description = 'Wilcoxon signed rank test'
+            if y2 is None:
+                raise ValueError('sample 2 is missing for paired test')
 
-        if self.n >= 30:
+            self.y1 = np.array(y1) - np.array(y2)
+
+        else:
+            self.V = self._one_sample_test()
+            self.test_description = 'Wilcoxon signed rank test'
+
+        if self.n > 30:
             self.z = self._zvalue()
+        else:
+            self.alpha = alpha
+            self.alternative = alternative
+            if alpha not in (0.01, 0.05):
+                raise ValueError('alpha must be 0.05, or 0.01 when sample size is less than 30.')
+
+            if self.alternative == 'two-sided':
+                alt = 'two-tail'
+            elif self.alternative in ('greater', 'less'):
+                alt = 'one-tail'
+
+            w_crit = w_critical_value(self.n, self.alpha, alt)
+
+
+
+    def summary(self):
+        test_results = {
+            'V': self.V,
+            'z-value': self.z,
+            'test description': self.test_description
+        }
+
+        return test_results
 
     def _one_sample_test(self):
         y_mu_signed = self.y1 - self.mu
@@ -168,17 +200,14 @@ class WilcoxonTest(object):
 
         z = np.where(ranks_signed > 0, 1, 0)
 
-        w = np.sum(np.multiply(ranks_unsigned, z))
+        v = np.sum(np.multiply(ranks_unsigned, z))
 
-        return w
-
-    def paired(self):
-        pass
+        return v
 
     def _zvalue(self):
         sigma_w = np.sqrt((self.n * (self.n + 1) * (2 * self.n + 1)) / 6.)
 
-        z = self.W / sigma_w
+        z = self.V / sigma_w
 
         return z
 

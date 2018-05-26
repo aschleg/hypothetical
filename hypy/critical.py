@@ -3,13 +3,21 @@
 from numpy import nan
 
 
-def w_critical_value(n, alpha, sample):
+def w_critical_value(n, alpha, alternative):
 
     if isinstance(n, str):
         n = int(n)
     if isinstance(alpha, str):
         alpha = int(alpha)
-    return w_critical_value_table[sample][alpha][n]
+
+    if n > 30:
+        raise ValueError('W critical values are only provided for n >= 30.')
+    if alpha not in (0.05, 0.01):
+        raise ValueError('W critical values are only provided for alpha values 0.05 and 0.01.')
+    if alternative not in ('one-tail', 'two-tail'):
+        raise ValueError("alternative must be one of 'one-tail' or 'two-tail'.")
+
+    return w_critical_value_table[alternative][alpha][n]
 
 
 # http://users.stat.ufl.edu/~winner/tables/wilcox_signrank.pdf

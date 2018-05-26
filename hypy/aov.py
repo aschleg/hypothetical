@@ -393,8 +393,3 @@ def _build_des_mat(group, x, *args):
     data = np.column_stack([group, mat])
 
     return data
-
-def _f_p_value(self, f, df_num, df_denom):
-    p = 1 - f.cdf(f, df_num, df_denom)
-
-    return p

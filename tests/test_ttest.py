@@ -143,7 +143,7 @@ def test_alternatives(test_data):
     assert test_less_summary['alternative'] == 'less'
     np.testing.assert_almost_equal(test_less_summary['t-statistic'], -3.1386989278486013)
     np.testing.assert_almost_equal(test_less_summary['p-value'], 0.0009151540040019292)
-    
+
 
 def test_ttest_exceptions(test_data, test_multiclass_data):
     sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
