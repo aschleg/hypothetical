@@ -3,7 +3,7 @@
 from setuptools import find_packages, setup
 
 setup(
-    name='hypy',
+    name='hypothetical',
     version='0.1.0',
     author='Aaron Schlegel',
     author_email='aaron@aaronschlegel.com',

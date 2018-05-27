@@ -1,5 +1,5 @@
 import pytest
-from hypy import critical as c
+from hypothetical import critical as c
 import numpy as np
 
 

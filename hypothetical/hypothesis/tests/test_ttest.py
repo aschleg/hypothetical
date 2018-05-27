@@ -1,5 +1,5 @@
 import pytest
-import hypy
+from hypothetical.hypothesis.ttest import t_test
 import pandas as pd
 import numpy as np
 import os
@@ -9,7 +9,7 @@ from scipy.stats import t
 @pytest.fixture
 def test_data():
     datapath = os.path.dirname(os.path.abspath(__file__))
-    salaries = pd.read_csv(os.path.join(datapath, 'test_data/Salaries.csv'))
+    salaries = pd.read_csv(os.path.join(datapath, '../../../tests/test_data/Salaries.csv'))
 
     return salaries
 
@@ -17,7 +17,7 @@ def test_data():
 @pytest.fixture
 def test_multiclass_data():
     datapath = os.path.dirname(os.path.abspath(__file__))
-    insectsprays = pd.read_csv(os.path.join(datapath, 'test_data/InsectSprays.csv'))
+    insectsprays = pd.read_csv(os.path.join(datapath, '../../../tests/test_data/InsectSprays.csv'))
 
     return insectsprays
 
@@ -26,7 +26,7 @@ def test_two_sample_welch_test(test_data):
     sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
     sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
 
-    ttest = hypy.t_test(y1=sal_a, y2=sal_b)
+    ttest = t_test(y1=sal_a, y2=sal_b)
 
     test_summary = ttest.summary()
 
@@ -40,7 +40,7 @@ def test_two_sample_welch_test(test_data):
     assert test_summary['alternative'] == 'two-sided'
     assert test_summary['test description'] == "Two-Sample Welch's t-test"
 
-    ttest_group = hypy.t_test(group=test_data['discipline'], y1=test_data['salary'])
+    ttest_group = t_test(group=test_data['discipline'], y1=test_data['salary'])
     test_group_summary = ttest_group.summary()
 
     np.testing.assert_almost_equal(test_summary['Sample 1 Mean'], test_group_summary['Sample 1 Mean'])
@@ -57,7 +57,7 @@ def test_two_sample_students_test(test_data):
     sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
     sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
 
-    ttest = hypy.t_test(y1=sal_a, y2=sal_b, var_equal=True)
+    ttest = t_test(y1=sal_a, y2=sal_b, var_equal=True)
 
     test_summary = ttest.summary()
 
@@ -76,7 +76,7 @@ def test_two_sample_students_test(test_data):
 def test_one_sample_test(test_data):
     sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
 
-    ttest = hypy.t_test(y1=sal_a)
+    ttest = t_test(y1=sal_a)
 
     test_summary = ttest.summary()
 
@@ -89,7 +89,7 @@ def test_one_sample_test(test_data):
 
     assert len(sal_a) - 1 == test_summary['degrees of freedom']
 
-    ttest_mu = hypy.t_test(y1=sal_a, mu=100000)
+    ttest_mu = t_test(y1=sal_a, mu=100000)
 
     test_mu_summary = ttest_mu.summary()
 
@@ -108,7 +108,7 @@ def test_paired_sample_test(test_data):
     sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
     sal_b2 = sal_b[0:len(sal_a)]
 
-    ttest = hypy.t_test(y1=sal_a, y2=sal_b2, paired=True)
+    ttest = t_test(y1=sal_a, y2=sal_b2, paired=True)
 
     test_summary = ttest.summary()
 
@@ -127,7 +127,7 @@ def test_alternatives(test_data):
     sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
     sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
 
-    ttest = hypy.t_test(y1=sal_a, y2=sal_b, alternative='greater')
+    ttest = t_test(y1=sal_a, y2=sal_b, alternative='greater')
 
     test_summary = ttest.summary()
 
@@ -136,7 +136,7 @@ def test_alternatives(test_data):
 
     assert test_summary['alternative'] == 'greater'
 
-    ttest_less = hypy.t_test(y1=sal_a, y2=sal_b, alternative='less')
+    ttest_less = t_test(y1=sal_a, y2=sal_b, alternative='less')
 
     test_less_summary = ttest_less.summary()
 
@@ -150,13 +150,13 @@ def test_ttest_exceptions(test_data, test_multiclass_data):
     sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
 
     with pytest.raises(ValueError):
-        hypy.t_test(y1=sal_a, paired=True)
+        t_test(y1=sal_a, paired=True)
 
     with pytest.raises(ValueError):
-        hypy.t_test(y1=sal_a, y2=sal_b, paired=True)
+        t_test(y1=sal_a, y2=sal_b, paired=True)
 
     with pytest.raises(ValueError):
-        hypy.t_test(sal_a, sal_b, alternative='asdh')
+        t_test(sal_a, sal_b, alternative='asdh')
 
     with pytest.raises(ValueError):
-        hypy.t_test(group=test_multiclass_data['spray'], y1=test_multiclass_data['count'])
+        t_test(group=test_multiclass_data['spray'], y1=test_multiclass_data['count'])

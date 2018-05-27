@@ -1,5 +1,6 @@
 import pytest
-import hypy
+from hypothetical.nonparametric.wilcoxon import wilcox_test, WilcoxonTest
+from hypothetical.nonparametric.mann_whitney import mann_whitney
 import pandas as pd
 import numpy as np
 import os
@@ -8,7 +9,7 @@ import os
 @pytest.fixture
 def test_data():
     datapath = os.path.dirname(os.path.abspath(__file__))
-    salaries = pd.read_csv(os.path.join(datapath, 'test_data/Salaries.csv'))
+    salaries = pd.read_csv(os.path.join(datapath, '../../../tests/test_data/Salaries.csv'))
 
     return salaries
 
@@ -17,7 +18,7 @@ def test_mann_whitney(test_data):
     sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
     sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
 
-    mw = hypy.mann_whitney(sal_a, sal_b)
+    mw = mann_whitney(sal_a, sal_b)
 
     test_result = mw.summary()
 
@@ -29,11 +30,11 @@ def test_mann_whitney(test_data):
 
     assert test_result['continuity']
 
-    mw2 = hypy.mann_whitney(group=test_data['discipline'], y1=test_data['salary'])
+    mw2 = mann_whitney(group=test_data['discipline'], y1=test_data['salary'])
 
     assert test_result == mw2.summary()
 
-    mw_no_cont = hypy.mann_whitney(sal_a, sal_b, continuity=False)
+    mw_no_cont = mann_whitney(sal_a, sal_b, continuity=False)
 
     no_cont_result = mw_no_cont.summary()
 
@@ -45,8 +46,8 @@ def test_mann_whitney(test_data):
 
     assert no_cont_result['continuity'] is False
 
-    mw2 = hypy.mann_whitney(sal_a).summary()
-    w = hypy.nonparametric.WilcoxonTest(sal_a).summary()
+    mw2 = mann_whitney(sal_a).summary()
+    w = WilcoxonTest(sal_a).summary()
 
     assert mw2 == w
 
@@ -55,7 +56,7 @@ def test_wilcox_test(test_data):
     sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
     sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
 
-    w = hypy.wilcox_test(sal_a)
+    w = wilcox_test(sal_a)
 
     test_result = w.summary()
 
@@ -63,14 +64,14 @@ def test_wilcox_test(test_data):
     np.testing.assert_almost_equal(test_result['p-value'], np.finfo(float).eps)
     np.testing.assert_almost_equal(test_result['z-value'], 11.667217617844829)
 
-    mw = hypy.mann_whitney(sal_a, sal_b).summary()
-    w2 = hypy.wilcox_test(sal_a, sal_b).summary()
+    mw = mann_whitney(sal_a, sal_b).summary()
+    w2 = wilcox_test(sal_a, sal_b).summary()
 
     assert mw == w2
 
     assert test_result['test description'] == 'Wilcoxon signed rank test'
 
     with pytest.raises(ValueError):
-        hypy.wilcox_test(sal_a, sal_b, paired=True)
+        wilcox_test(sal_a, sal_b, paired=True)
     with pytest.raises(ValueError):
-        hypy.wilcox_test(sal_a, paired=True)
+        wilcox_test(sal_a, paired=True)
