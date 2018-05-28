@@ -2,7 +2,7 @@ import numpy as np
 import numpy_indexed as npi
 from scipy.stats import rankdata, norm
 
-from hypothetical.nonparametric import wilcoxon
+from hypothetical.nonparametric.wilcoxon import WilcoxonTest
 
 
 def mann_whitney(y1, y2=None, group=None, continuity=True):
@@ -60,7 +60,7 @@ def mann_whitney(y1, y2=None, group=None, continuity=True):
 
     """
     if y2 is None and group is None:
-        res = wilcoxon.WilcoxonTest(y1=y1)
+        res = WilcoxonTest(y1=y1)
     else:
         res = MannWhitney(y1=y1, y2=y2, group=group, continuity=continuity)
 
