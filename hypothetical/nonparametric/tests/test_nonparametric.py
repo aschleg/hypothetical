@@ -1,5 +1,5 @@
 import pytest
-from hypothetical.nonparametric.wilcoxon import wilcox_test, WilcoxonTest
+from hypothetical.nonparametric import wilcoxon
 from hypothetical.nonparametric.mann_whitney import mann_whitney
 import pandas as pd
 import numpy as np
@@ -47,7 +47,7 @@ def test_mann_whitney(test_data):
     assert no_cont_result['continuity'] is False
 
     mw2 = mann_whitney(sal_a).summary()
-    w = WilcoxonTest(sal_a).summary()
+    w = wilcoxon.WilcoxonTest(sal_a).summary()
 
     assert mw2 == w
 
@@ -56,7 +56,7 @@ def test_wilcox_test(test_data):
     sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
     sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
 
-    w = wilcox_test(sal_a)
+    w = wilcoxon.wilcox_test(sal_a)
 
     test_result = w.summary()
 
@@ -65,13 +65,13 @@ def test_wilcox_test(test_data):
     np.testing.assert_almost_equal(test_result['z-value'], 11.667217617844829)
 
     mw = mann_whitney(sal_a, sal_b).summary()
-    w2 = wilcox_test(sal_a, sal_b).summary()
+    w2 = wilcoxon.wilcox_test(sal_a, sal_b).summary()
 
     assert mw == w2
 
     assert test_result['test description'] == 'Wilcoxon signed rank test'
 
     with pytest.raises(ValueError):
-        wilcox_test(sal_a, sal_b, paired=True)
+        wilcoxon.wilcox_test(sal_a, sal_b, paired=True)
     with pytest.raises(ValueError):
-        wilcox_test(sal_a, paired=True)
+        wilcoxon.wilcox_test(sal_a, paired=True)
