@@ -1,5 +1,3 @@
-
-
 from numpy import nan
 
 
@@ -20,7 +18,6 @@ def w_critical_value(n, alpha, alternative):
     return w_critical_value_table[alternative][alpha][n]
 
 
-# http://users.stat.ufl.edu/~winner/tables/wilcox_signrank.pdf
 w_critical_value_table = {
     'one-tail': {
         0.01: {

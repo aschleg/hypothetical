@@ -1,5 +1,5 @@
 import pytest
-from hypothetical.hypothesis.ttest import t_test
+from hypothetical.hypothesis import t_test
 import pandas as pd
 import numpy as np
 import os
@@ -9,7 +9,7 @@ from scipy.stats import t
 @pytest.fixture
 def test_data():
     datapath = os.path.dirname(os.path.abspath(__file__))
-    salaries = pd.read_csv(os.path.join(datapath, '../../../data/Salaries.csv'))
+    salaries = pd.read_csv(os.path.join(datapath, '../data/Salaries.csv'))
 
     return salaries
 
@@ -17,7 +17,7 @@ def test_data():
 @pytest.fixture
 def test_multiclass_data():
     datapath = os.path.dirname(os.path.abspath(__file__))
-    insectsprays = pd.read_csv(os.path.join(datapath, '../../../data/InsectSprays.csv'))
+    insectsprays = pd.read_csv(os.path.join(datapath, '../data/InsectSprays.csv'))
 
     return insectsprays
 

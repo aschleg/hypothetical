@@ -1,5 +1,5 @@
 from hypothetical._lib import build_des_mat
-from hypothetical.aov.anova import AnovaOneWay
+from hypothetical.aov import AnovaOneWay
 
 
 class KruskalWallis(AnovaOneWay):
