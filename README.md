@@ -1,8 +1,8 @@
 # hypothetical - Hypothesis and Statistical Testing in Python
 
-[![Build Status](https://travis-ci.org/aschleg/hypy.svg?branch=master)](https://travis-ci.org/aschleg/hypy)
+[![Build Status](https://travis-ci.org/aschleg/hypothetical.svg?branch=master)](https://travis-ci.org/aschleg/hypothetical)
 [![Build status](https://ci.appveyor.com/api/projects/status/i1i1blt9ny3tyi6a?svg=true)](https://ci.appveyor.com/project/aschleg/hypy)
-[![Coverage Status](https://coveralls.io/repos/github/aschleg/hypy/badge.svg)](https://coveralls.io/github/aschleg/hypy)
+[![Coverage Status](https://coveralls.io/repos/github/aschleg/hypothetical/badge.svg?branch=master)](https://coveralls.io/github/aschleg/hypothetical?branch=master)
 ![Python versions](https://img.shields.io/badge/python-3.4%2C%203.5%2C%203.6-blue.svg)
 
 Python library for conducting hypothesis and other group comparison tests.

@@ -5,12 +5,13 @@ import pandas as pd
 def build_des_mat(*args, group=None):
 
     if group is None:
-        c = pd.concat(*args, axis=1).melt()
+        c = pd.concat([*args], axis=1).melt()
     else:
         c = np.column_stack(*args)
 
         if group is not None:
-            c = np.column_stack([group, c])
+            c = np.column_stack([group,
+                                 np.hstack(c)])
 
     if isinstance(c, pd.DataFrame):
         if c.shape[1] == 1:

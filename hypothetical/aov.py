@@ -3,6 +3,7 @@ import numpy_indexed as npi
 from scipy.stats import f
 
 from hypothetical._lib import build_des_mat
+from hypothetical.summary import var
 
 
 def anova_one_way(*args, group=None):
@@ -10,7 +11,15 @@ def anova_one_way(*args, group=None):
     if len(args) == 1:
         return AnovaOneWay(*args, group=group)
     else:
-        pass
+        return ManovaOneWay(*args, group=group)
+
+
+def manova_one_way(*args, group=None):
+
+    if len(args) > 1:
+        return ManovaOneWay(*args, group=group)
+    else:
+        return AnovaOneWay(*args, group=group)
 
 
 class AnovaOneWay(object):
@@ -113,14 +122,13 @@ class AnovaOneWay(object):
         self.k = len(self.group_names)
         self.group_degrees_of_freedom = self.k - 1
         self.residual_degrees_of_freedom = len(self.design_matrix) - self.k
-        self.sst = self._sst()
-        self.sse = self._sse()
-        self.mst = self._mst()
-        self.mse = self._mse()
-        self.residual_mean_squares = self.mse
-        self.residual_sum_squares = self.sse
-        self.group_sum_squares = self.sst
-        self.group_mean_squares = self.mst
+
+        self.group_sum_squares = self._sst()
+        self.residual_sum_squares = self._sse()
+
+        self.group_mean_squares = self._mst()
+        self.residual_mean_squares = self._mse()
+
         self.f_statistic = self._fvalue()
         self.p_value = self._pvalue()
         self.test_description = 'One-Way ANOVA'
@@ -139,26 +147,27 @@ class AnovaOneWay(object):
     def _sst(self):
         group_n = self.group_statistics['Group Observations']
         group_means = self.group_statistics['Group Means']
-        total_mean = np.mean(self.design_matrix[:, 1:])
+        total_mean = np.mean(self.design_matrix[:, 1])
 
         sst = 0
+
         for i, j in zip(group_n, group_means):
             sst += i[1] * (j[1] - total_mean) ** 2
 
         return sst
 
     def _mst(self):
-        mst = self.sst / self.group_degrees_of_freedom
+        mst = self.group_sum_squares / self.group_degrees_of_freedom
 
         return mst
 
     def _mse(self):
-        mse = self.sse / self.residual_degrees_of_freedom
+        mse = self.residual_sum_squares / self.residual_degrees_of_freedom
 
         return mse
 
     def _fvalue(self):
-        return self.mst / self.mse
+        return self.group_mean_squares / self.residual_mean_squares
 
     def _pvalue(self):
         p = 1 - f.cdf(self.f_statistic,
@@ -170,7 +179,7 @@ class AnovaOneWay(object):
     def _group_statistics(self):
         group_means = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], np.mean)
         group_obs = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], len)
-        group_variance = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], np.var)
+        group_variance = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], var)
 
         group_stats = {
             'Group Means': group_means,
@@ -206,7 +215,6 @@ class ManovaOneWay(object):
             self.group = group
         else:
             self.group = self.design_matrix[:, 0]
-
 
         self.design_matrix = build_des_mat(group, *args)
         #self.group_names = np.unique(self.group)
