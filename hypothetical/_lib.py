@@ -5,7 +5,7 @@ import pandas as pd
 def build_des_mat(*args, group=None):
 
     if group is None:
-        c = pd.concat([*args], axis=1).melt()
+        c = pd.concat(*args, axis=1).melt()
     else:
         c = np.column_stack(*args)
 
