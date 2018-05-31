@@ -9,7 +9,10 @@ install:
   - pip install pytest
   - pip install pyyaml
   - pip install pbr
-  - pip install -r requirements.txt
+  - pip install numpy
+  - pip install pandas
+  - pip install numpy_indexed
+  - pip install scipy
   - python setup.py install
 test_script:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
