@@ -1,20 +1,11 @@
 import pytest
-from hypothetical.aov import anova_one_way
 import numpy as np
 import pandas as pd
-import os
+from hypothetical._lib import build_des_mat
 
 
 @pytest.fixture
-def test_data():
-    datapath = os.path.dirname(os.path.abspath(__file__))
-    plants = pd.read_csv(os.path.join(datapath, '../data/PlantGrowth.csv'))
-
-    return plants
-
-
-@pytest.fixture
-def multivariate_test_data():
+def test_array():
     d = np.array([[1., 1.11, 2.569, 3.58, 0.76],
                   [1., 1.19, 2.928, 3.75, 0.821],
                   [1., 1.09, 2.865, 3.93, 0.928],
@@ -67,19 +58,15 @@ def multivariate_test_data():
     return d
 
 
-def test_anova_one_way():
-    plants = test_data()
+def test_build_design_matrix():
+    dat = test_array()
+    dat_df = pd.DataFrame(dat)
 
-    anov = anova_one_way(plants['weight'], group=plants['group'])
+    des_mat = build_des_mat(dat[:, 1], dat[:, 2], dat[:, 3], dat[:, 4], group=dat[:, 0])
+    des_mat_df = build_des_mat(dat_df[1], dat_df[2], dat_df[3], dat_df[4], group=dat_df[0])
 
-    result = anov.summary()
+    assert isinstance(des_mat, np.ndarray)
+    assert des_mat.shape == dat.shape
 
-    np.testing.assert_almost_equal(result['F-statistic'], 4.846087862380137)
-    np.testing.assert_almost_equal(result['Group DoF'], 2)
-    np.testing.assert_almost_equal(result['Group Mean Squares'], 1.8831700000000007)
-    np.testing.assert_almost_equal(result['Group Sum of Squares'], 3.7663400000000014)
-
-    np.testing.assert_almost_equal(result['p-value'], 0.01590995832562292)
-    np.testing.assert_almost_equal(result['Residual DoF'], 27)
-    np.testing.assert_almost_equal(result['Residual Mean Squares'], 0.38859592592592596)
-    np.testing.assert_almost_equal(result['Residual Sum of Squares'], 10.492090000000001)
+    assert isinstance(des_mat_df, np.ndarray)
+    assert des_mat_df.shape == dat.shape

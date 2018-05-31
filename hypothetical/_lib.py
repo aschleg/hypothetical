@@ -3,15 +3,24 @@ import pandas as pd
 
 
 def build_des_mat(*args, group=None):
+    # arg_shapes = []
+    #
+    # for a in args:
+    #     arg_shapes.append(a.shape[1])
+    #
+    # if len(set(arg_shapes)) != 1:
+    #     raise ValueError('all input arrays must be of the same dimension')
+    #
+    # if all(x == 1 for x in arg_shapes):
+
+    if isinstance(group, pd.DataFrame):
+        group = group.squeeze().values
 
     if group is None:
-        c = pd.concat(*args, axis=1).melt()
+        c = pd.DataFrame(np.stack(args, axis=-1)).melt()
     else:
-        c = np.column_stack(*args)
-
-        if group is not None:
-            c = np.column_stack([group,
-                                 np.hstack(c)])
+        c = pd.concat([pd.DataFrame(np.vstack(args))]).transpose()
+        c.insert(0, 'group', group)
 
     if isinstance(c, pd.DataFrame):
         if c.shape[1] == 1:

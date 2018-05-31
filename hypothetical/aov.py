@@ -191,15 +191,16 @@ class AnovaOneWay(object):
 
     def summary(self):
         anova_results = {
-            'F statistic': self.f_statistic,
+            'Test description': self.test_description,
+            'F-statistic': self.f_statistic,
             'p-value': self.p_value,
-            'group DoF': self.group_degrees_of_freedom,
-            'residual DoF': self.residual_degrees_of_freedom,
-            'group Sum of Squares': self.group_sum_squares,
-            'group Mean Squares': self.group_mean_squares,
-            'residual Sum of Squares': self.residual_sum_squares,
-            'residual Mean Squares': self.residual_mean_squares,
-            'group statistics': self.group_statistics
+            'Group DoF': self.group_degrees_of_freedom,
+            'Residual DoF': self.residual_degrees_of_freedom,
+            'Group Sum of Squares': self.group_sum_squares,
+            'Group Mean Squares': self.group_mean_squares,
+            'Residual Sum of Squares': self.residual_sum_squares,
+            'Residual Mean Squares': self.residual_mean_squares,
+            'Group statistics': self.group_statistics
         }
 
         return anova_results
@@ -216,8 +217,6 @@ class ManovaOneWay(object):
         else:
             self.group = self.design_matrix[:, 0]
 
-        self.design_matrix = build_des_mat(group, *args)
-        #self.group_names = np.unique(self.group)
         self.k = len(np.unique(self.group))
 
         self._group_stats = self._group_statistics()
@@ -226,19 +225,22 @@ class ManovaOneWay(object):
         self.hypothesis_matrix, self.error_matrix = self._hypothesis_error_matrix()
         self._intermediate_statistic_parameters = self._intermediate_test_statistic_parameters()
 
-        #self.degrees_of_freedom = self._degrees_of_freedom()
-        #self.pillai_statistic = self.pillai_statistic()
-        #self.wilks_lambda = self._wilks_statistic()
-        #self.roys_statistic = self._roys_statistic()
-        #self.hotelling_t2_statistic = self._hotelling_t2_statistic()
+        self.degrees_of_freedom = self._degrees_of_freedom()
+        self.numerator_dof = self.degrees_of_freedom['Numerator Degrees of Freedom']
+        self.denominator_dof = self.degrees_of_freedom['Denominator Degrees of Freedom']
+        self.pillai_statistic = self._pillai_statistic()
+        self.wilks_lambda = self._wilks_statistic()
+        self.roys_statistic = self._roys_statistic()
+        self.hotelling_t2_statistic = self._hotelling_t2_statistic()
+        self.test_description = 'One-Way MANOVA'
 
     def _group_statistics(self):
-        group_means = npi.group_by(self.design_matrix[:, 0]).mean(self.design_matrix[:, 1])[1] #.mean(self.design_matrix[:, 1:])[1][:, 1:]
+        group_means = npi.group_by(self.design_matrix[:, 0]).mean(self.design_matrix[:, 1:])[1]
 
         group_observations = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1:], len)
         group_observations = [i for _, i in group_observations]
 
-        groups = npi.group_by(self.design_matrix[:, 0], self.design_matrix)[1]
+        groups = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1:])[1]
 
         group_stats = {
             'Group Means': group_means,
@@ -264,8 +266,8 @@ class ManovaOneWay(object):
         groupmeans = self._group_stats['Group Means']
         xmeans = self._observation_stats['x means']
 
-        xn = self._observation_stats['x observations']
         n = self._group_stats['Group Observations']
+        xn = len(xmeans)
 
         h, e = np.zeros((xn, xn)), np.zeros((xn, xn))
 
@@ -291,7 +293,7 @@ class ManovaOneWay(object):
         eigs = np.linalg.eigvals(dot_inve_h)
 
         p = len(self.error_matrix)
-        n = len(self.x)
+        n = self.design_matrix.shape[0]
 
         vh = self.k - 1.
         ve = n - self.k
@@ -325,8 +327,11 @@ class ManovaOneWay(object):
 
         pillai_f = ((2. * nn + s + 1.) * pillai) / ((2. * m + s + 1.) * (s - pillai))
 
-        pillai_stat = {'Pillai Statistic': pillai,
-                       'Pillai F-value': pillai_f}
+        pillai_stat = {'Pillai Statistic: ': pillai,
+                       'Pillai F-value: ': pillai_f,
+                       'Pillai p-value': self._f_p_value(pillai_f,
+                                                         self.numerator_dof,
+                                                         self.denominator_dof)}
 
         return pillai_stat
 
@@ -343,8 +348,11 @@ class ManovaOneWay(object):
         wilks_lambda = np.prod(1. / (1. + eigs))
         wilks_lambda_f = ((1. - wilks_lambda ** (1. / t)) / wilks_lambda ** (1. / t)) * (df2 / df1)
 
-        wilks_stat = {"Wilk's Lambda": wilks_lambda,
-                      "Wilk's Lambda F-value": wilks_lambda_f}
+        wilks_stat = {"Wilk's Lambda: ": wilks_lambda,
+                      "Wilk's Lambda F-value: ": wilks_lambda_f,
+                      "Wilk's Lambda p-value: ": self._f_p_value(wilks_lambda_f,
+                                                                 self.numerator_dof,
+                                                                 self.denominator_dof)}
 
         return wilks_stat
 
@@ -356,8 +364,11 @@ class ManovaOneWay(object):
         roy = np.max(eigs)
         roy_f = float(self.k * (n - 1)) / float(vh) * roy
 
-        roy_stat = {"Roy's Statistic": roy,
-                    "Roy F-value": roy_f}
+        roy_stat = {"Roy's Statistic: ": roy,
+                    "Roy's Statistic F-value: ": roy_f,
+                    "Roy's Statistic p-value: ": self._f_p_value(roy_f,
+                                                                 self.numerator_dof,
+                                                                 self.denominator_dof)}
 
         return roy_stat
 
@@ -371,8 +382,11 @@ class ManovaOneWay(object):
         t2_f = (2. * (s * nn + 1.) * np.sum(dot_inve_h)) / (s ** 2. * (2. * m + s + 1.))
 
         t2_stat = {
-            "Hotelling's T^2 Statistic": t2,
-            "Hotelling's T^2 F-value": t2_f
+            "Hotelling's T^2 Statistic: ": t2,
+            "Hotelling's T^2 F-value: ": t2_f,
+            "Hotelling's T^2 p-value: ": self._f_p_value(t2_f,
+                                                         self.numerator_dof,
+                                                         self.denominator_dof)
         }
 
         return t2_stat
@@ -380,20 +394,32 @@ class ManovaOneWay(object):
     def _degrees_of_freedom(self):
         vh, ve, xn = self._intermediate_statistic_parameters['vh'], \
                      self._intermediate_statistic_parameters['ve'], \
-                     self._intermediate_statistic_parameters['xn']
+                     len(self._observation_stats['x means'])
 
-        num_df, denom_df = vh * xn, ve * xn
+        num_df, denom_df = vh, ve
 
         dof = {'Numerator Degrees of Freedom': num_df,
                'Denominator Degrees of Freedom': denom_df}
 
         return dof
 
-    def _f_p_value(self, f, df_num, df_denom):
-        p = 1 - f.cdf(f, df_num, df_denom)
+    def _f_p_value(self, f_val, df_num, df_denom):
+        p = 1 - f.cdf(f_val, df_num, df_denom)
 
         return p
 
     @staticmethod
     def _dot_inve_h(h, e):
         return np.dot(np.linalg.inv(e), h)
+
+    def summary(self):
+        manova_result = {
+            'Test Description': self.test_description,
+            'degrees of freedom': self.degrees_of_freedom,
+            'Pillai Statistic': self.pillai_statistic,
+            "Wilk's Lambda": self.wilks_lambda,
+            "Roy's Statistic": self.roys_statistic,
+            "Hotelling's T^2": self.hotelling_t2_statistic
+        }
+
+        return manova_result
