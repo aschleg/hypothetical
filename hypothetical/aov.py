@@ -327,8 +327,8 @@ class ManovaOneWay(object):
 
         pillai_f = ((2. * nn + s + 1.) * pillai) / ((2. * m + s + 1.) * (s - pillai))
 
-        pillai_stat = {'Pillai Statistic: ': pillai,
-                       'Pillai F-value: ': pillai_f,
+        pillai_stat = {'Pillai Statistic': pillai,
+                       'Pillai F-value': pillai_f,
                        'Pillai p-value': self._f_p_value(pillai_f,
                                                          self.numerator_dof,
                                                          self.denominator_dof)}
@@ -348,11 +348,11 @@ class ManovaOneWay(object):
         wilks_lambda = np.prod(1. / (1. + eigs))
         wilks_lambda_f = ((1. - wilks_lambda ** (1. / t)) / wilks_lambda ** (1. / t)) * (df2 / df1)
 
-        wilks_stat = {"Wilk's Lambda: ": wilks_lambda,
-                      "Wilk's Lambda F-value: ": wilks_lambda_f,
-                      "Wilk's Lambda p-value: ": self._f_p_value(wilks_lambda_f,
-                                                                 self.numerator_dof,
-                                                                 self.denominator_dof)}
+        wilks_stat = {"Wilks Lambda": wilks_lambda,
+                      "Wilks Lambda F-value": wilks_lambda_f,
+                      "Wilks Lambda p-value": self._f_p_value(wilks_lambda_f,
+                                                              self.numerator_dof,
+                                                              self.denominator_dof)}
 
         return wilks_stat
 
@@ -364,11 +364,11 @@ class ManovaOneWay(object):
         roy = np.max(eigs)
         roy_f = float(self.k * (n - 1)) / float(vh) * roy
 
-        roy_stat = {"Roy's Statistic: ": roy,
-                    "Roy's Statistic F-value: ": roy_f,
-                    "Roy's Statistic p-value: ": self._f_p_value(roy_f,
-                                                                 self.numerator_dof,
-                                                                 self.denominator_dof)}
+        roy_stat = {"Roys Statistic": roy,
+                    "Roys Statistic F-value": roy_f,
+                    "Roys Statistic p-value": self._f_p_value(roy_f,
+                                                              self.numerator_dof,
+                                                              self.denominator_dof)}
 
         return roy_stat
 
@@ -382,11 +382,11 @@ class ManovaOneWay(object):
         t2_f = (2. * (s * nn + 1.) * np.sum(dot_inve_h)) / (s ** 2. * (2. * m + s + 1.))
 
         t2_stat = {
-            "Hotelling's T^2 Statistic: ": t2,
-            "Hotelling's T^2 F-value: ": t2_f,
-            "Hotelling's T^2 p-value: ": self._f_p_value(t2_f,
-                                                         self.numerator_dof,
-                                                         self.denominator_dof)
+            "Hotellings T^2 Statistic": t2,
+            "Hotellings T^2 F-value": t2_f,
+            "Hotellings T^2 p-value": self._f_p_value(t2_f,
+                                                      self.numerator_dof,
+                                                      self.denominator_dof)
         }
 
         return t2_stat
@@ -417,9 +417,9 @@ class ManovaOneWay(object):
             'Test Description': self.test_description,
             'degrees of freedom': self.degrees_of_freedom,
             'Pillai Statistic': self.pillai_statistic,
-            "Wilk's Lambda": self.wilks_lambda,
-            "Roy's Statistic": self.roys_statistic,
-            "Hotelling's T^2": self.hotelling_t2_statistic
+            "Wilks Lambda": self.wilks_lambda,
+            "Roys Statistic": self.roys_statistic,
+            "Hotellings T^2": self.hotelling_t2_statistic
         }
 
         return manova_result

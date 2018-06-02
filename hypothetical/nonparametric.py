@@ -1,6 +1,9 @@
 import numpy as np
 import numpy_indexed as npi
-from scipy.stats import rankdata, norm
+from scipy.stats import rankdata, norm, chi2, t
+
+from hypothetical._lib import build_des_mat
+from hypothetical.summary import var
 
 
 def mann_whitney(y1, y2=None, group=None, continuity=True):
@@ -236,3 +239,91 @@ class WilcoxonTest(object):
             p = np.finfo(float).eps
 
         return p
+
+
+class KruskalWallis(object):
+
+    def __init__(self, *args, group, alpha=0.05):
+
+        if group is not None and len(args) > 1:
+            raise ValueError('Only one sample vector should be passed when including a group vector')
+
+        self.design_matrix = build_des_mat(args, group=group)
+        self.ranked_matrix = self._rank()
+        self.group_rank_sums = self._group_rank_sums()
+        self.alpha = alpha
+        self.n = self.design_matrix.shape[0]
+        self.k = len(np.unique(self.design_matrix[:, 0]))
+        self.dof = self.k - 1
+        self.H = self._hvalue()
+        self.p_value = self._pvalue()
+        self.t_value = self._tvalue()
+        self.least_significant_difference = self._lsd()
+
+    def _hvalue(self):
+        group_observations = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1:], len)
+
+        group_observations = np.array([i for _, i in group_observations])
+
+        group_summed_ranks = np.array([i for _, i in self.group_rank_sums])
+
+        h1 = 12. / (self.n * (self.n + 1))
+        h2 = np.sum(group_summed_ranks ** 2 / group_observations)
+
+        h = h1 * h2 - (3 * (self.n + 1))
+
+        # Apply tie correction if needed
+        if len(np.unique(self.ranked_matrix[:, 2])) != len(self.n):
+
+            h = tie_correction(self.ranked_matrix[:, 2])
+
+        return h
+
+    def _pvalue(self):
+        p = 1 - chi2.cdf(self.H, self.dof)
+
+        return p
+
+    def _tvalue(self):
+        tval = t.ppf(1 - self.alpha / 2, self.n - self.k)
+
+        return tval
+
+    def _rank(self):
+
+        ranks = rankdata(self.design_matrix[:, 1], 'average')
+
+        ranks = np.column_stack([self.design_matrix, ranks])
+
+        return ranks
+
+    def _lsd(self):
+        lsd = self.t_value * np.sqrt(self._mse() * 2 / self.n)
+
+        return lsd
+
+    def _group_rank_sums(self):
+        rank_sums = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 2], np.sum)
+
+        return rank_sums
+
+    def _mse(self):
+        group_variance = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 2], var)
+        group_n = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 2], len)
+
+        sse = 0
+
+        for i, j in zip(group_n, group_variance):
+            sse += (i[1] - 1) * j[1]
+
+        return sse / (self.n - self.k)
+
+
+def tie_correction(rank_array):
+    tied_groups = np.unique(rank_array, return_counts=True)[1]
+    tied_groups = tied_groups[tied_groups > 1]
+
+    h = 1 - np.sum((tied_groups ** 3 - tied_groups)) / (rank_array.shape[0] ** 3 -
+                                                        rank_array.shape[0])
+
+    return h

@@ -1,5 +1,5 @@
 import pytest
-from hypothetical.aov import anova_one_way
+from hypothetical.aov import anova_one_way, manova_one_way
 import numpy as np
 import pandas as pd
 import os
@@ -83,3 +83,32 @@ def test_anova_one_way():
     np.testing.assert_almost_equal(result['Residual DoF'], 27)
     np.testing.assert_almost_equal(result['Residual Mean Squares'], 0.38859592592592596)
     np.testing.assert_almost_equal(result['Residual Sum of Squares'], 10.492090000000001)
+
+
+def test_manova_one_way():
+    dat = multivariate_test_data()
+    dat_shape = dat.shape
+    manov = manova_one_way(dat[:, 1], dat[:, 2], dat[:, 3], dat[:, 4], group=dat[:, 0])
+
+    result = manov.summary()
+
+    assert result['degrees of freedom']['Denominator Degrees of Freedom'] == dat_shape[0] - dat_shape[1] - 1
+    assert result['degrees of freedom']['Numerator Degrees of Freedom'] == dat_shape[1]
+    assert result['Test Description'] == 'One-Way MANOVA'
+
+    pillai = result['Pillai Statistic']
+    roy = result['Roys Statistic']
+    wilk = result['Wilks Lambda']
+    hotelling = result['Hotellings T^2']
+
+    np.testing.assert_almost_equal(pillai['Pillai Statistic'], 1.3054724154813995)
+    np.testing.assert_almost_equal(pillai['Pillai F-value'], 4.069718325783225)
+    np.testing.assert_almost_equal(pillai['Pillai p-value'], 0.004209350934305522)
+
+    np.testing.assert_almost_equal(roy['Roys Statistic'], 1.87567111989616)
+
+    np.testing.assert_almost_equal(wilk["Wilks Lambda F-value"], 4.936888039729538)
+    np.testing.assert_almost_equal(wilk["Wilks Lambda"], 0.15400766733804414)
+    np.testing.assert_almost_equal(wilk["Wilks Lambda p-value"], 0.001210290803741243)
+
+    np.testing.assert_almost_equal(hotelling["Hotellings T^2 Statistic"], 2.921368304265692)

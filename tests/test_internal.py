@@ -65,8 +65,20 @@ def test_build_design_matrix():
     des_mat = build_des_mat(dat[:, 1], dat[:, 2], dat[:, 3], dat[:, 4], group=dat[:, 0])
     des_mat_df = build_des_mat(dat_df[1], dat_df[2], dat_df[3], dat_df[4], group=dat_df[0])
 
+    des_mat_no_group = build_des_mat(dat[:, 1], dat[:, 2], dat[:, 3], dat[:, 4])
+
+    des_mat_group_df = build_des_mat(dat[:, 1], dat[:, 2], dat[:, 3], dat[:, 4], group=pd.DataFrame(dat[:, 0]))
+
+    des_mat_group_df = build_des_mat(dat[:, 1], dat[:, 2], dat[:, 3], dat[:, 4], group=pd.DataFrame(dat[:, 0]))
+
     assert isinstance(des_mat, np.ndarray)
     assert des_mat.shape == dat.shape
 
     assert isinstance(des_mat_df, np.ndarray)
     assert des_mat_df.shape == dat.shape
+
+    assert isinstance(des_mat_no_group, np.ndarray)
+    assert des_mat_no_group.shape[1] == 2
+
+    assert isinstance(des_mat, np.ndarray)
+    assert des_mat_group_df.shape == dat.shape

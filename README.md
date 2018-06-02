@@ -25,8 +25,6 @@ Python library for conducting hypothesis and other group comparison tests.
 * Analysis of Variance (ANOVA)
 * Multivariate Analysis of Variance (MANOVA)
 
-## Other Features and Utilities
-
 ### Correlation and Covariance
 
 * Pearson Correlation

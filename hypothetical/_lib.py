@@ -23,9 +23,6 @@ def build_des_mat(*args, group=None):
         c.insert(0, 'group', group)
 
     if isinstance(c, pd.DataFrame):
-        if c.shape[1] == 1:
-            c = c.loc[:, c.columns[0]].values
-        else:
             c = c.values
 
     return c
