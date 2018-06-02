@@ -77,6 +77,10 @@ def wilcox_test(y1, y2=None, paired=False, median=0, continuity=True):
     return res
 
 
+def kruskal_wallis(*args, group=None, alpha=0.05):
+    return KruskalWallis(*args, group=group, alpha=alpha)
+
+
 class MannWhitney(object):
 
     def __init__(self, y1, y2=None, group=None, continuity=True):
@@ -85,7 +89,7 @@ class MannWhitney(object):
             self.y1 = y1
             self.y2 = y2
         else:
-            if len(group.unique()) > 2:
+            if len(np.unique(group)) > 2:
                 raise ValueError('there cannot be more than two groups')
 
             obs_matrix = npi.group_by(group, y1)
@@ -243,12 +247,18 @@ class WilcoxonTest(object):
 
 class KruskalWallis(object):
 
-    def __init__(self, *args, group, alpha=0.05):
+    def __init__(self, *args, group=None, alpha=0.05):
 
         if group is not None and len(args) > 1:
             raise ValueError('Only one sample vector should be passed when including a group vector')
 
-        self.design_matrix = build_des_mat(args, group=group)
+        self.design_matrix = build_des_mat(*args, group=group)
+
+        if group is not None:
+            self.group = group
+        else:
+            self.group = self.design_matrix[:, 0]
+
         self.ranked_matrix = self._rank()
         self.group_rank_sums = self._group_rank_sums()
         self.alpha = alpha
@@ -259,6 +269,7 @@ class KruskalWallis(object):
         self.p_value = self._pvalue()
         self.t_value = self._tvalue()
         self.least_significant_difference = self._lsd()
+        self.test_description = 'Kruskal-Wallis rank sum test'
 
     def _hvalue(self):
         group_observations = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1:], len)
@@ -273,9 +284,9 @@ class KruskalWallis(object):
         h = h1 * h2 - (3 * (self.n + 1))
 
         # Apply tie correction if needed
-        if len(np.unique(self.ranked_matrix[:, 2])) != len(self.n):
+        if len(np.unique(self.ranked_matrix[:, 2])) != self.n:
 
-            h = tie_correction(self.ranked_matrix[:, 2])
+            h /= tie_correction(self.ranked_matrix[:, 2])
 
         return h
 
@@ -297,19 +308,14 @@ class KruskalWallis(object):
 
         return ranks
 
-    def _lsd(self):
-        lsd = self.t_value * np.sqrt(self._mse() * 2 / self.n)
-
-        return lsd
-
     def _group_rank_sums(self):
-        rank_sums = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 2], np.sum)
+        rank_sums = npi.group_by(self.ranked_matrix[:, 0], self.ranked_matrix[:, 2], np.sum)
 
         return rank_sums
 
     def _mse(self):
-        group_variance = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 2], var)
-        group_n = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 2], len)
+        group_variance = npi.group_by(self.ranked_matrix[:, 0], self.ranked_matrix[:, 2], var)
+        group_n = npi.group_by(self.ranked_matrix[:, 0], self.ranked_matrix[:, 2], len)
 
         sse = 0
 
@@ -317,6 +323,23 @@ class KruskalWallis(object):
             sse += (i[1] - 1) * j[1]
 
         return sse / (self.n - self.k)
+
+    def _lsd(self):
+        lsd = self.t_value * np.sqrt(self._mse() * 2 / (self.n / self.k))
+
+        return lsd
+
+    def summary(self):
+        test_results = {'test description': self.test_description,
+                        'critical chisq value': self.H,
+                        'p-value': self.p_value,
+                        'least significant difference': self.least_significant_difference,
+                        't-value': self.t_value,
+                        'alpha': self.alpha,
+                        'degrees of freedom': self.dof
+        }
+
+        return test_results
 
 
 def tie_correction(rank_array):

@@ -22,8 +22,9 @@ Python library for conducting hypothesis and other group comparison tests.
 
 ### Analysis of Variance
 
-* Analysis of Variance (ANOVA)
-* Multivariate Analysis of Variance (MANOVA)
+* One-way Analysis of Variance (ANOVA)
+* One-way Multivariate Analysis of Variance (MANOVA)  
+* Kruskal-Wallis (nonparametric equivalent of one-way ANOVA)
 
 ### Correlation and Covariance
 
@@ -35,7 +36,12 @@ Python library for conducting hypothesis and other group comparison tests.
 
 ### Critical Value Tables
 
+* Chi-square
 * Wilcoxon Rank Sum W Statistic
+
+### Helpful Functions
+
+* Tie Correction for ranked variables
 
 ## Goal
 
