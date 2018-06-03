@@ -3,6 +3,22 @@ from hypothetical import critical as c
 import numpy as np
 
 
+def test_chi_square_critical_table():
+    dof, alpha = 10, 0.05
+
+    critical_value = c.chi_square_critical_value(alpha, dof)
+    critical_value2 = c.chi_square_critical_value(str(alpha), str(dof))
+    critical_value3 = c.chi_square_critical_value(str(alpha), float(dof))
+
+    assert critical_value == 18.307
+    assert critical_value2 == 18.307
+    assert critical_value3 == 18.307
+
+    with pytest.raises(ValueError):
+        c.chi_square_critical_value(31, 0.05)
+    with pytest.raises(ValueError):
+        c.chi_square_critical_value(5, 1)
+
 def test_w_critical_table():
     n, alpha, alternative = 15, 0.05, 'two-tail'
 
