@@ -2,3 +2,4 @@ numpy>=1.13.0
 numpy_indexed>=0.3.5
 pandas>=0.22.0
 scipy>=1.1.0
+statsmodels>=0.9.0
