@@ -54,6 +54,69 @@ def covariance(x, y=None, method=None):
 
 
 def pearson(x, y=None):
+    r"""
+    Computes the Pearson product-moment correlation coefficients of the given variables.
+
+    Parameters
+    ----------
+    x : numpy ndarray, array-like
+        Can be Pandas DataFrame, Pandas Series, numpy ndarray, list, or list of lists
+        representing a 1D or 2D array containing the variables and their respective observation
+        vectors.
+        The input is concatenated with the parameter y if given.
+    y : numpy ndarray, array-like
+        Can be Pandas DataFrame, Pandas Series, numpy ndarray, list, or list of lists
+        representing a 1D or 2D array containing the variables and their respective observation
+        vectors.
+
+    Returns
+    -------
+    numpy ndarray
+        The correlation coefficient matrix of the inputted variables.
+
+    Notes
+    -----
+    Pearson's product-moment correlation coefficient is the covariance of two random variables
+    divided by the product of their standard deviations and is typically represented by
+    :math:`\rho`:
+
+    .. math::
+
+        \rho_{x, y} = \frac{cov(X, Y)}{\sigma_X \sigma_Y}
+
+    The correlation matrix :math:`C` and the covariance matrix :math:`R` have the following
+    relationship.
+
+    .. math::
+
+        R_{ij} = \frac{C_{ij}}{\sqrt{C_{ii} * C_{jj}}}
+
+    Examples
+    --------
+    >>> h = np.array([[16,4,8,4], [4,10,8,4], [8,8,12,10], [4,4,10,12]])
+    >>> pearson(h)
+    array([[ 1.        , -0.47140452, -0.24618298, -0.45732956],
+       [-0.47140452,  1.        ,  0.05802589, -0.29643243],
+       [-0.24618298,  0.05802589,  1.        ,  0.80218063],
+       [-0.45732956, -0.29643243,  0.80218063,  1.        ]])
+    >>> pearson(h[:, 0:1], h[:, 1:])
+    array([[ 1.        , -0.47140452, -0.24618298, -0.45732956],
+       [-0.47140452,  1.        ,  0.05802589, -0.29643243],
+       [-0.24618298,  0.05802589,  1.        ,  0.80218063],
+       [-0.45732956, -0.29643243,  0.80218063,  1.        ]])
+    >>> pearson(h[:, 1], h[:, 2])
+    array([[ 1.        ,  0.05802589],
+       [ 0.05802589,  1.        ]])
+
+    References
+    ----------
+    Pearson correlation coefficient. (2017, July 12). In Wikipedia, The Free Encyclopedia.
+        From https://en.wikipedia.org/w/index.php?title=Pearson_correlation_coefficient&oldid=790217169
+
+    Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
+        Brigham Young University: John Wiley & Sons, Inc.
+
+    """
     matrix = _build_matrix(x, y)
 
     pearson_corr = np.empty((matrix.shape[1], matrix.shape[1]))
@@ -68,6 +131,69 @@ def pearson(x, y=None):
 
 
 def spearman(x, y=None):
+    r"""
+    Computes the Spearman correlation coefficients of the given variables.
+
+    Parameters
+    ----------
+    x : numpy ndarray, array-like
+        Can be Pandas DataFrame, Pandas Series, numpy ndarray, list, or list of lists
+        representing a 1D or 2D array containing the variables and their respective observation
+        vectors.
+        The input is concatenated with the parameter y if given.
+    y : numpy ndarray, array-like
+        Can be Pandas DataFrame, Pandas Series, numpy ndarray, list, or list of lists
+        representing a 1D or 2D array containing the variables and their respective observation
+        vectors.
+
+    Returns
+    -------
+    numpy ndarray
+        The correlation coefficient matrix of the inputted variables.
+
+    Notes
+    -----
+    Spearman's :math:`\rho`, often denoted :math:`r_s` is a nonparametric measure of correlation.
+    While Pearson's product-moment correlation coefficient represents the linear relationship between
+    two variables, Spearman's correlation measures the monotonicity of two variables. Put more simply,
+    Spearman's correlation is Pearson's correlation performed on ranked variables.
+
+    Two random variables :math:`X` and :math:`Y` and their respective observation vectors
+    :math:`x_1, x_2, \cdots, x_n` and :math:`y_1, y_2, \cdots, y_n` are converted to ranked variables
+    (identical values are averaged), often denoted :math:`rg_X` and :math:`rg_Y`, and the correlation
+    :math:`r_s` is computed as:
+
+    .. math::
+
+        r_s = \rho_{rg_X, rg_Y} = \frac{cov(rg_X, rg_Y}{\sigma_{rg_X} \sigma_{rg_Y}}
+
+    Where :math:`\rho` is the Pearson correlation coefficient applied to the ranked variables,
+    :math:`cov(rg_X, rg_Y)` is the covariance of the ranked variables and :math:`\sigma_{rg_X}` and
+    :math:`\sigma_{rg_Y}` are the standard deviations of the ranked variables.
+
+    Examples
+    --------
+    >>> h = np.array([[16,4,8,4], [4,10,8,4], [8,8,12,10], [4,4,10,12]])
+    >>> spearman(h)
+    array([[ 1.        , -0.33333333, -0.03703704, -0.33333333],
+       [-0.33333333,  1.        , -0.03703704, -0.33333333],
+       [-0.03703704, -0.03703704,  1.        ,  0.85185185],
+       [-0.33333333, -0.33333333,  0.85185185,  1.        ]])
+    >>> spearman(h[:, 0:1], h[:, 1:])
+    array([[ 1.        , -0.33333333, -0.03703704, -0.33333333],
+       [-0.33333333,  1.        , -0.03703704, -0.33333333],
+       [-0.03703704, -0.03703704,  1.        ,  0.85185185],
+       [-0.33333333, -0.33333333,  0.85185185,  1.        ]])
+    >>> spearman(h[:, 0], h[:, 1])
+    array([[ 1.        , -0.33333333],
+       [-0.33333333,  1.        ]])
+
+    References
+    ----------
+    Spearman's rank correlation coefficient. (2017, June 24). In Wikipedia, The Free Encyclopedia.
+        From https://en.wikipedia.org/w/index.php?title=Spearman%27s_rank_correlation_coefficient&oldid=787350680
+
+    """
     matrix = _build_matrix(x, y)
 
     rank_matrix = matrix.copy()
@@ -243,23 +369,6 @@ class Cov(object):
         return self.cov
 
 
-def _build_matrix(x, y=None):
-    if isinstance(x, pd.DataFrame):
-        x = x.values
-    elif not isinstance(x, np.ndarray):
-        x = np.array(x)
-
-    if y is not None:
-        if isinstance(y, pd.DataFrame):
-            y = y.values
-        elif not isinstance(y, np.ndarray):
-            y = np.array(y)
-
-        x = np.column_stack([x, y])
-
-    return x
-
-
 def var(x, method=None):
     r"""
     Front-end interface function for computing the variance of a sample
@@ -390,14 +499,14 @@ class Variance(object):
         """
         if self.dim == 1:
             varr = (np.sum(np.power(self.x - np.mean(self.x), 2)) - (1 / self.n) *
-                             np.power(np.sum(self.x - np.mean(self.x)), 2)) / (self.n - 1)
+                    np.power(np.sum(self.x - np.mean(self.x)), 2)) / (self.n - 1)
 
         else:
             varr = np.empty(self.x.shape[1])
             j = 0
             for i in self.x.T:
                 varr[j] = (np.sum(np.power(i - np.mean(i), 2)) - (1 / self.n) *
-                     np.power(np.sum(i - np.mean(i)), 2)) / (self.n - 1)
+                           np.power(np.sum(i - np.mean(i)), 2)) / (self.n - 1)
 
                 j += 1
 
@@ -435,7 +544,7 @@ class Variance(object):
         """
         if self.dim == 1:
             varr = (np.sum(np.power(self.x, 2.)) - (1. / self.n) *
-                                  np.power(np.sum(self.x), 2.)) / (self.n - 1)
+                    np.power(np.sum(self.x), 2.)) / (self.n - 1)
 
         else:
             varr = np.empty(self.x.shape[1])
@@ -647,3 +756,20 @@ def variance_condition(x):
         raise ValueError('array must be 1D or 2D')
 
     return kap_cond
+
+
+def _build_matrix(x, y=None):
+    if isinstance(x, pd.DataFrame):
+        x = x.values
+    elif not isinstance(x, np.ndarray):
+        x = np.array(x)
+
+    if y is not None:
+        if isinstance(y, pd.DataFrame):
+            y = y.values
+        elif not isinstance(y, np.ndarray):
+            y = np.array(y)
+
+        x = np.column_stack([x, y])
+
+    return x

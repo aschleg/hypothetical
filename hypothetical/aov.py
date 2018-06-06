@@ -1,3 +1,29 @@
+# encoding=utf8
+
+"""
+
+One-Way Analysis of Variance
+----------------------------
+
+.. autosummary::
+    :toctree: generated/
+
+    anova_one_way
+    manova_one_way
+
+References
+----------
+Andrews, D. F., and Herzberg, A. M. (1985), Data, New York: Springer-Verlag.
+
+Dobson, A. J. (1983) An Introduction to Statistical Modelling.
+        London: Chapman and Hall.
+
+Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
+        Brigham Young University: John Wiley & Sons, Inc.
+
+"""
+
+
 import numpy as np
 import numpy_indexed as npi
 from scipy.stats import f
@@ -7,47 +33,26 @@ from hypothetical.summary import var
 
 
 def anova_one_way(*args, group=None):
-
-    if len(args) == 1:
-        return AnovaOneWay(*args, group=group)
-    else:
-        return ManovaOneWay(*args, group=group)
-
-
-def manova_one_way(*args, group=None):
-
-    if len(args) > 1:
-        return ManovaOneWay(*args, group=group)
-    else:
-        return AnovaOneWay(*args, group=group)
-
-
-class AnovaOneWay(object):
     r"""
-    Performs one-way analysis of variance (ANOVA) of one measurement and a grouping variable
+    Performs one-way ANOVA. One-way ANOVA (Analysis of Variance) is used to analyze and test
+    the differences of two or more groups have the same population mean.
 
     Parameters
     ----------
-    group
+    group: array-like, optional
         One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
-        membership of the dependent variable(s). Must be the same length as the x parameter.
-    x
-        One or two-dimensional array (Numpy ndarray, Pandas DataFrame, list of lists) that
-        defines the observation vectors of the dependent variables. Must be the same length
-        as the group parameter.
+        membership of the dependent variable(s). Must be the same length as the observation vector.
+    group_sample1, group_sample2, ... : array-like
+        Corresponding observation vectors of the group samples. Must be the same length
+        as the group parameter. If the group parameter is None, each observation vector
+        will be treated as a group sample vector. If more than one sample vector is passed and
+        the group parameter is not None, one-way MANOVA will be performed.
 
     Returns
     -------
-    namedtuple
-        Namedtuple with the following entries representing an ANOVA table:
-        residual Df: Residuals Degrees of Freedom
-        Group Df: Group Vector Degrees of Freedom
-        F-Value: Computed F-Value of ANOVA procedure
-        p-value: Resulting p-value
-        Group Sum of Squares: SST
-        Group Mean Squares: MST
-        Residual Sum of Squares: SSE
-        Residual Mean Squares: MSE
+    AnovaOneWay or ManovaOneWay : class object
+        ANOVA or MANOVA (if more than one observation vector is passed with a group variable) class object
+        containing the fitted results.
 
     Notes
     -----
@@ -102,10 +107,210 @@ class AnovaOneWay(object):
 
         f = \frac{MST}{MSE}
 
+    Examples
+    --------
+    There are several ways to perform a one-way ANOVA with the :code:`one_way_anova` function.
+    Perhaps the simplest approach is to pass a group vector with the :code:`group` parameter
+    and the corresponding observation vector as below.
+
+    The data used in this example is a subset of the data obtained from the plant growth
+    dataset given in Dobson (1983).
+
+    >>> group_vector = ['ctrl', 'ctrl', 'ctrl',
+    ...                 'trt1', 'trt1', 'trt1',
+    ...                 'trt2', 'trt2', 'trt2']
+    >>> observation_vec = [4.17, 5.58, 5.18,
+    ...                    4.81, 4.17, 4.41,
+    ...                    5.31, 5.12, 5.54]
+    >>> aov = anova_one_way(observation_vec, group=group_vector)
+    >>> aov.summary()
+
+    The other approach is to pass each group sample vector similar to the below.
+
+    >>> ctrl = [4.17, 5.58, 5.18]
+    >>> trt1 = [4.81, 4.17, 4.41]
+    >>> trt2 = [5.31, 5.12, 5.54]
+    >>> aov1 = anova_one_way(ctrl, trt1, trt2)
+    >>> aov1.summary()
+
+    See Also
+    --------
+    AnovaOneWay : one-way ANOVA class
+    ManovaOneWay : one-way MANOVA class
+
     References
     ----------
+    Dobson, A. J. (1983) An Introduction to Statistical Modelling.
+        London: Chapman and Hall.
+
     Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
         Brigham Young University: John Wiley & Sons, Inc.
+
+    """
+    if len(args) == 1:
+        aov_result = AnovaOneWay(*args, group=group)
+    else:
+        aov_result = ManovaOneWay(*args, group=group)
+
+    return aov_result
+
+
+def manova_one_way(*args, group=None):
+    r"""
+
+    Parameters
+    ----------
+    group: array-like, optional
+        One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
+        membership of the dependent variable(s). Must be the same length as the observation vector.
+    group_sample1, group_sample2, ... : array-like
+        Corresponding observation vectors of the group samples. Must be the same length
+        as the group parameter. If the group parameter is None, each observation vector
+        will be treated as a group sample vector. If more than one sample vector is passed and
+        the group parameter is not None, one-way MANOVA will be performed.
+
+    Returns
+    -------
+    AnovaOneWay or ManovaOneWay : class object
+        MANOVA or ANOVA (if only one observation vector is passed with a group variable) class object
+        containing the fitted results.
+
+    Notes
+    -----
+    MANOVA, or Multiple Analysis of Variance, is an extension of Analysis of
+    Variance (ANOVA) to several dependent variables. The approach to MANOVA
+    is similar to ANOVA in many regards and requires the same assumptions
+    (normally distributed dependent variables with equal covariance matrices).
+
+    In the MANOVA setting, each observation vector can have a model denoted as:
+
+    .. math::
+
+        y_{ij} = \mu_i + \epsilon_{ij} \qquad i = 1, 2, \cdots, k; \qquad j = 1, 2, \cdots, n
+
+    An 'observation vector' is a set of observations measured over several variables.
+    With :math:`p` variables, :math:`y_{ij}` becomes:
+
+    .. math::
+
+        \begin{bmatrix} y_{ij1} \\ y_{ij2} \\ \vdots \\ y_{ijp} \end{bmatrix} = \begin{bmatrix}
+        \mu_{i1} \\ \mu_{i2} \\ \vdots \\ \mu_{ip} \end{bmatrix} + \begin{bmatrix} \epsilon_{ij1}
+        \\ \epsilon_{ij2} \\ \vdots \\ \epsilon_{ijp} \end{bmatrix}
+
+    As before in ANOVA, the goal is to compare the groups to see if there are any significant
+    differences. However, instead of a single variable, the comparisons will be made with the
+    mean vectors of the samples. The null hypothesis :math:`H_0` can be formalized the same
+    way in MANOVA:
+
+    .. math::
+
+        H_0: \mu_1 = \mu_2 = \dots = \mu_k
+
+    With an alternative hypothesis :math:`H_a` that at least two :math:`\mu` are unequal.
+    There are :math:`p(k - 1)`, where :math:`k` is the number of groups in the data,
+    equalities that must be true for :math:`H_0` to be accepted.
+
+    Similar to ANOVA, we are interested in partitioning the data's total variation into
+    variation between and within groups. In the case of ANOVA, this partitioning is done
+    by calculating :math:`SSH` and :math:`SSE`; however, in the multivariate case, we must
+    extend this to encompass the variation in all the :math:`p` variables. Therefore, we
+    must compute the between and within sum of squares for each possible comparison. This
+    procedure results in the :math:`H` "hypothesis matrix" and :math:`E` "error matrix."
+
+    The :math:`H` matrix is a square :math:`p \times p` with the form:
+
+    .. math::
+
+        H = \begin{bmatrix} SSH_{11} & SPH_{21} & \dots & SPH_{1p} \\
+        SPH_{12} & SSH_{22} & \dots & SPH_{2p} \\ \vdots & \vdots & & \vdots \\
+        SPH_{1p} & SPH_{2p} & \cdots & SSH_{pp} \end{bmatrix}
+
+    The error matrix :math:`E` is also :math:`p \times p`
+
+    .. math::
+
+        E = \begin{bmatrix} SSE_{11} & SPE_{12} & \cdots & SPE_{1p} \\
+        SPE_{12} & SSE_{22} & \cdots & SPE_{2p} \\ \vdots & \vdots & & \vdots \\
+        SPE_{1p} & SPE_{2p} & \cdots & SSE_{pp} \end{bmatrix}
+
+    Once the :math:`H` and :math:`E` matrices are constructed, the mean vectors can be
+    compared to determine if significant differences exist. There are several test
+    statistics, of which the most common are Wilk's lambda, Roy's test, Pillai, and
+    Lawley-Hotelling, that can be employed to test for significant differences. Each test
+    statistic has specific properties and power.
+
+    Examples
+    --------
+    Similar to the :code:`anova_one_way` function, there are several approaches to performing
+    multivariate analysis of variance with :code:`manova_one_way`.
+
+    The data used in this example is a subset of the rootstock dataset used in Rencher (n.d.).
+    The rootstock data contains four dependent variables and a group variable described as follows:
+
+    1. tree_number: group membership indicator column
+    2. trunk_girth_four_years: trunk girth at four years (mm :math:`\times` 100)
+    3. ext_growth_four_years: extension growth at four years (m)
+    4. trunk_girth_fifteen_years: trunk girth at 15 years (mm :math:`\times` 100)
+    5. weight_above_ground_fifteen_years: weight of tree above ground at 15 years (lb :math:`\times` 1000)
+
+    >>> tree_number = [1, 1, 1,
+    ...                2, 2, 2,
+    ...                3, 3, 3,
+    ...                4, 4, 4,
+    ...                5, 5, 5,
+    ...                6, 6, 6]
+    >>> trunk_girth_four_years = [1.11, 1.19, 1.09,
+    ...                           1.05, 1.17, 1.11,
+    ...                           1.07, 0.99, 1.06,
+    ...                           1.22, 1.03, 1.14,
+    ...                           0.91, 1.15, 1.14,
+    ...                           1.11, 0.75, 1.05]
+    >>> ext_growth_four_years = [2.569, 2.928, 2.865,
+    ...                          2.074, 2.885, 3.378,
+    ...                          2.505, 2.315, 2.667,
+    ...                          2.838, 2.351, 3.001,
+    ...                          1.532, 2.552, 3.083,
+    ...                          2.813, 0.840, 2.199]
+    >>> trunk_girth_fifteen_years = []
+
+    References
+    ----------
+    Andrews, D. F., and Herzberg, A. M. (1985), Data, New York: Springer-Verlag.
+
+    Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
+        Brigham Young University: John Wiley & Sons, Inc.
+
+    """
+    if len(args) > 1:
+        maov_result = ManovaOneWay(*args, group=group)
+    else:
+        maov_result = AnovaOneWay(*args, group=group)
+
+    return maov_result
+
+
+class AnovaOneWay(object):
+    r"""
+
+    Parameters
+    ----------
+    group: array-like, optional
+        One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
+        membership of the dependent variable(s). Must be the same length as the observation vector.
+    group_sample1, group_sample2, ... : array-like
+        Corresponding observation vectors of the group samples. Must be the same length
+        as the group parameter. If the group parameter is None, each observation vector
+        will be treated as a group sample vector. If more than one sample vector is passed and
+        the group parameter is not None, one-way MANOVA will be performed.
+
+    Attributes
+    ----------
+
+    Notes
+    -----
+
+    See Also
+    --------
 
     """
     def __init__(self, *args, group):
