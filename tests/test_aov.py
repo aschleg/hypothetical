@@ -84,6 +84,36 @@ def test_anova_one_way():
     np.testing.assert_almost_equal(result['Residual Mean Squares'], 0.38859592592592596)
     np.testing.assert_almost_equal(result['Residual Sum of Squares'], 10.492090000000001)
 
+    del plants['Unnamed: 0']
+
+    ctrl = plants[plants['group'] == 'ctrl']['weight'].reset_index()
+    del ctrl['index']
+    ctrl.rename(columns={'weight': 'ctrl'}, inplace=True)
+
+    trt1 = plants[plants['group'] == 'trt1']['weight'].reset_index()
+
+    del trt1['index']
+    trt1.rename(columns={'weight': 'trt1'}, inplace=True)
+
+    trt2 = plants[plants['group'] == 'trt2']['weight'].reset_index()
+
+    del trt2['index']
+    trt2.rename(columns={'weight': 'trt2'}, inplace=True)
+
+    anov2 = anova_one_way(ctrl, trt1, trt2)
+
+    result2 = anov2.summary()
+
+    np.testing.assert_almost_equal(result2['F-statistic'], 4.846087862380138)
+    np.testing.assert_almost_equal(result2['Group DoF'], 2)
+    np.testing.assert_almost_equal(result2['Group Mean Squares'], 1.8831700000000007)
+    np.testing.assert_almost_equal(result2['Group Sum of Squares'], 3.766340000000002)
+
+    np.testing.assert_almost_equal(result2['p-value'], 0.01590995832562281)
+    np.testing.assert_almost_equal(result2['Residual DoF'], 27)
+    np.testing.assert_almost_equal(result2['Residual Mean Squares'], 0.38859592592592596)
+    np.testing.assert_almost_equal(result2['Residual Sum of Squares'], 10.492090000000001)
+
 
 def test_manova_one_way():
     dat = multivariate_test_data()

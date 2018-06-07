@@ -10,6 +10,8 @@ One-Way Analysis of Variance
 
     anova_one_way
     manova_one_way
+    AnovaOneWay
+    ManovaOneWay
 
 References
 ----------
@@ -124,6 +126,22 @@ def anova_one_way(*args, group=None):
     ...                    5.31, 5.12, 5.54]
     >>> aov = anova_one_way(observation_vec, group=group_vector)
     >>> aov.summary()
+    {'F-statistic': 2.4895587076438104,
+     'Group DoF': 2,
+     'Group Mean Squares': 0.5616444444444436,
+     'Group Sum of Squares': 1.1232888888888872,
+     'Group statistics': {'Group Means': [('ctrl', 4.976666666666667),
+       ('trt1', 4.463333333333334),
+       ('trt2', 5.323333333333333)],
+      'Group Observations': [('ctrl', 3), ('trt1', 3), ('trt2', 3)],
+      'Group Variance': [('ctrl', 0.5280333333333334),
+       ('trt1', 0.10453333333333321),
+       ('trt2', 0.04423333333333332)]},
+     'Residual DoF': 6,
+     'Residual Mean Squares': 0.2256,
+     'Residual Sum of Squares': 1.3536,
+     'Test description': 'One-Way ANOVA',
+     'p-value': 0.163211765340447}
 
     The other approach is to pass each group sample vector similar to the below.
 
@@ -132,6 +150,22 @@ def anova_one_way(*args, group=None):
     >>> trt2 = [5.31, 5.12, 5.54]
     >>> aov1 = anova_one_way(ctrl, trt1, trt2)
     >>> aov1.summary()
+    {'F-statistic': 2.4895587076438104,
+     'Group DoF': 2,
+     'Group Mean Squares': 0.5616444444444436,
+     'Group Sum of Squares': 1.1232888888888872,
+     'Group statistics': {'Group Means': [('ctrl', 4.976666666666667),
+       ('trt1', 4.463333333333334),
+       ('trt2', 5.323333333333333)],
+      'Group Observations': [('ctrl', 3), ('trt1', 3), ('trt2', 3)],
+      'Group Variance': [('ctrl', 0.5280333333333334),
+       ('trt1', 0.10453333333333321),
+       ('trt2', 0.04423333333333332)]},
+     'Residual DoF': 6,
+     'Residual Mean Squares': 0.2256,
+     'Residual Sum of Squares': 1.3536,
+     'Test description': 'One-Way ANOVA',
+     'p-value': 0.163211765340447}
 
     See Also
     --------
@@ -147,7 +181,7 @@ def anova_one_way(*args, group=None):
         Brigham Young University: John Wiley & Sons, Inc.
 
     """
-    if len(args) == 1:
+    if (len(args) > 1 and group is None) or (len(args) == 1 and group is not None):
         aov_result = AnovaOneWay(*args, group=group)
     else:
         aov_result = ManovaOneWay(*args, group=group)
@@ -241,9 +275,6 @@ def manova_one_way(*args, group=None):
 
     Examples
     --------
-    Similar to the :code:`anova_one_way` function, there are several approaches to performing
-    multivariate analysis of variance with :code:`manova_one_way`.
-
     The data used in this example is a subset of the rootstock dataset used in Rencher (n.d.).
     The rootstock data contains four dependent variables and a group variable described as follows:
 
@@ -271,7 +302,48 @@ def manova_one_way(*args, group=None):
     ...                          2.838, 2.351, 3.001,
     ...                          1.532, 2.552, 3.083,
     ...                          2.813, 0.840, 2.199]
-    >>> trunk_girth_fifteen_years = []
+    >>> trunk_girth_fifteen_years = [3.58, 3.75, 3.93,
+    ...                              4.09, 4.87, 4.98,
+    ...                              3.76, 4.44, 4.38,
+    ...                              3.89, 4.05, 4.05,
+    ...                              4.04, 4.16, 4.79,
+    ...                              3.76, 3.14, 3.75]
+    >>> weight_above_ground_fifteen_years = [0.760, 0.821, 0.928,
+    ...                                      1.036, 1.094, 1.635,
+    ...                                      0.912, 1.398, 1.197,
+    ...                                      0.944, 1.241, 1.023,
+    ...                                      1.084, 1.151, 1.381,
+    ...                                      0.800, 0.606, 0.790]
+    >>> maov = manova_one_way(trunk_girth_four_years, ext_growth_four_years,
+    ...                       trunk_girth_fifteen_years, weight_above_ground_fifteen_years,
+    ...                       group=tree_number)
+    >>> maov.summary()
+    {'Dependent variable num.': 4,
+     'Group Means': array([[1.13      , 2.78733333, 3.75333333, 0.83633333],
+            [1.11      , 2.779     , 4.64666667, 1.255     ],
+            [1.04      , 2.49566667, 4.19333333, 1.169     ],
+            [1.13      , 2.73      , 3.99666667, 1.06933333],
+            [1.06666667, 2.389     , 4.33      , 1.20533333],
+            [0.97      , 1.95066667, 3.55      , 0.732     ]]),
+     'Group Num. Observations': [3, 3, 3, 3, 3, 3],
+     'Hotellings T^2': {'Hotellings T^2 F-value': 13.787005512065765,
+      'Hotellings T^2 Statistic': 5.743438210016407,
+      'Hotellings T^2 p-value': 0.0001270639867039236},
+     'Observation Total Means': array([1.07444444, 2.52194444, 4.07833333, 1.0445    ]),
+     'Observations': {'x means': array([1.07444444, 2.52194444, 4.07833333, 1.0445    ]),
+      'x observations': 4},
+     'Pillai Statistic': {'Pillai F-value': 1.5309502494809615,
+      'Pillai Statistic': 1.557842406866489,
+      'Pillai p-value': 0.2522352735968698},
+     'Roys Statistic': {'Roys Statistic': 4.595030059073131,
+      'Roys Statistic F-value': 93.73861320509187,
+      'Roys Statistic p-value': 3.4357116041050517e-09},
+     'Test Description': 'One-Way MANOVA',
+     'Wilks Lambda': {'Wilks Lambda': 0.07218625211663433,
+      'Wilks Lambda F-value': 1.861776394897166,
+      'Wilks Lambda p-value': 0.17516209487139456},
+     'degrees of freedom': {'Denominator Degrees of Freedom': 12,
+      'Numerator Degrees of Freedom': 5.0}}
 
     References
     ----------
@@ -305,12 +377,26 @@ class AnovaOneWay(object):
 
     Attributes
     ----------
+    design_matrix : array-like
+    group_names: array-like
+    k : int
+    group_degrees_of_freedom : int
+    residual_degrees_of_freedom : int
+    group_sum_squares : float
+    residual_sum_squares : float
+    f_statistic : float
+    p_value : float
+    test_description : str
 
     Notes
     -----
+    The :code:`AnovaOneWay` class is meant to serve as a 'back-end' of sorts to house the algorithms
+    and methods used in performing one-way analysis of variance. The function :code:`anova_one_way`
+    is meant to be the main interface function.
 
     See Also
     --------
+    anova_one_way : primary function that wraps the AnovaOneWay class.
 
     """
     def __init__(self, *args, group):
@@ -328,17 +414,33 @@ class AnovaOneWay(object):
         self.group_degrees_of_freedom = self.k - 1
         self.residual_degrees_of_freedom = len(self.design_matrix) - self.k
 
-        self.group_sum_squares = self._sst()
-        self.residual_sum_squares = self._sse()
+        self.group_sum_squares = self.sst()
+        self.residual_sum_squares = self.sse()
 
-        self.group_mean_squares = self._mst()
-        self.residual_mean_squares = self._mse()
+        self.group_mean_squares = self.mst()
+        self.residual_mean_squares = self.mse()
 
-        self.f_statistic = self._fvalue()
-        self.p_value = self._pvalue()
+        self.f_statistic = self.fvalue()
+        self.p_value = self.pvalue()
         self.test_description = 'One-Way ANOVA'
 
-    def _sse(self):
+    def sse(self):
+        r"""
+
+        Returns
+        -------
+
+        Notes
+        -----
+
+        .. math::
+
+            SSE = \sum_{i=1}^k (n_i - 1)s_i^2
+
+        References
+        ----------
+
+        """
         group_n = self.group_statistics['Group Observations']
         group_variance = self.group_statistics['Group Variance']
 
@@ -349,7 +451,7 @@ class AnovaOneWay(object):
 
         return sse
 
-    def _sst(self):
+    def sst(self):
         group_n = self.group_statistics['Group Observations']
         group_means = self.group_statistics['Group Means']
         total_mean = np.mean(self.design_matrix[:, 1])
@@ -361,20 +463,20 @@ class AnovaOneWay(object):
 
         return sst
 
-    def _mst(self):
+    def mst(self):
         mst = self.group_sum_squares / self.group_degrees_of_freedom
 
         return mst
 
-    def _mse(self):
+    def mse(self):
         mse = self.residual_sum_squares / self.residual_degrees_of_freedom
 
         return mse
 
-    def _fvalue(self):
+    def fvalue(self):
         return self.group_mean_squares / self.residual_mean_squares
 
-    def _pvalue(self):
+    def pvalue(self):
         p = 1 - f.cdf(self.f_statistic,
                       self.group_degrees_of_freedom,
                       self.residual_degrees_of_freedom)
@@ -412,7 +514,46 @@ class AnovaOneWay(object):
 
 
 class ManovaOneWay(object):
+    r"""
 
+    Parameters
+    ----------
+    group: array-like, optional
+        One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
+        membership of the dependent variable(s). Must be the same length as the observation vector.
+    group_sample1, group_sample2, ... : array-like
+        Corresponding observation vectors of the group samples. Must be the same length
+        as the group parameter. If the group parameter is None, each observation vector
+        will be treated as a group sample vector. If only one sample vector is passed with a group
+        variable, one-way MANOVA will be performed.
+
+    Attributes
+    ----------
+    design_matrix : array-like
+    group : array-like
+    k : int
+    group_stats : dict
+    observation_stats : dict
+    hypothesis_matrix : array-like
+    error_matrix : array-like
+    degrees_of_freedom : dict
+    numerator_dof : int
+    denominator_dof : int
+    pillai_statistic : dict
+    wilks_lambda : dict
+    roys_statistic : dict
+    hotelling_t2_statistic : dict
+    test_description : str
+
+    Notes
+    -----
+
+
+    See Also
+    --------
+    manova_one_way : primary function that wraps the ManovaOneWay class and its algorithm
+
+    """
     def __init__(self, *args, group):
 
         self.design_matrix = build_des_mat(*args, group=group)
@@ -424,19 +565,19 @@ class ManovaOneWay(object):
 
         self.k = len(np.unique(self.group))
 
-        self._group_stats = self._group_statistics()
-        self._observation_stats = self._obs_statistics()
+        self.group_stats = self._group_statistics()
+        self.observation_stats = self._obs_statistics()
 
-        self.hypothesis_matrix, self.error_matrix = self._hypothesis_error_matrix()
+        self.hypothesis_matrix, self.error_matrix = self.hypothesis_error_matrix()
         self._intermediate_statistic_parameters = self._intermediate_test_statistic_parameters()
 
         self.degrees_of_freedom = self._degrees_of_freedom()
         self.numerator_dof = self.degrees_of_freedom['Numerator Degrees of Freedom']
         self.denominator_dof = self.degrees_of_freedom['Denominator Degrees of Freedom']
-        self.pillai_statistic = self._pillai_statistic()
-        self.wilks_lambda = self._wilks_statistic()
-        self.roys_statistic = self._roys_statistic()
-        self.hotelling_t2_statistic = self._hotelling_t2_statistic()
+        self.pillai_statistic = self.pillai_statistic()
+        self.wilks_lambda = self.wilks_statistic()
+        self.roys_statistic = self.roys_statistic()
+        self.hotelling_t2_statistic = self.hotelling_t2_statistic()
         self.test_description = 'One-Way MANOVA'
 
     def _group_statistics(self):
@@ -466,12 +607,12 @@ class ManovaOneWay(object):
 
         return obs_stats
 
-    def _hypothesis_error_matrix(self):
+    def hypothesis_error_matrix(self):
 
-        groupmeans = self._group_stats['Group Means']
-        xmeans = self._observation_stats['x means']
+        groupmeans = self.group_stats['Group Means']
+        xmeans = self.observation_stats['x means']
 
-        n = self._group_stats['Group Observations']
+        n = self.group_stats['Group Observations']
         xn = len(xmeans)
 
         h, e = np.zeros((xn, xn)), np.zeros((xn, xn))
@@ -484,7 +625,7 @@ class ManovaOneWay(object):
 
                 b = []
 
-                for k in self._group_stats['Groups']:
+                for k in self.group_stats['Groups']:
                     a = np.sum((k[:, i] - np.mean(k[:, i])) * (k[:, j] - np.mean(k[:, j])))
                     b.append(a)
 
@@ -521,7 +662,7 @@ class ManovaOneWay(object):
 
         return intermediate_statistic_parameters
 
-    def _pillai_statistic(self):
+    def pillai_statistic(self):
 
         nn, s, m = self._intermediate_statistic_parameters['nn'], \
                    self._intermediate_statistic_parameters['s'], \
@@ -534,13 +675,11 @@ class ManovaOneWay(object):
 
         pillai_stat = {'Pillai Statistic': pillai,
                        'Pillai F-value': pillai_f,
-                       'Pillai p-value': self._f_p_value(pillai_f,
-                                                         self.numerator_dof,
-                                                         self.denominator_dof)}
+                       'Pillai p-value': self.p_value(pillai_f, self.numerator_dof, self.denominator_dof)}
 
         return pillai_stat
 
-    def _wilks_statistic(self):
+    def wilks_statistic(self):
         vh, p, ve, eigs = self._intermediate_statistic_parameters['vh'], \
                           self._intermediate_statistic_parameters['p'], \
                           self._intermediate_statistic_parameters['ve'], \
@@ -555,13 +694,11 @@ class ManovaOneWay(object):
 
         wilks_stat = {"Wilks Lambda": wilks_lambda,
                       "Wilks Lambda F-value": wilks_lambda_f,
-                      "Wilks Lambda p-value": self._f_p_value(wilks_lambda_f,
-                                                              self.numerator_dof,
-                                                              self.denominator_dof)}
+                      "Wilks Lambda p-value": self.p_value(wilks_lambda_f, self.numerator_dof, self.denominator_dof)}
 
         return wilks_stat
 
-    def _roys_statistic(self):
+    def roys_statistic(self):
         eigs, n, vh = self._intermediate_statistic_parameters['eigs'], \
                       self._intermediate_statistic_parameters['n'], \
                       self._intermediate_statistic_parameters['vh']
@@ -571,13 +708,11 @@ class ManovaOneWay(object):
 
         roy_stat = {"Roys Statistic": roy,
                     "Roys Statistic F-value": roy_f,
-                    "Roys Statistic p-value": self._f_p_value(roy_f,
-                                                              self.numerator_dof,
-                                                              self.denominator_dof)}
+                    "Roys Statistic p-value": self.p_value(roy_f, self.numerator_dof, self.denominator_dof)}
 
         return roy_stat
 
-    def _hotelling_t2_statistic(self):
+    def hotelling_t2_statistic(self):
         dot_inve_h, s, nn, m = self._intermediate_statistic_parameters['dot_inve_h'], \
                                self._intermediate_statistic_parameters['s'], \
                                self._intermediate_statistic_parameters['nn'], \
@@ -589,9 +724,7 @@ class ManovaOneWay(object):
         t2_stat = {
             "Hotellings T^2 Statistic": t2,
             "Hotellings T^2 F-value": t2_f,
-            "Hotellings T^2 p-value": self._f_p_value(t2_f,
-                                                      self.numerator_dof,
-                                                      self.denominator_dof)
+            "Hotellings T^2 p-value": self.p_value(t2_f, self.numerator_dof, self.denominator_dof)
         }
 
         return t2_stat
@@ -599,7 +732,7 @@ class ManovaOneWay(object):
     def _degrees_of_freedom(self):
         vh, ve, xn = self._intermediate_statistic_parameters['vh'], \
                      self._intermediate_statistic_parameters['ve'], \
-                     len(self._observation_stats['x means'])
+                     len(self.observation_stats['x means'])
 
         num_df, denom_df = vh, ve
 
@@ -608,23 +741,31 @@ class ManovaOneWay(object):
 
         return dof
 
-    def _f_p_value(self, f_val, df_num, df_denom):
+    def p_value(self, f_val, df_num, df_denom):
         p = 1 - f.cdf(f_val, df_num, df_denom)
 
         return p
 
-    @staticmethod
-    def _dot_inve_h(h, e):
-        return np.dot(np.linalg.inv(e), h)
-
     def summary(self):
+        group_stats = self.group_stats
+        group_stats.pop('Groups')
+
         manova_result = {
             'Test Description': self.test_description,
             'degrees of freedom': self.degrees_of_freedom,
             'Pillai Statistic': self.pillai_statistic,
             "Wilks Lambda": self.wilks_lambda,
             "Roys Statistic": self.roys_statistic,
-            "Hotellings T^2": self.hotelling_t2_statistic
+            "Hotellings T^2": self.hotelling_t2_statistic,
+            'Group Means': group_stats['Group Means'],
+            'Group Num. Observations': group_stats['Group Observations'],
+            'Observation Total Means': self.observation_stats['x means'],
+            'Dependent variable num.': self.observation_stats['x observations'],
+            'Observations': self.observation_stats
         }
 
         return manova_result
+
+    @staticmethod
+    def _dot_inve_h(h, e):
+        return np.dot(np.linalg.inv(e), h)
