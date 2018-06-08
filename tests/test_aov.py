@@ -124,7 +124,7 @@ def test_manova_one_way():
 
     assert result['degrees of freedom']['Denominator Degrees of Freedom'] == dat_shape[0] - dat_shape[1] - 1
     assert result['degrees of freedom']['Numerator Degrees of Freedom'] == dat_shape[1]
-    assert result['Test Description'] == 'One-Way MANOVA'
+    assert result['Analysis Performed'] == 'One-Way MANOVA'
 
     pillai = result['Pillai Statistic']
     roy = result['Roys Statistic']
