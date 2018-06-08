@@ -1,6 +1,10 @@
 # encoding=utf8
 
 """
+Functions for performing one-way analysis of variance (ANOVA) and multivariate analysis of variance (MANOVA).
+The functions :code:`anova_one_way` and :code:`manova_one_way` are the main interface while their respective
+classes :code:`AnovaOneWay` and :code:`ManovaOneWay`, contain the underlying implementations of the algorithms and
+methods used to perform ANOVA or MANOVA.
 
 One-Way Analysis of Variance
 ----------------------------
@@ -191,6 +195,8 @@ def anova_one_way(*args, group=None):
 
 def manova_one_way(*args, group=None):
     r"""
+    Performs multivariate analysis of variance, also known as MANOVA. Multivariate analysis of variance is
+    the extension of the ANOVA procedure for two or more dependent variables.
 
     Parameters
     ----------
@@ -363,6 +369,8 @@ def manova_one_way(*args, group=None):
 
 class AnovaOneWay(object):
     r"""
+    Class that contains the implementations of the algorithms and methods used when performing analysis
+    of variance.
 
     Parameters
     ----------
@@ -378,15 +386,29 @@ class AnovaOneWay(object):
     Attributes
     ----------
     design_matrix : array-like
+        Numpy ndarray representing the data matrix for the analysis.
     group_names: array-like
+        Numpy array of the group names.
     k : int
+        The number of groups.
     group_degrees_of_freedom : int
+        The group degrees of freedom, :code:`k - 1`.
     residual_degrees_of_freedom : int
+        The residual degrees of freedom, "code:`n - k`.
     group_sum_squares : float
+        The computed group (treatment) sum of squares, typically denoted :math:`SST` or :math:`SSH`.
+    group_mean_squares : float
+        The 'within' sample, or treatment, mean sum of squares, typically denoted :math:`MST` or :math:`MSH`.
     residual_sum_squares : float
+        The residual sum of squares, usually denoted :math:`SSE`.
+    residual_mean_squares : float
+        The 'between' sample, or error mean sum of squares, usually denoted :math:`MSE`.
     f_statistic : float
+        The computed :math:`F` statistic found by :math:`\frac{MST}{MSE}`.
     p_value : float
-    test_description : str
+        The p-value from the :math:`F` distribution given the calculated :math:`F` statistic.
+    analysis_type : str
+        Name of the analysis performed, currently only reutns 'One-Way ANOVA'
 
     Notes
     -----
@@ -408,7 +430,7 @@ class AnovaOneWay(object):
         else:
             self.group = self.design_matrix[:, 0]
 
-        self.group_statistics = self._group_statistics()
+        self.group_statistics = self.group_statistics()
         self.group_names = np.unique(self.group)
         self.k = len(self.group_names)
         self.group_degrees_of_freedom = self.k - 1
@@ -422,23 +444,34 @@ class AnovaOneWay(object):
 
         self.f_statistic = self.fvalue()
         self.p_value = self.pvalue()
-        self.test_description = 'One-Way ANOVA'
+        self.analysis_type = 'One-Way ANOVA'
 
     def sse(self):
         r"""
+        Method for computing the 'within' sample sum of squares, also known as the sum of squares of the error
+        partition.
 
         Returns
         -------
+        sse : float
+            The SSE of the design matrix
 
         Notes
         -----
+        SSE is defined as the 'within' sample sum of squares and is computed as the sum of the number of
+        observations in each group minus one, multiplied by the variance of the group sample. More formally,
+        the 'within' sum of squares can be defined as:
 
         .. math::
 
             SSE = \sum_{i=1}^k (n_i - 1)s_i^2
 
+        SSE is also known as the sum of squares of the 'error' partition of the total sum of squares.
+
         References
         ----------
+        Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
+            Brigham Young University: John Wiley & Sons, Inc.
 
         """
         group_n = self.group_statistics['Group Observations']
@@ -452,6 +485,29 @@ class AnovaOneWay(object):
         return sse
 
     def sst(self):
+        r"""
+        Computes the 'within' sample sum of squares. The 'within' sample sum of squares is also known as the
+        sum of squares of the treatment partition.
+
+        Returns
+        -------
+        sst : float
+            The treatment sum of squares.
+
+        Notes
+        -----
+        The 'between' sample sum of squares, also denoted SSH in some literature, is defined as:
+
+        .. math::
+
+            SST = \sum_{i=1}^k n_i(\bar{y_{i}} - \bar{y})^2
+
+        References
+        ----------
+        Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
+            Brigham Young University: John Wiley & Sons, Inc.
+
+        """
         group_n = self.group_statistics['Group Observations']
         group_means = self.group_statistics['Group Means']
         total_mean = np.mean(self.design_matrix[:, 1])
@@ -464,26 +520,156 @@ class AnovaOneWay(object):
         return sst
 
     def mst(self):
+        r"""
+        Computes the mean sum of squares of the treatment partition of the ANOVA design.
+
+        Returns
+        -------
+        mst : float
+            The mean treatment sum of squares.
+
+        Notes
+        -----
+        The mean treatment sum of squares, also denoted MSH in some literature, is defined as the treatment
+        sum of squares divided by the group degrees of freedom, :math:`k - 1`, where :math:`k` is the number of
+        treatment groups. More formally, the MST can be written as:
+
+        .. math::
+
+            \frac{SST}{k - 1} = \frac{\sum_{i=1}^k n_i(\bar{y_{i}} - \bar{y})^2}{k - 1}
+
+        References
+        ----------
+        Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
+            Brigham Young University: John Wiley & Sons, Inc.
+
+        """
         mst = self.group_sum_squares / self.group_degrees_of_freedom
 
         return mst
 
     def mse(self):
+        r"""
+        Computes the mean sum of squares of the error partition.
+
+        Returns
+        -------
+        mse : float
+            The computed mean error sum of squares.
+
+        Notes
+        -----
+        The mean 'within' sample sum of squares is defined as the error sum of squares partition divided by the
+        residual degrees of freedom, :math:`n - k`, where :math`n` is the number of sample observations and
+        :math:`k` is the number of treatment groups.
+
+        .. math::
+
+            \frac{SSE}{n - k} = \frac{\sum_{i=1}^k (n_i - 1)s_i^2}{n - k}
+
+        References
+        ----------
+        Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
+            Brigham Young University: John Wiley & Sons, Inc.
+
+        """
         mse = self.residual_sum_squares / self.residual_degrees_of_freedom
 
         return mse
 
     def fvalue(self):
-        return self.group_mean_squares / self.residual_mean_squares
+        r"""
+        Computes the analysis of variance F-statistic.
+
+        Returns
+        -------
+        fval : float
+            The corresponding F-statistic of the test.
+
+        Notes
+        -----
+        The F-statistic is found by dividing the mean treatment sum of squares by the mean error sum of squares.
+
+        .. math::
+
+            \frac{MST}{MSE} = \frac{(\sum_{i=1}^k n_i(\bar{y_{i}} - \bar{y})^2)/(k - 1)}{(\sum_{i=1}^k (n_i - 1)s_i^2)/(n - k)}
+
+        The F-statistic is distributed as :math:`F_{k-1, n-k}` when the null hypothesis :math:`H_0` is true. The
+        null hypothesis is rejected if :math:`F > F_{\alpha}.
+
+        References
+        ----------
+        Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
+            Brigham Young University: John Wiley & Sons, Inc.
+
+        """
+        fval = self.group_mean_squares / self.residual_mean_squares
+
+        return fval
 
     def pvalue(self):
+        r"""
+        Returns the p-value using the computed F-statistic
+
+        Returns
+        -------
+        p : float
+            The computed p-value given the found F-statistic and the group and residual degrees of freedom.
+
+        Notes
+        -----
+        The :code:`cdf` method from Scipy's :code:`stats.f` class is used to find the p-value.
+
+        References
+        ----------
+        Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
+            Brigham Young University: John Wiley & Sons, Inc.
+
+        """
         p = 1 - f.cdf(self.f_statistic,
                       self.group_degrees_of_freedom,
                       self.residual_degrees_of_freedom)
 
         return p
 
-    def _group_statistics(self):
+    def summary(self):
+        r"""
+        Returns a summary of the fitted analysis of variance model as a dictionary.
+
+        Returns
+        -------
+        anova_results : dict
+            A summary of the fitted ANOVA model.
+
+        """
+        anova_results = {
+            'Analysis Performed': self.analysis_type,
+            'F-statistic': self.f_statistic,
+            'p-value': self.p_value,
+            'Group DoF': self.group_degrees_of_freedom,
+            'Residual DoF': self.residual_degrees_of_freedom,
+            'Group Sum of Squares': self.group_sum_squares,
+            'Group Mean Squares': self.group_mean_squares,
+            'Residual Sum of Squares': self.residual_sum_squares,
+            'Residual Mean Squares': self.residual_mean_squares,
+            'Group Means': self.group_statistics['Group Means'],
+            'Group Obs Number': self.group_statistics['Group Observations'],
+            'Group Variance': self.group_statistics['Group Variance']
+        }
+
+        return anova_results
+
+    def group_statistics(self):
+        r"""
+        Computes group summary statistics (mean, number of observations, and variance), for use when
+        performing analysis of variance.
+
+        Returns
+        -------
+        group_stats : dict
+            Dictionary containing each group's mean, number of observations and variance.
+
+        """
         group_means = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], np.mean)
         group_obs = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], len)
         group_variance = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], var)
@@ -496,25 +682,11 @@ class AnovaOneWay(object):
 
         return group_stats
 
-    def summary(self):
-        anova_results = {
-            'Test description': self.test_description,
-            'F-statistic': self.f_statistic,
-            'p-value': self.p_value,
-            'Group DoF': self.group_degrees_of_freedom,
-            'Residual DoF': self.residual_degrees_of_freedom,
-            'Group Sum of Squares': self.group_sum_squares,
-            'Group Mean Squares': self.group_mean_squares,
-            'Residual Sum of Squares': self.residual_sum_squares,
-            'Residual Mean Squares': self.residual_mean_squares,
-            'Group statistics': self.group_statistics
-        }
-
-        return anova_results
-
 
 class ManovaOneWay(object):
     r"""
+    Contains the methods and algorithm implementations used when performing multivariate analysis of
+    variance.
 
     Parameters
     ----------
@@ -530,8 +702,11 @@ class ManovaOneWay(object):
     Attributes
     ----------
     design_matrix : array-like
-    group : array-like
+        Numpy ndarray representing the data matrix for the analysis.
+    group_names: array-like
+        Numpy array of the group names.
     k : int
+        The number of groups.
     group_stats : dict
     observation_stats : dict
     hypothesis_matrix : array-like
@@ -543,11 +718,13 @@ class ManovaOneWay(object):
     wilks_lambda : dict
     roys_statistic : dict
     hotelling_t2_statistic : dict
-    test_description : str
+    analysis_type : str
 
     Notes
     -----
-
+    The :code:`ManovaOneWay` class acts as a 'back-end' of sorts to the main function
+    :code:`manova_one_way`. An initialized :code:`ManovaOneWay` class object is returned
+    when using the :code:`manova_one_way` function.
 
     See Also
     --------
@@ -578,37 +755,24 @@ class ManovaOneWay(object):
         self.wilks_lambda = self.wilks_statistic()
         self.roys_statistic = self.roys_statistic()
         self.hotelling_t2_statistic = self.hotelling_t2_statistic()
-        self.test_description = 'One-Way MANOVA'
-
-    def _group_statistics(self):
-        group_means = npi.group_by(self.design_matrix[:, 0]).mean(self.design_matrix[:, 1:])[1]
-
-        group_observations = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1:], len)
-        group_observations = [i for _, i in group_observations]
-
-        groups = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1:])[1]
-
-        group_stats = {
-            'Group Means': group_means,
-            'Group Observations': group_observations,
-            'Groups': groups
-        }
-
-        return group_stats
-
-    def _obs_statistics(self):
-        x_means = self.design_matrix[:, 1:].mean(axis=0)
-        x_group_observations = len(x_means)
-
-        obs_stats = {
-            'x means': x_means,
-            'x observations': x_group_observations
-        }
-
-        return obs_stats
+        self.analysis_type = 'One-Way MANOVA'
 
     def hypothesis_error_matrix(self):
+        r"""
 
+        Returns
+        -------
+        h, e : array-like
+
+        Notes
+        -----
+
+        References
+        ----------
+        Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
+            Brigham Young University: John Wiley & Sons, Inc.
+
+        """
         groupmeans = self.group_stats['Group Means']
         xmeans = self.observation_stats['x means']
 
@@ -663,7 +827,46 @@ class ManovaOneWay(object):
         return intermediate_statistic_parameters
 
     def pillai_statistic(self):
+        r"""
+        Computes the Pillai statistic, a commonly used statistic of significance when performing multivariate
+        analysis of variance.
 
+        Returns
+        -------
+        pillai_stat : dict
+            Dictionary containing the Pillai statistic, and the corresponding F-statistic and p-value.
+
+        Notes
+        -----
+        The Pillai test statistic is denoted as :math:`V^{(s)}` and defined as:
+
+        .. math::
+
+            V^{(s)} = tr[(E + H0)^{-1} H] = \sum^s_{i=1} \frac{\lambda_i}{1 + \lambda_i}
+
+        Where :math:`\lambda_i` represents the :math:`i`th nonzero eigenvalue of
+        :math:`E^{-1}H`.
+
+        The critical Pillai value is found by computing :math:`s`, :math:`m`, and :math:`N`
+        which are also employed in Roy's test (the Pillai test is an extension of Roy's
+        test). The values are defined as:
+
+        .. math::
+
+            s = min(p, V_h) \qquad m = \frac{1}{2} (\left| V_h - p \right| - 1) \qquad N = \frac{1}{2} (V_E - p - 1)
+
+        An approximate F-statistic can be found with the following equation:
+
+        .. math::
+
+            F = \frac{(2N + s + 1)V^{(s)}}{(2m + s + 1)(s - V^{(s)})}
+
+        References
+        ----------
+        Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
+            Brigham Young University: John Wiley & Sons, Inc.
+
+        """
         nn, s, m = self._intermediate_statistic_parameters['nn'], \
                    self._intermediate_statistic_parameters['s'], \
                    self._intermediate_statistic_parameters['m']
@@ -680,6 +883,54 @@ class ManovaOneWay(object):
         return pillai_stat
 
     def wilks_statistic(self):
+        r"""
+        Wilk's lambda is another commonly employed test of significance used in multivariate analysis of
+        variance
+
+        Returns
+        -------
+        wilks_stat : dict
+            Dictionary containing the Wilk's lambda statistic, and the corresponding F-statistic and p-value.
+
+        Notes
+        -----
+        Wilk's :math:`\Lambda`, one of the more commonly used MANOVA test statistics,
+        compares the :math:`E` matrix to the total :math:`E + H` matrix. Wilk's
+        :math:`\Lambda` is calculated using the determinants of those two matrices.
+
+        .. math::
+
+            \Lambda = \frac{\left| E \right|}{\left| E + H \right|}
+
+        Wilk's :math:`\Lambda` can also be written in terms of the :math:`E^{-1}H`
+        eigenvalues :math:`(\lambda_1, \lambda_2, \cdots, \lambda_s)`.
+
+        .. math::
+
+            \Lambda = \prod^s_{i=1} \frac{1}{1 + \lambda_i}
+
+        An approximate F-Value can be calculated using Wilk's Lambda:
+
+        .. math::
+
+            F = \frac{1 - \Lambda^{(1/t)}}{\Lambda^{(1/t)}} \frac{df_2}{df_1}
+
+        Where
+
+        .. math::
+
+            df_1 = pv_H, \qquad df_2 = wt - \frac{1}{2}(pv_H - 2), \qquad w = v_E + v_H - \frac{1}{2}(p + v_H + 1)
+
+        .. math::
+
+            t = \sqrt{\frac{p^2v^2_H - 4}{p^2 + v^2_H - 5}}
+
+        References
+        ----------
+        Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
+            Brigham Young University: John Wiley & Sons, Inc.
+
+        """
         vh, p, ve, eigs = self._intermediate_statistic_parameters['vh'], \
                           self._intermediate_statistic_parameters['p'], \
                           self._intermediate_statistic_parameters['ve'], \
@@ -699,6 +950,31 @@ class ManovaOneWay(object):
         return wilks_stat
 
     def roys_statistic(self):
+        r"""
+        Roy's test statistic, also known as Roy's largest root test, is another test of significance used in
+        multivariate analysis of variance.
+
+        Returns
+        -------
+        roy_stat : dict
+            Dictionary containing the Roy's statistic value, and the corresponding F-statistic and p-value.
+
+        Notes
+        -----
+        Roy's test statistic is the largest eigenvalue of the matrix :math:`E^{-1}H`
+
+        The F-statistic in the Roy's statistic setting can be computed as:
+
+        .. math::
+
+            \frac{k(n - 1)}{k - 1} \lambda_1
+
+        References
+        ----------
+        Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
+            Brigham Young University: John Wiley & Sons, Inc.
+
+        """
         eigs, n, vh = self._intermediate_statistic_parameters['eigs'], \
                       self._intermediate_statistic_parameters['n'], \
                       self._intermediate_statistic_parameters['vh']
@@ -713,6 +989,39 @@ class ManovaOneWay(object):
         return roy_stat
 
     def hotelling_t2_statistic(self):
+        r"""
+        Computes the Lawley-Hotelling :math:`T^2` test statistic, another test of significance used in
+        multivariate analysis of variance.
+
+        Returns
+        -------
+        t2_stat : dict
+            Dictionary containing the calculated Lawley-Hotelling :math:`T^2` statistic, and the
+            corresponding F-statistic and p-value.
+
+        Notes
+        -----
+        The Lawley-Hotelling statistic, also known as Hotelling's generalized :math:`T^2`-statistic,
+        is denoted :math:`U^{(s)}` and is defined as:
+
+        .. math::
+
+            U^{(s)} = tr(E^{-1}H) = \sum^s_{i=1} \lambda_i
+
+        The approximate F-statistic in the Lawley-Hotelling setting is defined as:
+
+        .. math::
+
+            F = \frac{2 (sN + 1)U^{(s)}}{s^2(2m + s + 1)}
+
+        Where :math:`s`, :math:`m`, and :math`N` are defined as above.
+
+        References
+        ----------
+        Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
+            Brigham Young University: John Wiley & Sons, Inc.
+
+        """
         dot_inve_h, s, nn, m = self._intermediate_statistic_parameters['dot_inve_h'], \
                                self._intermediate_statistic_parameters['s'], \
                                self._intermediate_statistic_parameters['nn'], \
@@ -751,7 +1060,7 @@ class ManovaOneWay(object):
         group_stats.pop('Groups')
 
         manova_result = {
-            'Test Description': self.test_description,
+            'Analysis Performed': self.analysis_type,
             'degrees of freedom': self.degrees_of_freedom,
             'Pillai Statistic': self.pillai_statistic,
             "Wilks Lambda": self.wilks_lambda,
@@ -765,6 +1074,33 @@ class ManovaOneWay(object):
         }
 
         return manova_result
+
+    def _group_statistics(self):
+        group_means = npi.group_by(self.design_matrix[:, 0]).mean(self.design_matrix[:, 1:])[1]
+
+        group_observations = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1:], len)
+        group_observations = [i for _, i in group_observations]
+
+        groups = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1:])[1]
+
+        group_stats = {
+            'Group Means': group_means,
+            'Group Observations': group_observations,
+            'Groups': groups
+        }
+
+        return group_stats
+
+    def _obs_statistics(self):
+        x_means = self.design_matrix[:, 1:].mean(axis=0)
+        x_group_observations = len(x_means)
+
+        obs_stats = {
+            'x means': x_means,
+            'x observations': x_group_observations
+        }
+
+        return obs_stats
 
     @staticmethod
     def _dot_inve_h(h, e):
