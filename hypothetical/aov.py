@@ -45,20 +45,20 @@ def anova_one_way(*args, group=None):
 
     Parameters
     ----------
-    group: array-like, optional
-        One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
-        membership of the dependent variable(s). Must be the same length as the observation vector.
     group_sample1, group_sample2, ... : array-like
         Corresponding observation vectors of the group samples. Must be the same length
         as the group parameter. If the group parameter is None, each observation vector
         will be treated as a group sample vector. If more than one sample vector is passed and
         the group parameter is not None, one-way MANOVA will be performed.
+    group: array-like, optional
+        One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
+        membership of the dependent variable(s). Must be the same length as the observation vector.
 
     Returns
     -------
     AnovaOneWay or ManovaOneWay : class object
-        ANOVA or MANOVA (if more than one observation vector is passed with a group variable) class object
-        containing the fitted results.
+        AnovaOneWay or ManovaOneWay (if more than one observation vector is passed with a group
+        variable) class object containing the fitted results.
 
     Notes
     -----
@@ -355,6 +355,7 @@ def manova_one_way(*args, group=None):
     ----------
     Andrews, D. F., and Herzberg, A. M. (1985), Data, New York: Springer-Verlag.
 
+    Fox J. and Weisberg, S. (2011) An R Companion to Applied Regression, Second Edition Sage.
     Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
         Brigham Young University: John Wiley & Sons, Inc.
 

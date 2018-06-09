@@ -59,20 +59,18 @@ def pearson(x, y=None):
 
     Parameters
     ----------
-    x : numpy ndarray, array-like
-        Can be Pandas DataFrame, Pandas Series, numpy ndarray, list, or list of lists
-        representing a 1D or 2D array containing the variables and their respective observation
-        vectors.
-        The input is concatenated with the parameter y if given.
-    y : numpy ndarray, array-like
-        Can be Pandas DataFrame, Pandas Series, numpy ndarray, list, or list of lists
-        representing a 1D or 2D array containing the variables and their respective observation
-        vectors.
+    x : array-like
+        Numpy ndarray, pandas DataFrame or Series, list, or list of lists representing a 1D or 2D array
+        containing the variables and their respective observation vectors. The input is concatenated with
+        the parameter y if given.
+    y : array-like, optional
+        Numpy ndarray, pandas DataFrame or Series, list, or list of lists representing a 1D or 2D array
+        containing the variables and their respective observation vectors.
 
     Returns
     -------
     numpy ndarray
-        The correlation coefficient matrix of the inputted variables.
+        The Pearson product-moment correlation coefficient matrix of the inputted variables.
 
     Notes
     -----
@@ -136,15 +134,13 @@ def spearman(x, y=None):
 
     Parameters
     ----------
-    x : numpy ndarray, array-like
-        Can be Pandas DataFrame, Pandas Series, numpy ndarray, list, or list of lists
-        representing a 1D or 2D array containing the variables and their respective observation
-        vectors.
-        The input is concatenated with the parameter y if given.
-    y : numpy ndarray, array-like
-        Can be Pandas DataFrame, Pandas Series, numpy ndarray, list, or list of lists
-        representing a 1D or 2D array containing the variables and their respective observation
-        vectors.
+    x : array-like
+        Numpy ndarray, pandas DataFrame or Series, list, or list of lists representing a 1D or 2D array
+        containing the variables and their respective observation vectors. The input is concatenated with
+        the parameter y if given.
+    y : array-like, optional
+        Numpy ndarray, pandas DataFrame or Series, list, or list of lists representing a 1D or 2D array
+        containing the variables and their respective observation vectors.
 
     Returns
     -------
@@ -422,7 +418,7 @@ class Variance(object):
     Parameters
     ----------
     x : array_like
-        Accepts a list, nested list, pandas DataFrame or
+        Accepts a list, nested list, numpy ndarray, or pandas DataFrame or
         pandas Series.
 
     Attributes
@@ -677,9 +673,8 @@ def std_dev(x):
     Parameters
     ----------
     x : array_like
-        Accepts a numpy array, nested list, dictionary, or
-        pandas DataFrame. The private function _create_array
-        is called to create a copy of x as a numpy array.
+        Numpy ndarray, pandas DataFrame or Series, list, or list of lists representing a 1D or 2D array
+        containing the variables and their respective observation vectors.
 
     Returns
     -------
@@ -705,9 +700,8 @@ def variance_condition(x):
     Parameters
     ----------
     x : array_like
-        Accepts a numpy array, nested list, dictionary, or
-        pandas DataFrame. The private function _create_array
-        is called to create a copy of x as a numpy array.
+        Numpy ndarray, pandas DataFrame or Series, list, or list of lists representing a 1D or 2D array
+        containing the variables and their respective observation vectors.
 
     Returns
     -------

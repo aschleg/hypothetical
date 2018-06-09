@@ -12,25 +12,25 @@ def mann_whitney(y1, y2=None, group=None, continuity=True):
 
     Parameters
     ----------
-    y1
-        One-dimensional array-like (Pandas Series or DataFrame, Numpy array, list, or dictionary)
-        designating first sample
-    y2
-        One-dimensional array-like (Pandas Series or DataFrame, Numpy array, list, or dictionary)
-        designating second sample to compare to first
-    continuity
-        Boolean, optional. If True, apply the continuity correction of :math:`\frac{1}{2}` to the
+    y1 : array-like
+        One-dimensional array-like (Pandas Series or DataFrame, Numpy array, or list)
+        designating first sample observation vector.
+    y2 : array-like, optional
+        One-dimensional array-like (Pandas Series or DataFrame, Numpy array, or list)
+        designating second sample observation vector.
+    group : array-like, optional
+        One-dimensional array (Numpy ndarray, Pandas Series or DataFrame, or list) that defines
+        the group membership of the sample vector(s). Must be the same length as the observation vector.
+    continuity : bool
+        If True, apply the continuity correction of :math:`\frac{1}{2}` to the
         mean rank.
 
     Returns
     -------
-    namedtuple
-        Namedtuple of following entries that contain resulting Mann-Whitney test statistics.
-        Mann-Whitney U Test Statistic: The U Statistic of the Mann-Whitney test
-        Mean Rank: The mean rank of U statistic
-        Sigma: the standard deviation of U
-        z-value: The standardized value of U
-        p-value: p-value of U statistic compared to critical value
+    res : MannWhitney or WilcoxonTest class object
+        :code:`MannWhitney` class object containing the fitted results. If only one sample vector
+        is passed, a Wilcoxon Signed Rank Test is performed and a :code:`WilcoxonTest` class
+        object containing the fitted results is returned.
 
     Notes
     -----
@@ -54,35 +54,231 @@ def mann_whitney(y1, y2=None, group=None, continuity=True):
 
     :math:`U` for the two samples in the test, is given by:
 
+    .. math::
+
+        U_1 = R_1 - \frac{n_1(n_1 + 1)}{2}
+        U_2 = R_2 - \frac{n_2(n_2 + 1)}{2}
+
+    Where :math:`R_1` and :math:`R_2` are the sum of the ranks of the two samples.
+
+    Examples
+    --------
+    Similar to the :code:`anova_one_way` function, there are several ways to perform a Mann-Whitney
+    U test with the :code:`mann_whitney` function. One of these approaches is to pass the sample data
+    vector and a group vector of the same length denoting group membership of the sample observations.
+
+    The data used in this example is a subset of the professor salary dataset found in Fox and
+    Weisberg (2011).
+
+    >>> professor_discipline = ['B', 'B', 'B', 'B', 'B',
+    ...                         'A', 'A', 'A', 'A', 'A']
+    >>> professor_salary = [139750, 173200, 79750, 11500, 141500,
+    ...                     103450, 124750, 137000, 89565, 102580]
+    >>> mw = mann_whitney(group=professor_discipline, y1=professor_salary)
+    >>> mw.summary()
+    {'U': 10.0,
+     'continuity': True,
+     'mu meanrank': 13.0,
+     'p-value': 0.5308693039685082,
+     'sigma': 4.7871355387816905,
+     'test description': 'Mann-Whitney U test',
+     'z-value': 0.6266795614405122}
+
+    The other approach is to pass each group sample observation vector.
+
+    >>> sal_a = [139750, 173200, 79750, 11500, 141500]
+    >>> sal_b = [103450, 124750, 137000, 89565, 102580]
+    >>> mw2 = mann_whitney(sal_a, sal_b)
+    >>> mw2.summary()
+    {'U': 10.0,
+     'continuity': True,
+     'mu meanrank': 13.0,
+     'p-value': 0.5308693039685082,
+     'sigma': 4.7871355387816905,
+     'test description': 'Mann-Whitney U test',
+     'z-value': 0.6266795614405122}
+
     References
     ----------
+    Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
+        Wiley. ISBN 978-1118840313.
+
+    Fox J. and Weisberg, S. (2011) An R Companion to Applied Regression, Second Edition Sage.
+
     Mann–Whitney U test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
         From https://en.wikipedia.org/w/index.php?title=Mann%E2%80%93Whitney_U_test&oldid=786593885
 
     """
     if y2 is None and group is None:
-        res = wilcox_test(y1=y1)
+        res = WilcoxonTest(y1=y1)
     else:
         res = MannWhitney(y1=y1, y2=y2, group=group, continuity=continuity)
 
     return res
 
 
-def wilcox_test(y1, y2=None, paired=False, median=0, continuity=True):
+def wilcoxon_test(y1, y2=None, paired=False, mu=0, continuity=True):
+    r"""
+    Performs one-sample Wilcoxon Rank Sum tests.
+
+    Parameters
+    ----------
+    y1 : array-like
+        One-dimensional array-like (Pandas Series or DataFrame, Numpy array, or list)
+        designating first sample observation vector.
+    y2 : array-like, optional
+        One-dimensional array-like (Pandas Series or DataFrame, Numpy array, or list)
+        designating second sample observation vector.
+    paired : bool, optional
+        If True, performs a paired Wilcoxon Rank Sum test
+    mu : float, optional
+    continuity : bool
+
+    Returns
+    -------
+    res : WilcoxonTest or MannWhitney class object containing the fitted model results.
+        If only one sample vector is passed (or two sample vectors with the :code:`paired` parameter
+        set to :code:`True`), a fitted :code:`WilcoxonTest` class object containing the
+        test results is returned. Otherwise, a Mann-Whitney U-test is performed and a
+        :code:`MannWhitney` class object containing the fitted test results is returned.
+
+    Notes
+    -----
+
+    Examples
+    --------
+    The data used in this example is a subset of the professor salary dataset found in Fox and
+    Weisberg (2011).
+
+    References
+    ----------
+    Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
+        Wiley. ISBN 978-1118840313.
+
+    """
     if y2 is not None and paired is False:
         res = MannWhitney(y1=y1, y2=y2, continuity=continuity)
     else:
-        res = WilcoxonTest(y1=y1, y2=y2, paired=paired, median=median, continuity=continuity)
+        res = WilcoxonTest(y1=y1, y2=y2, paired=paired, mu=mu, continuity=continuity)
 
     return res
 
 
 def kruskal_wallis(*args, group=None, alpha=0.05):
-    return KruskalWallis(*args, group=group, alpha=alpha)
+    r"""
+
+    Parameters
+    ----------
+    group_sample1, group_sample2, ... : array-like
+        Corresponding observation vectors of the group samples. Must be the same length
+        as the group parameter. If the group parameter is None, each observation vector
+        will be treated as a group sample vector.
+    group: array-like, optional
+        One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
+        membership of the dependent variable(s). Must be the same length as the observation vector.
+    alpha : float
+        Desired alpha level for testing for significance.
+
+    Returns
+    -------
+    kw : KruskalWallis class object
+
+
+    Notes
+    -----
+    The Kruskal-Wallis test extends the Mann-Whitney-Wilcoxon Rank Sum test for more than two
+    groups. The test is nonparametric similar to the Mann-Whitney test and as such does not
+    assume the data are normally distributed and can, therefore, be used when the assumption
+    of normality is violated.
+
+    The Kruskal-Wallis test proceeds by ranking the data from 1 (the smallest) to the largest
+    with ties replaced by the mean of the ranks the values would have received. The sum of
+    the ranks for each treatment is typically denoted $T_i$ or $R_i$.
+
+    The test statistic is denoted :code:`H` and can be defined as the following when the
+    ranked data does not contain ties.
+
+    .. math::
+
+        H = \frac{12}{N(N + 1)} \left[ \frac{\sum_{i=1}^k T_{i}^2}{n_i} - 3(N + 1) \right]
+
+    If the ranked data contains ties, a correction can be used by dividing :code:`H` by:
+
+    .. math::
+
+        1 - \frac{\sum_{t=1}^G (t_i^3 - t_i)}{N^3 - N}
+
+    Where :code:`G` is the number of groups of tied ranks and :code:`t_i` is the number of
+    tied values within the :code:`i^{th}` group. The p-value is usually approximated using
+    a Chi-Square distribution as calculating exact probabilities can be computationally
+    intensive for larger sample sizes.
+
+    Examples
+    --------
+
+    References
+    ----------
+
+    """
+    kw = KruskalWallis(*args, group=group, alpha=alpha)
+
+    return kw
 
 
 class MannWhitney(object):
+    r"""
 
+    Parameters
+    ----------
+    y1 : array-like
+        One-dimensional array-like (Pandas Series or DataFrame, Numpy array, or list)
+        designating first sample
+    y2 : array-like, optional
+        One-dimensional array-like (Pandas Series or DataFrame, Numpy array, or list)
+        designating second sample to compare to first
+    group : array-like, optional
+        One-dimensional array (Numpy ndarray, Pandas Series or DataFrame, or list) that defines
+        the group membership of the sample vector(s). Must be the same length as the observation vector.
+    continuity : bool
+        If True, apply the continuity correction of :math:`\frac{1}{2}` to the
+        mean rank.
+
+    Attributes
+    ----------
+    y1 : array-like
+        First sample observation vector.
+    y2 : array-like or None
+        Second sample observation vector, if passed. Otherwise, will return None.
+    n1 : int
+        Number of sample observations in the first sample vector.
+    n2 : int or None
+        Number of sample observations in the second sample vector. If no second observation vector was
+        passed, will return None.
+    n : int
+        Total number of sample observations (sum of :code:`n1` and :code:`n2`.
+    continuity : bool
+        If True, continuity correction is applied.
+    U : int
+        Computed U-statistic.
+    meanrank : float
+        The mean of the ranked sample observations.
+    sigma : float
+        The calculated standard deviation, :math:`\sigma_U`.
+    z_value : float
+        Standardized :math:`z` value.
+    p_value : float
+        Computed p-value.
+    effect_size : float
+        Calculated estimated Cohen's effect size.
+
+    Notes
+    -----
+
+    See Also
+    --------
+    mann_whitney : function for performing the Mann-Whitney U-test.
+
+    """
     def __init__(self, y1, y2=None, group=None, continuity=True):
 
         if group is None:
@@ -102,11 +298,12 @@ class MannWhitney(object):
 
         self.continuity = continuity
         self._ranks = self._rank()
-        self.U = self._u()
-        self.meanrank = self._mu()
-        self.sigma = self._sigma()
-        self.z_value = self._zvalue()
-        self.p_value = self._pvalue()
+        self.u_statistic = self.u()
+        self.meanrank = self.mu()
+        self.sigma = self.sigma_val()
+        self.z_value = self.z()
+        self.p_value = self.p_val()
+        self.effect_size = self.eff_size()
 
     def _rank(self):
         ranks = np.concatenate((self.y1, self.y2))
@@ -117,7 +314,7 @@ class MannWhitney(object):
 
         return ranks
 
-    def _u(self):
+    def u(self):
         u1 = self.n1 * self.n2 + (self.n1 * (self.n1 + 1)) / 2. - np.sum(self._ranks)
         u2 = self.n1 * self.n2 - u1
 
@@ -125,13 +322,13 @@ class MannWhitney(object):
 
         return u
 
-    def _mu(self):
+    def mu(self):
 
-        mu = (self.n1 * self.n2) / 2. + (0.5 * self.continuity)
+        mu_rank = (self.n1 * self.n2) / 2. + (0.5 * self.continuity)
 
-        return mu
+        return mu_rank
 
-    def _sigma(self):
+    def sigma_val(self):
         rankcounts = np.unique(self._ranks, return_counts=True)[1]
 
         sigma = np.sqrt(((self.n1 * self.n2) * (self.n + 1)) / 12. * (
@@ -139,23 +336,29 @@ class MannWhitney(object):
 
         return sigma
 
-    def _zvalue(self):
-        z = (np.absolute(self.U - self.meanrank)) / self.sigma
+    def z(self):
+        z = (np.absolute(self.u_statistic - self.meanrank)) / self.sigma
 
         return z
 
-    def _pvalue(self):
+    def p_val(self):
         p = 1 - norm.cdf(self.z_value)
 
         return p * 2
 
+    def eff_size(self):
+        es = np.abs(self.z_value) / np.sqrt(self.n)
+
+        return es
+
     def summary(self):
         mw_results = {
             'continuity': self.continuity,
-            'U': self.U,
+            'U': self.u_statistic,
             'mu meanrank': self.meanrank,
             'sigma': self.sigma,
             'z-value': self.z_value,
+            'effect size': self.effect_size,
             'p-value': self.p_value,
             'test description': 'Mann-Whitney U test'
         }
@@ -165,9 +368,9 @@ class MannWhitney(object):
 
 class WilcoxonTest(object):
 
-    def __init__(self, y1, y2=None, paired=False, median=0, continuity=True, alpha=0.05, alternative='two-sided'):
+    def __init__(self, y1, y2=None, paired=False, mu=0, continuity=True, alpha=0.05, alternative='two-sided'):
         self.paired = paired
-        self.median = median
+        self.median = mu
         self.continuity = continuity
         self.test_description = 'Wilcoxon signed rank test'
 
