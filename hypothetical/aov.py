@@ -708,17 +708,31 @@ class ManovaOneWay(object):
     k : int
         The number of groups.
     group_stats : dict
+        Dictionary containing group means, number of observations and data for each
+        dependent variable.
     observation_stats : dict
+        Dictionary of overall dependent variable means and number of observations.
     hypothesis_matrix : array-like
+        The calculated hypothesis matrix, :math:`H`.
     error_matrix : array-like
+        The error matrix, :math:`E`.
     degrees_of_freedom : dict
+        Dictionary containing the group and residual degrees of freedom.
     numerator_dof : int
+        The numerator (group) degrees of freedom.
     denominator_dof : int
+        The denominator (residual) degrees of freedom.
     pillai_statistic : dict
+        Dictionary containing the Pillai statistic, and the corresponding F-statistic and p-value.
     wilks_lambda : dict
+        Dictionary containing the Wilk's Lambda statistic, and the corresponding F-statistic and p-value.
     roys_statistic : dict
+        Dictionary containing Roy's statistic, and the corresponding F-statistic and p-value.
     hotelling_t2_statistic : dict
+        Dictionary containing the Lawey-Hotelling :math:`T^2` statistic, and the corresponding
+        F-statistic and p-value.
     analysis_type : str
+        String denoting the type of analysis performed. Currently only returns 'One-Way MANOVA'
 
     Notes
     -----
@@ -763,9 +777,65 @@ class ManovaOneWay(object):
         Returns
         -------
         h, e : array-like
+            The :math:`k \times k` 'hypothesis' and 'error' matrix of the MANOVA design.
 
         Notes
         -----
+        The hypothesis, :math:`H`, and error :math:`E` matrices correspond to the treatment and
+        error sum of squares that are calculated when performing univariate analysis of variance.
+        :math:`H` is defined as:
+
+        .. math::
+
+            H = n \sum_{i=1}^k (\bar{y}_{i.} - \bar{y}_{..}) (\bar{y}_{i.} - \bar{y}_{..})^{prime}
+
+        and has the form:
+
+        .. math::
+
+            H = \begin{bmatrix}
+                    SSH_{11} & SPH_{12} & \ldots & SPH_{1p} \\
+                    SPH_{12} & SSH_{22} & \ldots & SPH_{2p} \\
+                    \vdots & \vdots & \vdots \\
+                    SPH_{1p} & SPH_{2p} & \ldots & SSH_{pp}
+                \end{bmatrix}
+
+        Where,
+
+        .. math::
+
+            SSH_{11} = n \sum_{i=1}^k (\bar{y}_{i.1} - \bar{y}_{..1})^2 =
+            \sum_i \frac{y_{i.1}^2}{n} - \frac{y_{..1}^2}{kn}
+
+            SPH_{23} = n \sum_{i=1}^k (\bar{y}_{i.2} - \bar{y}_{..2}) (\bar{y}_{i.3} - \bar{y}_{..3}} =
+            \sum_i \frac{y_{i.2} y_{i.3}}{n} - \frac{y_{..2} y_{..3}}{kn}
+
+        The diagonal elements of the :math:`H` matrix represent the between sum of squares for each of the
+        dependent variables, while the off-diagonal elements are sums of products for each pair of variables.
+        The rank of :math:`H` is the smaller of the number of dependent variables, :math:`k` and :math:`v_H`,
+        where :math:`v_H` is the degrees of freedom, :math:`k - 1`.
+
+        The error, :math:`E` matrix can also be expressed similarly to the form of the hypothesis matrix.
+        For example,
+
+        .. math::
+
+            E = \begin{matrix}
+                    SSE_{11} & SPE_{12} & \ldots & SPE_{1p} \\
+                    SPE_{12} & SSE_{22} & \ldots & SPE_{2p} \\
+                    \vdots & \vdots & & \vdots \\
+                    SPE_{1p} & SPE_{2p} & \ldots & SSE_{pp}
+                \end{bmatrix}
+
+        Where, for example, the elements of the matrix can be written as:
+
+        .. math::
+
+            SSE_{11} = \sum_{i=1}^k \sum_{j=1}^n (y_{ij1} - \bar{y}_{i.1})^2 =
+            \sum_{ij} y_{ij1}^2 - \sum_{i} \frac{y_{i.1}^2}{n}
+
+            SPE_{23} = \sum_{i=1}^k \sum_{j=1}^n (y_{ij2} - \bar{y}_{i.2}) (y_{ij3} - \bar{y}_{i.3}) =
+            \sum_{ij} y_{ij2} y_{ij3} - sum_{i} \frac{y_{i.2} y_{i.3}}{n}
 
         References
         ----------
@@ -796,35 +866,6 @@ class ManovaOneWay(object):
                 e[i, j], e[j, i] = np.sum(b), np.sum(b)
 
         return h, e
-
-    def _intermediate_test_statistic_parameters(self):
-
-        dot_inve_h = self._dot_inve_h(self.hypothesis_matrix, self.error_matrix)
-        eigs = np.linalg.eigvals(dot_inve_h)
-
-        p = len(self.error_matrix)
-        n = self.design_matrix.shape[0]
-
-        vh = self.k - 1.
-        ve = n - self.k
-
-        s = np.minimum(vh, p)
-        m = 0.5 * (np.absolute(vh - p) - 1)
-        nn = 0.5 * (ve - p - 1)
-
-        intermediate_statistic_parameters = {
-            'dot_inve_h': dot_inve_h,
-            'eigs': eigs,
-            'p': p,
-            'n': n,
-            'vh': vh,
-            've': ve,
-            's': s,
-            'm': m,
-            'nn': nn
-        }
-
-        return intermediate_statistic_parameters
 
     def pillai_statistic(self):
         r"""
@@ -1038,24 +1079,51 @@ class ManovaOneWay(object):
 
         return t2_stat
 
-    def _degrees_of_freedom(self):
-        vh, ve, xn = self._intermediate_statistic_parameters['vh'], \
-                     self._intermediate_statistic_parameters['ve'], \
-                     len(self.observation_stats['x means'])
+    @staticmethod
+    def p_value(f_val, df_num, df_denom):
+        r"""
+        Returns the p-value using the computed F-statistic
 
-        num_df, denom_df = vh, ve
+        Parameters
+        ----------
+        f_val : float
+            The calculated F-statistic found from test of significance procedures (Pillai, Wilk's Lambda, Roy's
+            statistic, and Lawley-Hotelling :math:`T^2`).
+        df_num : int
+            The hypothesis degrees of freedom, :math:`k - 1`, where :math:`k` is the number of groups.
+        df_denom : int
+            The error degrees of freedom, :math:`n - k`, where :math:`n` is the number of total observations
+            and :math:`k` is the number of groups.
 
-        dof = {'Numerator Degrees of Freedom': num_df,
-               'Denominator Degrees of Freedom': denom_df}
+        Returns
+        -------
+        p : float
+            The computed p-value given the found F-statistic and the group and residual degrees of freedom.
 
-        return dof
+        Notes
+        -----
+        The :code:`cdf` method from Scipy's :code:`stats.f` class is used to find the p-value.
 
-    def p_value(self, f_val, df_num, df_denom):
+        References
+        ----------
+        Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
+            Brigham Young University: John Wiley & Sons, Inc.
+
+        """
         p = 1 - f.cdf(f_val, df_num, df_denom)
 
         return p
 
     def summary(self):
+        r"""
+        Returns a summary of the fitted MANOVA model as a dictionary.
+
+        Returns
+        -------
+        anova_results : dict
+            A summary of the fitted MANOVA model and relevant test statistics.
+
+        """
         group_stats = self.group_stats
         group_stats.pop('Groups')
 
@@ -1101,6 +1169,47 @@ class ManovaOneWay(object):
         }
 
         return obs_stats
+
+    def _intermediate_test_statistic_parameters(self):
+
+        dot_inve_h = self._dot_inve_h(self.hypothesis_matrix, self.error_matrix)
+        eigs = np.linalg.eigvals(dot_inve_h)
+
+        p = len(self.error_matrix)
+        n = self.design_matrix.shape[0]
+
+        vh = self.k - 1.
+        ve = n - self.k
+
+        s = np.minimum(vh, p)
+        m = 0.5 * (np.absolute(vh - p) - 1)
+        nn = 0.5 * (ve - p - 1)
+
+        intermediate_statistic_parameters = {
+            'dot_inve_h': dot_inve_h,
+            'eigs': eigs,
+            'p': p,
+            'n': n,
+            'vh': vh,
+            've': ve,
+            's': s,
+            'm': m,
+            'nn': nn
+        }
+
+        return intermediate_statistic_parameters
+
+    def _degrees_of_freedom(self):
+        vh, ve, xn = self._intermediate_statistic_parameters['vh'], \
+                     self._intermediate_statistic_parameters['ve'], \
+                     len(self.observation_stats['x means'])
+
+        num_df, denom_df = vh, ve
+
+        dof = {'Numerator Degrees of Freedom': num_df,
+               'Denominator Degrees of Freedom': denom_df}
+
+        return dof
 
     @staticmethod
     def _dot_inve_h(h, e):

@@ -4,12 +4,101 @@ from scipy.stats import t
 
 
 def t_test(y1, y2=None, group=None, mu=None, var_equal=False, paired=False, alternative='two-sided'):
+    r"""
+    Performs one and two sample t-tests.
 
+    Parameters
+    ----------
+    y1 : array-like
+        One-dimensional array-like object (list, numpy array, pandas DataFrame or pandas Series) containing
+        the observed sample values.
+    y2 : array-like, optional
+        One-dimensional array-like object (list, numpy array, pandas DataFrame or pandas Series) containing
+        the observed sample values. Not necessary to include when performing one-sample t-tests.
+    group : array-like, optional
+        Optional group vector array denoting class membership. Cannot contain more than two unique groups
+        and must be the same length as :code:`y1`.
+    mu : float, optional
+        True mean to test difference when performing a one-sample t-test.
+    var_equal : bool, optional
+        If True, the two samples are assumed to have equal variances and Student's t-test is performed.
+        Defaults to False, which performs Welch's t-test for unequal sample variances.
+    paired : bool, optional
+        If True, performs a paired t-test.
+    alternative : str, {'two-sided', 'greater', 'less'}
+        Specifies the alternative hypothesis :math:`H_1`. Must be one of 'two-sided' (default), 'greater',
+        or 'less'.
+
+    Returns
+    -------
+    tTest : class object
+        :code:`tTest` class object containing the fitted results.
+
+    Notes
+    -----
+    Welch's t-test is an adaption of Student's t test and is more performant when the
+    sample variances and size are unequal. The test still depends on the assumption of
+    the underlying population distributions being normally distributed.
+
+    Welch's t test is defined as:
+
+    .. math::
+
+        t = \frac{\bar{X_1} - \bar{X_2}}{\sqrt{\frac{s_{1}^{2}}{N_1} + \frac{s_{2}^{2}}{N_2}}}
+
+    where:
+
+    :math:`\bar{X}` is the sample mean, :math:`s^2` is the sample variance, :math:`n` is the sample size
+
+    If the :code:`var_equal` argument is True, Student's t-test is used, which assumes the two samples
+    have equal variance. The t statistic is computed as:
+
+    .. math::
+
+        t = \frac{\bar{X}_1 - \bar{X}_2}{s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}
+
+    where:
+
+    .. math::
+
+        s_p = \sqrt{\frac{(n_1 - 1)s^2_{X_1} + (n_2 - 1)s^2_{X_2}}{n_1 + n_2 - 2}
+
+    Examples
+    --------
+
+    See Also
+    --------
+    tTest : class
+        The :code:`tTest` class contains the implemented algorithms and methods used when performing a
+        t-test.
+
+    References
+    ----------
+    Rencher, A. C., & Christensen, W. F. (2012). Methods of multivariate analysis (3rd Edition).
+
+    Student's t-test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
+        From https://en.wikipedia.org/w/index.php?title=Student%27s_t-test&oldid=786562367
+
+    """
     return tTest(y1=y1, y2=y2, group=group, mu=mu, var_equal=var_equal, paired=paired, alternative=alternative)
 
 
 class tTest(object):
+    r"""
 
+    Parameters
+    ----------
+
+    Attributes
+    ----------
+
+    Notes
+    -----
+
+    See Also
+    --------
+
+    """
     def __init__(self, y1, y2=None, group=None, mu=None, var_equal=False, paired=False, alternative='two-sided'):
         self.group = group
         self.paired = paired
