@@ -202,6 +202,137 @@ def spearman(x, y=None):
     return spearman_corr
 
 
+def var(x, method=None):
+    r"""
+    Front-end interface function for computing the variance of a sample
+    or population.
+
+    Parameters
+    ----------
+    x : array_like
+        Accepts a numpy array, nested list, dictionary, or
+        pandas DataFrame. The private function _create_array
+        is called to create a copy of x as a numpy array.
+    method : {'corrected_two_pass', 'textbook_one_pass', 'standard_two_pass', 'youngs_cramer'}, optional.
+        Selects algorithm used to calculate variance. Default method is :code:`corrected_two_pass` which
+        is generally more computationally stable than other algorithms (with the exception of youngs-cramer,
+        perhaps).
+
+    Returns
+    -------
+    v : float or numpy array or numpy structured array or pandas DataFrame
+        If the input is one-dimensional, the variance is returned as
+        a float. For a two-dimensional input, the variance is calculated
+        column-wise and returned as a numpy array or pandas DataFrame.
+
+    Examples
+    --------
+    >>> f = pd.DataFrame({0: [1,-1,2,2], 1: [-1,2,1,-1], 2: [2,1,3,2], 3: [2,-1,2,1]})
+    >>> var(f)
+    np.array([2, 2.25, 0.666667, 2])
+    >>> var(f[1])
+    np.array([2])
+
+    """
+    x = Variance(x)
+    if method is None:
+        v = getattr(x, x.method, None)
+    else:
+        if hasattr(x, method):
+            v = getattr(x, method, x.method)
+        else:
+            raise ValueError('no method with name ' + str(method))
+
+    return v()
+
+
+def std_dev(x):
+    r"""
+    Calculates the standard deviation by simply taking the square
+    root of the variance.
+
+    Parameters
+    ----------
+    x : array_like
+        Numpy ndarray, pandas DataFrame or Series, list, or list of lists representing a 1D or 2D array
+        containing the variables and their respective observation vectors.
+
+    Returns
+    -------
+    sd : numpy array or float
+        The computed standard deviation.
+
+    """
+    v = var(x)
+    sd = np.sqrt(v)
+
+    return sd
+
+
+def variance_condition(x):
+    r"""
+    Calculates the condition number, denoted as :math:`\kappa` which
+    measures the sensitivity of the variance :math:`S` of a sample
+    vector :math:`x` as defined by Chan and Lewis (as cited in Chan,
+    Golub, & Leveque, 1983). Given a machine accuracy value of
+    :math:`u`, the value :math:`\kappa u` can be used as a measure to
+    judge the accuracy of the different variance computation algorithms.
+
+    Parameters
+    ----------
+    x : array_like
+        Numpy ndarray, pandas DataFrame or Series, list, or list of lists representing a 1D or 2D array
+        containing the variables and their respective observation vectors.
+
+    Returns
+    -------
+    varr : numpy ndarray
+        Depending on the dimension of the input, returns a 1D or 2D array of the
+        column-wise computed variances.
+
+    Notes
+    -----
+    The 2-norm is defined as usual:
+
+    .. math::
+
+        ||x||_2 = \sum^N_{i=1} x^2_i
+
+    Then the condition number :math:`\kappa` is defined as:
+
+    .. math::
+
+        \kappa = \frac{||x||_2}{\sqrt{S}} = \sqrt{1 + \bar{x}^2 N / S}
+
+    References
+    ----------
+    Chan, T., Golub, G., & Leveque, R. (1983). Algorithms for Computing the Sample Variance:
+        Analysis and Recommendations. The American Statistician, 37(3), 242-247.
+        http://dx.doi.org/10.1080/00031305.1983.10483115
+
+    """
+    if isinstance(x, pd.DataFrame):
+        x = x.values
+    elif isinstance(x, np.ndarray) is False:
+        x = np.array(x)
+
+    if x.ndim == 1:
+        kap_cond = np.linalg.norm(x) / std_dev(x)
+
+    elif x.ndim == 2:
+        kap_cond = np.empty(x.shape[1])
+        j = 0
+        for i in x.T:
+            k = np.linalg.norm(i) / std_dev(i)
+            kap_cond[j] = k
+            j += 1
+
+    else:
+        raise ValueError('array must be 1D or 2D')
+
+    return kap_cond
+
+
 class Cov(object):
     r"""
     Class object containing the covariance matrix algorithms used by the covar function. Meant to be
@@ -363,50 +494,6 @@ class Cov(object):
                 self.cov[i, j] = (np.sum((x - xbar) * (y - ybar))) / (self.n - 1)
 
         return self.cov
-
-
-def var(x, method=None):
-    r"""
-    Front-end interface function for computing the variance of a sample
-    or population.
-
-    Parameters
-    ----------
-    x : array_like
-        Accepts a numpy array, nested list, dictionary, or
-        pandas DataFrame. The private function _create_array
-        is called to create a copy of x as a numpy array.
-    method : {'corrected_two_pass', 'textbook_one_pass', 'standard_two_pass', 'youngs_cramer'}, optional.
-        Selects algorithm used to calculate variance. Default method is :code:`corrected_two_pass` which
-        is generally more computationally stable than other algorithms (with the exception of youngs-cramer,
-        perhaps).
-
-    Returns
-    -------
-    v : float or numpy array or numpy structured array or pandas DataFrame
-        If the input is one-dimensional, the variance is returned as
-        a float. For a two-dimensional input, the variance is calculated
-        column-wise and returned as a numpy array or pandas DataFrame.
-
-    Examples
-    --------
-    >>> f = pd.DataFrame({0: [1,-1,2,2], 1: [-1,2,1,-1], 2: [2,1,3,2], 3: [2,-1,2,1]})
-    >>> var(f)
-    np.array([2, 2.25, 0.666667, 2])
-    >>> var(f[1])
-    np.array([2])
-
-    """
-    x = Variance(x)
-    if method is None:
-        v = getattr(x, x.method, None)
-    else:
-        if hasattr(x, method):
-            v = getattr(x, method, x.method)
-        else:
-            raise ValueError('no method with name ' + str(method))
-
-    return v()
 
 
 class Variance(object):
@@ -663,93 +750,6 @@ class Variance(object):
                 k += 1
 
         return varr
-
-
-def std_dev(x):
-    r"""
-    Calculates the standard deviation by simply taking the square
-    root of the variance.
-
-    Parameters
-    ----------
-    x : array_like
-        Numpy ndarray, pandas DataFrame or Series, list, or list of lists representing a 1D or 2D array
-        containing the variables and their respective observation vectors.
-
-    Returns
-    -------
-    sd : numpy array or float
-        The computed standard deviation.
-
-    """
-    v = var(x)
-    sd = np.sqrt(v)
-
-    return sd
-
-
-def variance_condition(x):
-    r"""
-    Calculates the condition number, denoted as :math:`\kappa` which
-    measures the sensitivity of the variance :math:`S` of a sample
-    vector :math:`x` as defined by Chan and Lewis (as cited in Chan,
-    Golub, & Leveque, 1983). Given a machine accuracy value of
-    :math:`u`, the value :math:`\kappa u` can be used as a measure to
-    judge the accuracy of the different variance computation algorithms.
-
-    Parameters
-    ----------
-    x : array_like
-        Numpy ndarray, pandas DataFrame or Series, list, or list of lists representing a 1D or 2D array
-        containing the variables and their respective observation vectors.
-
-    Returns
-    -------
-    varr : numpy ndarray
-        Depending on the dimension of the input, returns a 1D or 2D array of the
-        column-wise computed variances.
-
-    Notes
-    -----
-    The 2-norm is defined as usual:
-
-    .. math::
-
-        ||x||_2 = \sum^N_{i=1} x^2_i
-
-    Then the condition number :math:`\kappa` is defined as:
-
-    .. math::
-
-        \kappa = \frac{||x||_2}{\sqrt{S}} = \sqrt{1 + \bar{x}^2 N / S}
-
-    References
-    ----------
-    Chan, T., Golub, G., & Leveque, R. (1983). Algorithms for Computing the Sample Variance:
-        Analysis and Recommendations. The American Statistician, 37(3), 242-247.
-        http://dx.doi.org/10.1080/00031305.1983.10483115
-
-    """
-    if isinstance(x, pd.DataFrame):
-        x = x.values
-    elif isinstance(x, np.ndarray) is False:
-        x = np.array(x)
-
-    if x.ndim == 1:
-        kap_cond = np.linalg.norm(x) / std_dev(x)
-
-    elif x.ndim == 2:
-        kap_cond = np.empty(x.shape[1])
-        j = 0
-        for i in x.T:
-            k = np.linalg.norm(i) / std_dev(i)
-            kap_cond[j] = k
-            j += 1
-
-    else:
-        raise ValueError('array must be 1D or 2D')
-
-    return kap_cond
 
 
 def _build_matrix(x, y=None):
