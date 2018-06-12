@@ -1,9 +1,169 @@
+# encoding=utf8
+
+"""
+
+Nonparametric Inference Methods
+-------------------------------
+
+.. autosummary::
+    :toctree: generated/
+
+    kruskal_wallis
+    mann_whitney
+    wilcoxon_test
+
+
+.. autosummary::
+    :toctree: generated/
+
+    KruskalWallis
+    MannWhitney
+    WilcoxonTest
+
+Other Functions
+---------------
+
+.. autosummary::
+    :toctree: generated/
+
+    tie_correction
+
+References
+----------
+Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
+    Wiley. ISBN 978-1118840313.
+
+Fox J. and Weisberg, S. (2011) An R Companion to Applied Regression, Second Edition Sage.
+
+Mann–Whitney U test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
+    From https://en.wikipedia.org/w/index.php?title=Mann%E2%80%93Whitney_U_test&oldid=786593885
+
+Wikipedia contributors. (2018, May 21). Kruskal–Wallis one-way analysis of variance.
+        In Wikipedia, The Free Encyclopedia. From
+        https://en.wikipedia.org/w/index.php?title=Kruskal%E2%80%93Wallis_one-way_analysis_of_variance&oldid=842351945
+
+"""
+
 import numpy as np
 import numpy_indexed as npi
 from scipy.stats import rankdata, norm, chi2, t
 
 from hypothetical._lib import build_des_mat
 from hypothetical.summary import var
+
+
+def kruskal_wallis(*args, group=None, alpha=0.05):
+    r"""
+    Performs the nonparametric one-way anaylsis of variance Kruskal-Wallis test for two or
+    more groups.
+
+    Parameters
+    ----------
+    group_sample1, group_sample2, ... : array-like
+        Corresponding observation vectors of the group samples. Must be the same length
+        as the group parameter. If the group parameter is None, each observation vector
+        will be treated as a group sample vector.
+    group: array-like, optional
+        One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
+        membership of the dependent variable(s). Must be the same length as the observation vector.
+    alpha : float
+        Desired alpha level for testing for significance.
+
+    Returns
+    -------
+    kw : KruskalWallis class object
+        :code:`KruskalWallis` class containing the fitted results. Please see the
+        :code:`KruskalWallis` documentation for available attributes and methods.
+
+    Notes
+    -----
+    The Kruskal-Wallis test extends the Mann-Whitney U test for more than two groups and can be
+    considered the nonparametric equivalent of the one-way analysis of variance (ANOVA) method.
+    The test is nonparametric similar to the Mann-Whitney test and as such does not
+    assume the data are normally distributed and can, therefore, be used when the assumption
+    of normality is violated.
+
+    The Kruskal-Wallis test proceeds by ranking the data from 1 (the smallest) to the largest
+    with ties replaced by the mean of the ranks the values would have received. The sum of
+    the ranks for each treatment is typically denoted $T_i$ or $R_i$.
+
+    The test statistic is denoted :code:`H` and can be defined as the following when the
+    ranked data does not contain ties.
+
+    .. math::
+
+        H = \frac{12}{N(N + 1)} \left[ \frac{\sum_{i=1}^k T_{i}^2}{n_i} - 3(N + 1) \right]
+
+    If the ranked data contains ties, a correction can be used by dividing :code:`H` by:
+
+    .. math::
+
+        1 - \frac{\sum_{t=1}^G (t_i^3 - t_i)}{N^3 - N}
+
+    Where :code:`G` is the number of groups of tied ranks and :code:`t_i` is the number of
+    tied values within the :code:`i^{th}` group. The p-value is usually approximated using
+    a Chi-Square distribution as calculating exact probabilities can be computationally
+    intensive for larger sample sizes.
+
+    See Also
+    --------
+    KruskalWallis : class containing the implementation of the algorithms and methods used
+    when performing thr Kruskal-Wallis test.
+
+    Examples
+    --------
+    There are several ways to perform the Kruskal-Wallis test with the :code:`kruskal_wallis` function.
+    Similar to the parametric one-way ANOVA method implemented by the :code:`anova_one_way` function,
+    one approach is to pass a group vector with the :code:`group` parameter and the corresponding
+    observation vector as below.
+
+    The data used in this example is a subset of the data obtained from the plant growth
+    dataset given in Dobson (1983).
+
+    >>> group_vector = ['ctrl', 'ctrl', 'ctrl',
+    ...                 'trt1', 'trt1', 'trt1',
+    ...                 'trt2', 'trt2', 'trt2']
+    >>> observation_vec = [4.17, 5.58, 5.18,
+    ...                    4.81, 4.17, 4.41,
+    ...                    5.31, 5.12, 5.54]
+    >>> kw = kruskal_wallis(observation_vec, group=group_vector)
+    >>> kw.summary()
+    {'alpha': 0.05,
+     'critical chisq value': 3.1148459383753497,
+     'degrees of freedom': 2,
+     'least significant difference': 4.916428084371546,
+     'p-value': 0.21067829669685478,
+     't-value': 2.4469118487916806,
+     'test description': 'Kruskal-Wallis rank sum test'}
+
+    The other approach is to pass each group sample vector similar to the below.
+
+    >>> ctrl = [4.17, 5.58, 5.18]
+    >>> trt1 = [4.81, 4.17, 4.41]
+    >>> trt2 = [5.31, 5.12, 5.54]
+    >>> kw2 = kruskal_wallis(ctrl, trt1, trt2)
+    >>> kw2.summary()
+    {'alpha': 0.05,
+     'critical chisq value': 3.1148459383753497,
+     'degrees of freedom': 2,
+     'least significant difference': 4.916428084371546,
+     'p-value': 0.21067829669685478,
+     't-value': 2.4469118487916806,
+     'test description': 'Kruskal-Wallis rank sum test'}
+
+    References
+    ----------
+    Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
+        Wiley. ISBN 978-1118840313.
+
+    Wikipedia contributors. (2018, May 21). Kruskal–Wallis one-way analysis of variance.
+        In Wikipedia, The Free Encyclopedia. From
+        https://en.wikipedia.org/w/index.php?title=Kruskal%E2%80%93Wallis_one-way_analysis_of_variance&oldid=842351945
+
+    """
+    kw = KruskalWallis(*args, group=group, alpha=alpha)
+
+    return kw
 
 
 def mann_whitney(y1, y2=None, group=None, continuity=True):
@@ -164,8 +324,37 @@ def wilcoxon_test(y1, y2=None, paired=False, mu=0):
     return res
 
 
-def kruskal_wallis(*args, group=None, alpha=0.05):
+class KruskalWallis(object):
     r"""
+    Class containing the algorithms and methods used in the construction and conduction of the
+    Kruskal-Wallis H-test.
+
+    Attributes
+    ----------
+    design_matrix : array-like
+        Numpy ndarray representing the data matrix for the analysis.
+    ranked_matrix : array-like
+        Numpy ndarray representing the data matrix with the ranked observations.
+    alpha : float
+        Alpha level for determining significance.
+    n : int
+        Number of sample observations.
+    k : int
+        Number of treatment groups.
+    dof : int
+        Degrees of freedom, defined as :math:`k - 1`.
+    H : float
+        Calculated Kruskal-Wallis H-statistic.
+    t_value : float
+        The critical t-value for computing the Least Significant Difference.
+    p_value : float
+        Corresponding p-value of the :math:`H`-statistic. The distribution of :math:`H` is approximated
+        by the chi-square distribution.
+    least_significant_difference : float
+        Calculated Least Significant Difference for determining if treatment group means are significantly
+        different from each other.
+    test_description : str
+        String describing the performed test. By default, the test description will be Kruskal-Wallis rank sum test
 
     Parameters
     ----------
@@ -179,50 +368,222 @@ def kruskal_wallis(*args, group=None, alpha=0.05):
     alpha : float
         Desired alpha level for testing for significance.
 
-    Returns
-    -------
-    kw : KruskalWallis class object
+    Raises
+    ------
+    ValueError
+        As the Kruskal-Wallis is a univariate test, only one sample observation vector should be passed
+        when including a group vector in the :code:`group` parameter.
 
-
-    Notes
-    -----
-    The Kruskal-Wallis test extends the Mann-Whitney-Wilcoxon Rank Sum test for more than two
-    groups. The test is nonparametric similar to the Mann-Whitney test and as such does not
-    assume the data are normally distributed and can, therefore, be used when the assumption
-    of normality is violated.
-
-    The Kruskal-Wallis test proceeds by ranking the data from 1 (the smallest) to the largest
-    with ties replaced by the mean of the ranks the values would have received. The sum of
-    the ranks for each treatment is typically denoted $T_i$ or $R_i$.
-
-    The test statistic is denoted :code:`H` and can be defined as the following when the
-    ranked data does not contain ties.
-
-    .. math::
-
-        H = \frac{12}{N(N + 1)} \left[ \frac{\sum_{i=1}^k T_{i}^2}{n_i} - 3(N + 1) \right]
-
-    If the ranked data contains ties, a correction can be used by dividing :code:`H` by:
-
-    .. math::
-
-        1 - \frac{\sum_{t=1}^G (t_i^3 - t_i)}{N^3 - N}
-
-    Where :code:`G` is the number of groups of tied ranks and :code:`t_i` is the number of
-    tied values within the :code:`i^{th}` group. The p-value is usually approximated using
-    a Chi-Square distribution as calculating exact probabilities can be computationally
-    intensive for larger sample sizes.
-
-    Examples
+    See Also
     --------
-
-    References
-    ----------
+    kruskal_wallis : function that acts as an 'interface' to the :code:`KruskalWallis` class and its
+        implementations of the test.
+    AnovaOneWay : class containing the implementations of the algorithms and methods used in the
+        conduction of the one-way analysis of variance procedure. The Kruskal-Wallis test can be
+        considered the nonparametric equivalent of the one-way analysis of variance method.
 
     """
-    kw = KruskalWallis(*args, group=group, alpha=alpha)
+    def __init__(self, *args, group=None, alpha=0.05):
 
-    return kw
+        if group is not None and len(args) > 1:
+            raise ValueError('Only one sample vector should be passed when including a group vector')
+
+        self.design_matrix = build_des_mat(*args, group=group)
+
+        if group is not None:
+            self.group = group
+        else:
+            self.group = self.design_matrix[:, 0]
+
+        self.ranked_matrix = self._rank()
+        self.group_rank_sums = self._group_rank_sums()
+        self.alpha = alpha
+        self.n = self.design_matrix.shape[0]
+        self.k = len(np.unique(self.design_matrix[:, 0]))
+        self.dof = self.k - 1
+        self.H = self.h_statistic()
+        self.p_value = self.p_val()
+        self.t_value = self.t_val()
+        self.least_significant_difference = self.lsd()
+        self.test_description = 'Kruskal-Wallis rank sum test'
+
+    def h_statistic(self):
+        r"""
+        Computes the Kruskal-Wallis :math:`H`-statistic.
+
+        Returns
+        -------
+        h : float
+            Computed Kruskal-Wallis :math:`H`-statistic.
+
+        Notes
+        -----
+        The Kruskal-Wallis :math:`H`-statistic is defined as the following when the ranked data does not
+        contain ties.
+
+        .. math::
+
+            H = \frac{12}{N(N + 1)} \left[ \frac{\sum_{i=1}^k T_{i}^2}{n_i} - 3(N + 1) \right]
+
+        If the ranked data contains ties, a correction can be used by dividing :code:`H` by:
+
+        .. math::
+
+            1 - \frac{\sum_{t=1}^G (t_i^3 - t_i)}{N^3 - N}
+
+        Where :code:`G` is the number of groups of tied ranks and :code:`t_i` is the number of
+        tied values within the :code:`i^{th}` group.
+
+        The tie correction is automatically applied in the computation of the :math:`H`-statistic.
+
+        References
+        ----------
+        Wikipedia contributors. (2018, May 21). Kruskal–Wallis one-way analysis of variance.
+            In Wikipedia, The Free Encyclopedia. From
+            https://en.wikipedia.org/w/index.php?title=Kruskal%E2%80%93Wallis_one-way_analysis_of_variance&oldid=842351945
+
+        """
+        group_observations = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1:], len)
+
+        group_observations = np.array([i for _, i in group_observations])
+
+        group_summed_ranks = np.array([i for _, i in self.group_rank_sums])
+
+        h1 = 12. / (self.n * (self.n + 1))
+        h2 = np.sum(group_summed_ranks ** 2 / group_observations)
+
+        h = h1 * h2 - (3 * (self.n + 1))
+
+        # Apply tie correction
+        h /= tie_correction(self.ranked_matrix[:, 2])
+
+        return h
+
+    def p_val(self):
+        r"""
+        Computes the p-value of the :math:`H`-statistic approximated by the chi-square distribution.
+
+        Returns
+        -------
+        p : float
+            The computed p-value.
+
+        Notes
+        -----
+        The :math:`p`-value is approximated by a chi-square distribution with :math:`k - 1` degrees
+        of freedom.
+
+        .. math::
+
+            Pr(\chi^2_{k - 1} \geq H)
+
+        References
+        ----------
+        Wikipedia contributors. (2018, May 21). Kruskal–Wallis one-way analysis of variance.
+            In Wikipedia, The Free Encyclopedia. From
+            https://en.wikipedia.org/w/index.php?title=Kruskal%E2%80%93Wallis_one-way_analysis_of_variance&oldid=842351945
+
+        """
+        p = 1 - chi2.cdf(self.H, self.dof)
+
+        return p
+
+    def t_val(self):
+        r"""
+        Returns the critical t-statistic given the input alpha-level (defaults to 0.05).
+
+        Returns
+        -------
+        tval : float
+            The critical t-value for using in computing the Least Significant Difference.
+
+        Notes
+        -----
+        Scipy's :code:`t.ppf` method is used to compute the critical t-value.
+
+        """
+        tval = t.ppf(1 - self.alpha / 2, self.n - self.k)
+
+        return tval
+
+    def lsd(self):
+        r"""
+        Returns the Least Significant Difference statistic used for determining if treatment group
+        means are significantly different from each other.
+
+        Returns
+        -------
+        lsd : float
+            The calculated Least Significant Difference.
+
+        Notes
+        -----
+        The Least Significant Difference is a test statistic developed by Ronald Fisher. The basic
+        idea of the LSD is to find the smallest difference between two sample means and conclude a
+        significant difference if a comparison between two other group means exceeds the LSD. The
+        Least Significant Difference is defined as:
+
+        .. math::
+
+            t_{\alpha, N-k} \sqrt{MSE \frac{2}{n}}
+
+        Where :math:`t_{\alpha, N-k}` is the critical t-value given the input alpha-level and :math:`MSE`
+        is the mean error sum of squares as in the one-way analysis of variance procedure.
+
+        References
+        ----------
+        Fisher’s Least Significant Difference (LSD) Test. (2010). [ebook] Thousand Oaks.
+            Available at: https://www.utd.edu/~herve/abdi-LSD2010-pretty.pdf [Accessed 11 Jun. 2018].
+
+        """
+        lsd = self.t_value * np.sqrt(self._mse() * 2 / (self.n / self.k))
+
+        return lsd
+
+    def summary(self):
+        r"""
+        Returns a summary of the Kruskal-Wallis test as a dictionary.
+
+        Returns
+        -------
+        test_results : dict
+            Dictionary containing the fitted Kruskal-Wallis :math:`H`-test results.
+
+        """
+        test_results = {'test description': self.test_description,
+                        'critical chisq value': self.H,
+                        'p-value': self.p_value,
+                        'least significant difference': self.least_significant_difference,
+                        't-value': self.t_value,
+                        'alpha': self.alpha,
+                        'degrees of freedom': self.dof
+        }
+
+        return test_results
+
+    def _rank(self):
+
+        ranks = rankdata(self.design_matrix[:, 1], 'average')
+
+        ranks = np.column_stack([self.design_matrix, ranks])
+
+        return ranks
+
+    def _group_rank_sums(self):
+        rank_sums = npi.group_by(self.ranked_matrix[:, 0], self.ranked_matrix[:, 2], np.sum)
+
+        return rank_sums
+
+    def _mse(self):
+        group_variance = npi.group_by(self.ranked_matrix[:, 0], self.ranked_matrix[:, 2], var)
+        group_n = npi.group_by(self.ranked_matrix[:, 0], self.ranked_matrix[:, 2], len)
+
+        sse = 0
+
+        for i, j in zip(group_n, group_variance):
+            sse += (i[1] - 1) * j[1]
+
+        return sse / (self.n - self.k)
 
 
 class MannWhitney(object):
@@ -580,7 +941,7 @@ class WilcoxonTest(object):
     See Also
     --------
     wilcoxon_test : function for performing Wilcoxon signed rank tests that acts as an interface to the
-    :code:`WilcoxonTest`.
+        :code:`WilcoxonTest`.
 
     """
     def __init__(self, y1, y2=None, paired=False, mu=0, alpha=0.05, alternative='two-sided'):
@@ -682,108 +1043,55 @@ class WilcoxonTest(object):
         return test_results
 
 
-class KruskalWallis(object):
-
-    def __init__(self, *args, group=None, alpha=0.05):
-
-        if group is not None and len(args) > 1:
-            raise ValueError('Only one sample vector should be passed when including a group vector')
-
-        self.design_matrix = build_des_mat(*args, group=group)
-
-        if group is not None:
-            self.group = group
-        else:
-            self.group = self.design_matrix[:, 0]
-
-        self.ranked_matrix = self._rank()
-        self.group_rank_sums = self._group_rank_sums()
-        self.alpha = alpha
-        self.n = self.design_matrix.shape[0]
-        self.k = len(np.unique(self.design_matrix[:, 0]))
-        self.dof = self.k - 1
-        self.H = self._hvalue()
-        self.p_value = self._pvalue()
-        self.t_value = self._tvalue()
-        self.least_significant_difference = self._lsd()
-        self.test_description = 'Kruskal-Wallis rank sum test'
-
-    def _hvalue(self):
-        group_observations = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1:], len)
-
-        group_observations = np.array([i for _, i in group_observations])
-
-        group_summed_ranks = np.array([i for _, i in self.group_rank_sums])
-
-        h1 = 12. / (self.n * (self.n + 1))
-        h2 = np.sum(group_summed_ranks ** 2 / group_observations)
-
-        h = h1 * h2 - (3 * (self.n + 1))
-
-        # Apply tie correction if needed
-        if len(np.unique(self.ranked_matrix[:, 2])) != self.n:
-
-            h /= tie_correction(self.ranked_matrix[:, 2])
-
-        return h
-
-    def _pvalue(self):
-        p = 1 - chi2.cdf(self.H, self.dof)
-
-        return p
-
-    def _tvalue(self):
-        tval = t.ppf(1 - self.alpha / 2, self.n - self.k)
-
-        return tval
-
-    def _rank(self):
-
-        ranks = rankdata(self.design_matrix[:, 1], 'average')
-
-        ranks = np.column_stack([self.design_matrix, ranks])
-
-        return ranks
-
-    def _group_rank_sums(self):
-        rank_sums = npi.group_by(self.ranked_matrix[:, 0], self.ranked_matrix[:, 2], np.sum)
-
-        return rank_sums
-
-    def _mse(self):
-        group_variance = npi.group_by(self.ranked_matrix[:, 0], self.ranked_matrix[:, 2], var)
-        group_n = npi.group_by(self.ranked_matrix[:, 0], self.ranked_matrix[:, 2], len)
-
-        sse = 0
-
-        for i, j in zip(group_n, group_variance):
-            sse += (i[1] - 1) * j[1]
-
-        return sse / (self.n - self.k)
-
-    def _lsd(self):
-        lsd = self.t_value * np.sqrt(self._mse() * 2 / (self.n / self.k))
-
-        return lsd
-
-    def summary(self):
-        test_results = {'test description': self.test_description,
-                        'critical chisq value': self.H,
-                        'p-value': self.p_value,
-                        'least significant difference': self.least_significant_difference,
-                        't-value': self.t_value,
-                        'alpha': self.alpha,
-                        'degrees of freedom': self.dof
-        }
-
-        return test_results
-
-
 def tie_correction(rank_array):
+    r"""
+    Computes the tie correction factor used in Mann-Whitney and Kruskal-Wallis tests.
+
+    Parameters
+    ----------
+    rank_array : array-like
+        1-d array (numpy array, list, pandas DataFrame or Series) of ranks.
+
+    Returns
+    -------
+    corr : float
+        The correction factor for :math:`H` (or :math:`U` for the Mann-Whitney U-test).
+
+    Notes
+    -----
+    The tie correction factor is defined as:
+
+    .. math::
+
+            1 - \frac{\sum_{t=1}^G (t_i^3 - t_i)}{N^3 - N}
+
+    Where :code:`G` is the number of groups of tied ranks and :code:`t_i` is the number of
+    tied values within the :code:`i^{th}` group.
+
+    Examples
+    --------
+    The ranked values of an observation vector can be easily found using Scipy's :code:`tiecorrect`
+    function.
+
+    >>> obs = [4.17, 5.58, 5.18, 4.81, 4.17, 4.41, 5.31, 5.12, 5.54]
+    >>> ranked_obs = rankdata(obs)
+    >>> ranked_obs
+    array([1.5, 9. , 6. , 4. , 1.5, 3. , 7. , 5. , 8. ])
+
+    >>> tie_correction(ranked_obs)
+    0.9916666666666667
+
+    References
+    ----------
+    Wikipedia contributors. (2018, May 21). Kruskal–Wallis one-way analysis of variance.
+            In Wikipedia, The Free Encyclopedia. From
+            https://en.wikipedia.org/w/index.php?title=Kruskal%E2%80%93Wallis_one-way_analysis_of_variance&oldid=842351945
+
+    """
     tied_groups = np.unique(rank_array, return_counts=True)[1]
     tied_groups = tied_groups[tied_groups > 1]
 
-    h = 1 - np.sum((tied_groups ** 3 - tied_groups)) / (rank_array.shape[0] ** 3 -
-                                                        rank_array.shape[0])
+    corr = 1 - np.sum((tied_groups ** 3 - tied_groups)) / (rank_array.shape[0] ** 3 -
+                                                           rank_array.shape[0])
 
-    return h
+    return corr

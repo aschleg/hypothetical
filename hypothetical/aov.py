@@ -9,11 +9,22 @@ methods used to perform ANOVA or MANOVA.
 One-Way Analysis of Variance
 ----------------------------
 
+The following functions perform one-way ANOVA (analysis of variance) and MANOVA (multivariate analysis of
+variance).
+
 .. autosummary::
     :toctree: generated/
 
     anova_one_way
     manova_one_way
+
+The following classes implement the algorithms and methods used when performing an ANOVA or MANOVA procedure.
+The classes act as internal 'back-ends' for the above functions to encapsulate each
+procedure.
+
+.. autosummary::
+    :toctree: generated/
+
     AnovaOneWay
     ManovaOneWay
 
@@ -22,10 +33,12 @@ References
 Andrews, D. F., and Herzberg, A. M. (1985), Data, New York: Springer-Verlag.
 
 Dobson, A. J. (1983) An Introduction to Statistical Modelling.
-        London: Chapman and Hall.
+    London: Chapman and Hall.
+
+Fox J. and Weisberg, S. (2011) An R Companion to Applied Regression, Second Edition Sage.
 
 Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
-        Brigham Young University: John Wiley & Sons, Inc.
+    Brigham Young University: John Wiley & Sons, Inc.
 
 """
 
@@ -356,6 +369,7 @@ def manova_one_way(*args, group=None):
     Andrews, D. F., and Herzberg, A. M. (1985), Data, New York: Springer-Verlag.
 
     Fox J. and Weisberg, S. (2011) An R Companion to Applied Regression, Second Edition Sage.
+
     Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
         Brigham Young University: John Wiley & Sons, Inc.
 

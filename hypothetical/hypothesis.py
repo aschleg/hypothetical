@@ -1,3 +1,10 @@
+# encoding=utf8
+
+"""
+
+
+"""
+
 import numpy as np
 import numpy_indexed as npi
 from scipy.stats import t

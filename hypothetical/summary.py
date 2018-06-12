@@ -37,6 +37,11 @@ def covariance(x, y=None, method=None):
        [ -2.66666667,   0.33333333,   3.66666667,   6.33333333],
        [-10.66666667,  -3.66666667,   6.33333333,  17.        ]])
 
+    See Also
+    --------
+    Cov : class containing several algorithm implementations for computing the covariance and covariance
+        matrices.
+
     """
     if y is None:
         x = Cov(x)
@@ -105,6 +110,10 @@ def pearson(x, y=None):
     >>> pearson(h[:, 1], h[:, 2])
     array([[ 1.        ,  0.05802589],
        [ 0.05802589,  1.        ]])
+
+    See Also
+    --------
+    spearman : function for computing the Spearman rank correlation of two vectors or a data matrix.
 
     References
     ----------
@@ -184,6 +193,10 @@ def spearman(x, y=None):
     array([[ 1.        , -0.33333333],
        [-0.33333333,  1.        ]])
 
+    See Also
+    --------
+    pearson : function for computing the Pearson product-moment correlation of two vectors or a data matrix.
+
     References
     ----------
     Spearman's rank correlation coefficient. (2017, June 24). In Wikipedia, The Free Encyclopedia.
@@ -233,6 +246,12 @@ def var(x, method=None):
     >>> var(f[1])
     np.array([2])
 
+    See Also
+    --------
+    std_dev : function for computing the standard deviation of an observation array.
+    Variance : class containing implementations of several available algorithms for computing the
+        variance of two sample vectors or a data matrix.
+
     """
     x = Variance(x)
     if method is None:
@@ -261,6 +280,10 @@ def std_dev(x):
     -------
     sd : numpy array or float
         The computed standard deviation.
+
+    See Also
+    --------
+    var : function for computing the variance of an observation array.
 
     """
     v = var(x)
@@ -361,6 +384,12 @@ class Cov(object):
 
     Where :math:`E[X]` and :math:`E[Y]` are the expected values of the random variables :math:`X` and
     :math:`Y`, respectively, also known as the mean of the random variables.
+
+    See Also
+    --------
+    covariance : function for computing the covariance of two sample observation vectors or a data matrix.
+        The :code:`covariance` function is meant to be the interface to the :code:`Cov` class, which acts
+        as an internal 'back-end'.
 
     References
     ----------
@@ -528,6 +557,11 @@ class Variance(object):
         again to compute the variance :math:`S`.
     corrected_two_pass()
         An alternative form of the standard two pass algorithm suggested by Professor Å. Björck.
+
+    See Also
+    --------
+    var : function for computing the variance of a sample observation vector. The :code:`var` function is meant
+        to be the primary interface to the :code:`Variance` class.
 
     """
     def __init__(self, x):
