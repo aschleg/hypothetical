@@ -1,9 +1,13 @@
 # encoding=utf8
 
 """
+Functions for performing nonparametric statistical inference. The classes listed in this module are intended to
+act as 'back-ends' to their respective functions.
 
 Nonparametric Inference Methods
 -------------------------------
+
+The functions listed here are the primary interfaces and are meant to be used over their respective classes.
 
 .. autosummary::
     :toctree: generated/
@@ -12,6 +16,8 @@ Nonparametric Inference Methods
     mann_whitney
     wilcoxon_test
 
+The following classes contain the implementations of the algorithms and methods used in the respective
+nonparametric inference methods.
 
 .. autosummary::
     :toctree: generated/
