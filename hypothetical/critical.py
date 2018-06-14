@@ -1,8 +1,110 @@
+# encoding=utf-8
+
+
+"""
+Functions for finding the critical value of a particular test statistic given the necessary parameters. Critical
+value tables implemented as dictionaries are also provided.
+
+Critical Value Lookup Functions
+-------------------------------
+
+.. autosummary::
+    :toctree: generated/
+
+    w_critical_value
+    chi_square_critical_value
+
+Critical Value Tables
+---------------------
+
+.. autosummary::
+    :toctree: generated/
+
+    chi_square_critical_value_table
+    w_critical_value_table
+
+"""
+
 from numpy import nan
 
 
-def w_critical_value(n, alpha, alternative):
+def chi_square_critical_value(alpha, dof):
+    r"""
+    Finds the :math:`\chi^2` critical value given the input alpha-level and degrees of freedom.
 
+    Parameters
+    ----------
+    alpha : float, {0.995, 0.99, 0.975, 0.95, 0.90, 0.10, 0.05, 0.025, 0.01, and 0.005}
+        Desired alpha-level for the chi-square critical value.
+    dof : int
+        Degrees of freedom of the sample observations. Cannot be greater than 30 as critical values are
+        not defined.
+
+    Returns
+    -------
+    chi_crit : float
+        The chi-square critical value found from the critical value table.
+
+    Raises
+    ------
+    ValueError
+        If parameter :code:`dof` is greater than 30.
+    ValueError
+        If parameter :code:`alpha` is not one of (0.995, 0.99, 0.975, 0.95, 0.90, 0.10, 0.05, 0.025, 0.01, and 0.005)
+
+    References
+    ----------
+    Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
+        Wiley. ISBN 978-1118840313.
+
+    """
+    if isinstance(alpha, str):
+        alpha = float(alpha)
+    if isinstance(dof, str) or isinstance(dof, int) is False:
+        dof = int(dof)
+
+    if dof > 30:
+        raise ValueError('chi-square critical value table only provides values for degrees of freedom <= 30')
+    if alpha not in (0.995, 0.99, 0.975, 0.95, 0.90, 0.10, 0.05, 0.025, 0.01, 0.005):
+        raise ValueError('chi-square critical value table only provides critical values for alpha levels ' + \
+                         '0.995, 0.99, 0.975, 0.95, 0.90, 0.10, 0.05, 0.025, 0.01, and 0.005')
+
+    chi_crit = chi_square_critical_value_table[alpha][dof]
+
+    return chi_crit
+
+
+def u_critical_value(n, m, alpha):
+    pass
+
+def w_critical_value(n, alpha, alternative):
+    r"""
+    Finds the :math:`W`-statistic critical value given the input parameters.
+
+    Parameters
+    ----------
+    n : int
+        The number of sample observations. Critical values are only given for :math:`n \geq 30`.
+    alpha : float, {0.05, 0.01}
+        Given alpha level. Critical values are only given for :math:`0.05` and :math:`0.01`.
+    alternative : str
+        Alternative hypothesis. Must be one of 'one-tail' or 'two-tail'.
+
+    Returns
+    -------
+    w_crit : float
+        The :math:`W`-statistic critical value.
+
+    Raises
+    ------
+    ValueError
+        If parameter :code:`n` is greater than 30.
+    ValueError
+        If parameter :code:`alpha` is not one of 0.05 or 0.01.
+    ValueError
+        If parameter :code:`alternative` is not one of 'one-tail' or 'two-tail'.
+
+    """
     if isinstance(n, str):
         n = int(n)
     if isinstance(alpha, str):
@@ -15,24 +117,24 @@ def w_critical_value(n, alpha, alternative):
     if alternative not in ('one-tail', 'two-tail'):
         raise ValueError("alternative must be one of 'one-tail' or 'two-tail'.")
 
-    return w_critical_value_table[alternative][alpha][n]
+    w_crit = w_critical_value_table[alternative][alpha][n]
+
+    return w_crit
 
 
-def chi_square_critical_value(alpha, dof):
+"""
+The following section contains the critical value tables written as dictionaries.
 
-    if isinstance(alpha, str):
-        alpha = float(alpha)
-    if isinstance(dof, str) or isinstance(dof, int) is False:
-        dof = int(dof)
+Critical Value Tables
+---------------------
 
-    if dof > 30:
-        raise ValueError('chi-square critical value table only provides values for degrees of freedom <= 30')
-    if alpha not in (0.995, 0.99, 0.975, 0.95, 0.90, 0.10, 0.05, 0.025, 0.01, 0.005):
-        raise ValueError('chi-square critical value table only provides critical values for alpha levels ' + \
-                         '0.995, 0.99, 0.975, 0.95, 0.90, 0.10, 0.05, 0.025, 0.01, and 0.005')
+.. autosummary::
+    :toctree: generated/
 
-    return chi_square_critical_value_table[alpha][dof]
+    chi_square_critical_value_table
+    w_critical_value_table
 
+"""
 
 chi_square_critical_value_table = {
     0.995: {
@@ -354,6 +456,179 @@ chi_square_critical_value_table = {
         28: 50.993,
         29: 52.336,
         30: 53.672
+    }
+}
+
+
+u_critical_value_table = {
+    0.10: {
+        (1, 9): 0,
+        (1, 10): 0,
+        (1, 11): 0,
+        (1, 12): 0,
+        (1, 13): 0,
+        (1, 14): 0,
+        (1, 15): 0,
+        (1, 16): 0,
+        (1, 17): 0,
+        (1, 18): 0,
+        (1, 19): 1,
+        (1, 20): 1,
+        (2, 3): 0,
+        (2, 4): 0,
+        (2, 5): 1,
+        (2, 6): 1,
+        (2, 7): 1,
+        (2, 8): 2,
+        (2, 9): 2,
+        (2, 10): 3,
+        (2, 11): 3,
+        (2, 12): 4,
+        (2, 13): 4,
+        (2, 14): 5,
+        (2, 15): 5,
+        (2, 16): 5,
+        (2, 17): 6,
+        (2, 18): 6,
+        (2, 19): 7,
+        (2, 20): 7,
+        (3, 3): 1,
+        (3, 4): 1,
+        (3, 5): 2,
+        (3, 6): 3,
+        (3, 7): 4,
+        (3, 8): 5,
+        (3, 9): 5,
+        (3, 10): 6,
+        (3, 11): 7,
+        (3, 12): 8,
+        (3, 13): 9,
+        (3, 14): 10,
+        (3, 15): 10,
+        (3, 16): 11,
+        (3, 17): 12,
+        (3, 18): 13,
+        (3, 19): 14,
+        (3, 20): 15,
+        (4, 4): 3,
+        (4, 5): 4,
+        (4, 6): 5,
+        (4, 7): 6,
+        (4, 8): 7,
+        (4, 9): 9,
+        (4, 10): 10,
+        (4, 11): 11,
+        (4, 12): 12,
+        (4, 13): 13,
+        (4, 14): 15,
+        (4, 15): 16,
+        (4, 16): 17,
+        (4, 17): 18,
+        (4, 18): 20,
+        (4, 19): 21,
+        (4, 20): 22,
+        (5, 5): 5,
+        (5, 6): 7,
+        (5, 7): 8,
+        (5, 8): 10,
+        (5, 9): 12,
+        (5, 10): 13,
+        (5, 11): 15,
+        (5, 12): 17,
+        (5, 13): 18,
+        (5, 14): 20,
+        (5, 15): 22,
+        (5, 16): 23,
+        (5, 17): 25,
+        (5, 18): 27,
+        (5, 19): 28,
+        (5, 20): 30,
+        (6, 6): 9,
+        (6, 7): 11,
+        (6, 8): 13,
+        (6, 9): 15,
+        (6, 10): 17,
+        (6, 11): 19,
+        (6, 12): 21,
+        (6, 13): 23,
+        (6, 14): 25,
+        (6, 15): 27,
+        (6, 16): 29,
+        (6, 17): 31,
+        (6, 18): 34,
+        (6, 19): 36,
+        (6, 20): 38,
+        (7, 7): 13,
+        (7, 8): 16,
+        (7, 9): 18,
+        (7, 10): 21,
+        (7, 11): 23,
+        (7, 12): 26,
+        (7, 13): 28,
+        (7, 14): 31,
+        (7, 15): 33,
+        (7, 16): 36,
+        (7, 17): 38,
+        (7, 18): 41,
+        (7, 19): 43,
+        (7, 20): 46,
+        (8, 8): 19,
+        (8, 9): 22,
+        (8, 10): 24,
+        (8, 11): 27,
+        (8, 12): 30,
+        (8, 13): 33,
+        (8, 14): 36,
+        (8, 15): 39,
+        (8, 16): 42,
+        (8, 17): 45,
+        (8, 18): 48,
+        (8, 19): 51,
+        (8, 20): 54,
+        (9, 9): 25,
+        (9, 10): 28,
+        (9, 11): 31,
+        (9, 12): 35,
+        (9, 13): 38,
+        (9, 14): 41,
+        (9, 15): 45,
+        (9, 16): 48,
+        (9, 17): 52,
+        (9, 18): 55,
+        (9, 19): 58,
+        (9, 20): 62,
+        (10, 10): 32,
+        (10, 11): 36,
+        (10, 12): 39,
+        (10, 13): 43,
+        (10, 14): 47,
+        (10, 15): 51,
+        (10, 16): 54,
+        (10, 17): 58,
+        (10, 18): 62,
+        (10, 19): 66,
+        (10, 20): 70,
+        (11, 11): 40,
+        (11, 12): 44,
+        (11, 13): 48,
+        (11, 14): 52,
+        (11, 15): 57,
+        (11, 16): 61,
+        (11, 17): 65,
+        (11, 18): 69,
+        (11, 19): 73,
+        (11, 20): 78,
+        (12, 12): 49,
+        (12, 13): 53,
+        (12, 14): 58,
+        (12, 15): 63,
+        (12, 16): 67,
+        (12, 17): 72,
+        (12, 18): 77,
+        (12, 19): 81,
+        (12, 20): 86,
+        (13, 13): 58
+        
     }
 }
 

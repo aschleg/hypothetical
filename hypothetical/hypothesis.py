@@ -58,6 +58,8 @@ def t_test(y1, y2=None, group=None, mu=None, var_equal=False, paired=False, alte
     alternative : str, {'two-sided', 'greater', 'less'}
         Specifies the alternative hypothesis :math:`H_1`. Must be one of 'two-sided' (default), 'greater',
         or 'less'.
+    alpha : float, default 0.05
+        The alpha-level for computing the confidence intervals.
 
     Returns
     -------
@@ -174,6 +176,8 @@ class tTest(object):
     alternative : str, {'two-sided', 'greater', 'less'}
         Specifies the alternative hypothesis :math:`H_1`. Must be one of 'two-sided' (default), 'greater',
         or 'less'.
+    alpha : float, default 0.05
+        The alpha-level for computing the confidence intervals.
 
     Attributes
     ----------
@@ -230,9 +234,11 @@ class tTest(object):
         implemented algorithms and methods.
 
     """
-    def __init__(self, y1, y2=None, group=None, mu=None, var_equal=False, paired=False, alternative='two-sided'):
+    def __init__(self, y1, y2=None, group=None, mu=None, var_equal=False, paired=False,
+                 alternative='two-sided', alpha=0.05):
         self.group = group
         self.paired = paired
+        self.alpha = alpha
 
         if alternative not in ('two-sided', 'greater', 'less'):
             raise ValueError("alternative must be one of 'two-sided', 'greater', or 'lesser'")
@@ -459,16 +465,35 @@ class tTest(object):
 
     def conf_int(self):
         r"""
+        Computes the confidence interval.
 
         Returns
         -------
         intervals : tuple
+            Tuple containing the low and high confidence interval.
 
         Notes
         -----
+        Confidence intervals are reported as a proportion, denoted by :math:`1 - \alpha`, which
+        represents the ratio of intervals that would contain the population parameter if samples
+        were redrawn and tested with the same procedure. A confidence level is the interval reported
+        as a percentage, :math:`(1 - \alpha) * 100\%`. The width of the :math:`(1 - \alpha) * 100\%`
+        interval has several dependencies:
+
+        1. The confidence level. As :math:`1 - \alpha` increases, so does the width of the interval.
+        2. As the sample size :math:`n` increases, the smaller the standard error and thus a narrower interval.
+        3. If the standard deviation is large, then the interval will also be large.
+
+        The computation of the intervals uses Welch's t-interval which extends the two-sample pooled
+        t-interval for unequal population variances and sample sizes.
+
+        .. math::
+
+            \left(\bar{X_1} - \bar{X_2}\right) \pm t_{\alpha / 2, r} \sqrt{\frac{s_{x_1}^2}{n_1} + \frac{s_{x_2}^2}{n_2}}
 
         References
         ----------
+        Rencher, A. C., & Christensen, W. F. (2012). Methods of multivariate analysis (3rd Edition).
 
         """
         xn, xvar, xbar = self.sample_statistics[self._y1_summary_stat_name]['obs'], \
@@ -480,8 +505,8 @@ class tTest(object):
                              self.sample_statistics['Sample 2']['variance'], \
                              self.sample_statistics['Sample 2']['mean']
 
-            low_interval = (xbar - ybar) + t.ppf(0.025, self.parameter) * np.sqrt(xvar / xn + yvar / yn)
-            high_interval = (xbar - ybar) - t.ppf(0.025, self.parameter) * np.sqrt(xvar / xn + yvar / yn)
+            low_interval = (xbar - ybar) + t.ppf(self.alpha / 2., self.parameter) * np.sqrt(xvar / xn + yvar / yn)
+            high_interval = (xbar - ybar) - t.ppf(self.alpha / 2., self.parameter) * np.sqrt(xvar / xn + yvar / yn)
 
         else:
             low_interval = xbar + 1.96 * np.sqrt(xvar / xn)
@@ -498,6 +523,7 @@ class tTest(object):
 
     def summary(self):
         r"""
+        Returns a dictionary of the t-test results.
 
         Returns
         -------

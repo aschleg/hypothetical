@@ -788,6 +788,7 @@ class ManovaOneWay(object):
 
     def hypothesis_error_matrix(self):
         r"""
+        Computes the 'hypothesis' matrix, :math:`H` and the 'error' matrix, :math:`E`.
 
         Returns
         -------

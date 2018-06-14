@@ -1,7 +1,8 @@
 # encoding=utf-8
 
 """
-
+Functions for computing correlation and covariance of two variables or a data matrix. Several different
+algorithms for the computation of covariance and variance are provided.
 
 Correlation
 -----------
@@ -430,6 +431,22 @@ class Cov(object):
     Class object containing the covariance matrix algorithms used by the covar function. Meant to be
     a backend to the covar function and therefore is not meant to be called directly.
 
+    Parameters
+    ----------
+    x : array-like
+        A 2-D array containing the variables and observations to compute the covariance matrix.
+    y : array-like, optional
+        Optional second matrix of same dimensions as x to compute covariance between two separate matrices.
+
+    Attributes
+    ----------
+    x : array-like
+        The design matrix of the input data for performing the covariance computation.
+    n : int
+        Number of rows.
+    m : int
+        Number of columns.
+
     Methods
     -------
     naive()
@@ -626,6 +643,8 @@ class Variance(object):
         again to compute the variance :math:`S`.
     corrected_two_pass()
         An alternative form of the standard two pass algorithm suggested by Professor Å. Björck.
+    youngs_cramer()
+        Implementation of the Youngs-Cramer updating algorithm for computing variance.
 
     See Also
     --------
