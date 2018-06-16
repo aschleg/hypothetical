@@ -13,6 +13,7 @@ Critical Value Lookup Functions
 
     w_critical_value
     chi_square_critical_value
+    u_critical_value
 
 Critical Value Tables
 ---------------------
@@ -22,6 +23,7 @@ Critical Value Tables
 
     chi_square_critical_value_table
     w_critical_value_table
+    u_critical_value_table
 
 """
 
@@ -52,6 +54,13 @@ def chi_square_critical_value(alpha, dof):
     ValueError
         If parameter :code:`alpha` is not one of (0.995, 0.99, 0.975, 0.95, 0.90, 0.10, 0.05, 0.025, 0.01, and 0.005)
 
+    Examples
+    --------
+    >>> chi_square_critical_value(0.99, 11)
+    3.053
+    >>> chi_square_critical_value(0.1, 1)
+    2.706
+
     References
     ----------
     Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
@@ -64,10 +73,10 @@ def chi_square_critical_value(alpha, dof):
         dof = int(dof)
 
     if dof > 30:
-        raise ValueError('chi-square critical value table only provides values for degrees of freedom <= 30')
+        raise ValueError('chi-square critical value table only provides values for degrees of freedom <= 30.')
     if alpha not in (0.995, 0.99, 0.975, 0.95, 0.90, 0.10, 0.05, 0.025, 0.01, 0.005):
         raise ValueError('chi-square critical value table only provides critical values for alpha levels ' + \
-                         '0.995, 0.99, 0.975, 0.95, 0.90, 0.10, 0.05, 0.025, 0.01, and 0.005')
+                         '0.995, 0.99, 0.975, 0.95, 0.90, 0.10, 0.05, 0.025, 0.01, and 0.005.')
 
     chi_crit = chi_square_critical_value_table[alpha][dof]
 
@@ -75,7 +84,63 @@ def chi_square_critical_value(alpha, dof):
 
 
 def u_critical_value(n, m, alpha):
-    pass
+    r"""
+    Finds the Mann-Whitney :math:`U`-statistic critical value for small sample sizes.
+
+    Parameters
+    ----------
+    n : int
+        Number of observations in first sample group.
+    m : int
+        Number of observations in second sample group.
+    alpha : float, {0.10, 0.05, 0.025, 0.01}
+        Alpha-level. Must be one of 0.10, 0.05, 0.025, or 0.01.
+
+    Returns
+    -------
+    u_crit : int
+        The Mann-Whitney U-statistic critical value.
+
+    Raises
+    ------
+    ValueError
+        If parameters :code:`n` or :code:`m` are greater than 20.
+    ValueError
+        If parameter :code:`alpha` is not one of 0.10, 0.05, 0.025, or 0.01.
+    KeyError
+        If critical values are not defined for chosen values of :code:`n` or :code:`m`.
+
+    Examples
+    --------
+    >>> u_critical_value(10, 12, 0.01)
+    24
+    >>> u_critical_value(8, 8, 0.10)
+    19
+
+    References
+    ----------
+    Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
+        Wiley. ISBN 978-1118840313.
+
+    """
+    if isinstance(alpha, str):
+        alpha = float(alpha)
+    if isinstance(n, str) or isinstance(n, int) is False:
+        n = int(n)
+    if isinstance(m, str) or isinstance(m, int) is False:
+        m = int(m)
+
+    if n > 20 or m > 20:
+        raise ValueError('critical values of U are only defined for n and m <= 20.')
+    if alpha not in (0.10, 0.05, 0.025, 0.01):
+        raise ValueError('U critical values are only defined for alpha-levels 0.10, 0.05, 0.025, and 0.01.')
+
+    try:
+        u_crit = u_critical_value_table[alpha][(n, m)]
+    except KeyError:
+        raise KeyError('critical values not defined for selected values of n and m.')
+
+    return u_crit
 
 
 def w_critical_value(n, alpha, alternative):
@@ -86,8 +151,8 @@ def w_critical_value(n, alpha, alternative):
     ----------
     n : int
         The number of sample observations. Critical values are only given for :math:`n \geq 30`.
-    alpha : float, {0.05, 0.01}
-        Given alpha level. Critical values are only given for :math:`0.05` and :math:`0.01`.
+    alpha : float, {'one-tail': {0.05, 0.025, 0.01, 0.005}, 'two-tail': {0.10, 0.05, 0.02, 0.01}}
+        Given alpha level.
     alternative : str
         Alternative hypothesis. Must be one of 'one-tail' or 'two-tail'.
 
@@ -104,6 +169,18 @@ def w_critical_value(n, alpha, alternative):
         If parameter :code:`alpha` is not one of 0.05 or 0.01.
     ValueError
         If parameter :code:`alternative` is not one of 'one-tail' or 'two-tail'.
+
+    Examples
+    --------
+    >>> w_critical_value(10, 0.05, 'one-tail')
+    10
+    >>> w_critical_value(11, 0.01, 'two-tail')
+    5
+
+    References
+    ----------
+    Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
+        Wiley. ISBN 978-1118840313.
 
     """
     if isinstance(n, str):
@@ -126,14 +203,22 @@ def w_critical_value(n, alpha, alternative):
 """
 The following section contains the critical value tables written as dictionaries.
 
-Critical Value Tables
----------------------
+Included Critical Value Tables
+------------------------------
+
+Chi-Square
+W-statistic (Wilcoxon Test Statistic, also written as :math:`T` in some literature.
+U-statistic (Mann-Whitney test statistic)
+
+Critical Value Table Dictionaries
+---------------------------------
 
 .. autosummary::
     :toctree: generated/
 
     chi_square_critical_value_table
     w_critical_value_table
+    u_critical_value_table
 
 """
 
@@ -1078,7 +1163,142 @@ u_critical_value_table = {
         (4, 18): 9,
         (4, 19): 9,
         (4, 20): 10,
-        (5, 5): 1
+        (5, 5): 1,
+        (5, 6): 2,
+        (5, 7): 3,
+        (5, 8): 4,
+        (5, 9): 5,
+        (5, 10): 6,
+        (5, 11): 7,
+        (5, 12): 8,
+        (5, 13): 9,
+        (5, 14): 10,
+        (5, 15): 11,
+        (5, 16): 12,
+        (5, 17): 13,
+        (5, 18): 14,
+        (5, 19): 15,
+        (5, 20): 16,
+        (6, 6): 3,
+        (6, 7): 4,
+        (6, 8): 6,
+        (6, 9): 7,
+        (6, 10): 8,
+        (6, 11): 9,
+        (6, 12): 11,
+        (6, 13): 12,
+        (6, 14): 13,
+        (6, 15): 15,
+        (6, 16): 16,
+        (6, 17): 18,
+        (6, 18): 19,
+        (6, 19): 20,
+        (6, 20): 22,
+        (7, 7): 6,
+        (7, 8): 7,
+        (7, 9): 9,
+        (7, 10): 11,
+        (7, 11): 12,
+        (7, 12): 14,
+        (7, 13): 16,
+        (7, 14): 17,
+        (7, 15): 19,
+        (7, 16): 21,
+        (7, 17): 23,
+        (7, 18): 24,
+        (7, 19): 26,
+        (7, 20): 28,
+        (8, 8): 9,
+        (8, 9): 11,
+        (8, 10): 13,
+        (8, 11): 15,
+        (8, 12): 17,
+        (8, 13): 20,
+        (8, 14): 22,
+        (8, 15): 24,
+        (8, 16): 26,
+        (8, 17): 28,
+        (8, 18): 30,
+        (8, 19): 32,
+        (8, 20): 34,
+        (9, 9): 14,
+        (9, 10): 16,
+        (9, 11): 18,
+        (9, 12): 21,
+        (9, 13): 23,
+        (9, 14): 26,
+        (9, 15): 28,
+        (9, 16): 31,
+        (9, 17): 33,
+        (9, 18): 36,
+        (9, 19): 38,
+        (9, 20): 40,
+        (10, 10): 19,
+        (10, 11): 22,
+        (10, 12): 24,
+        (10, 13): 27,
+        (10, 14): 30,
+        (10, 15): 33,
+        (10, 16): 36,
+        (10, 17): 38,
+        (10, 18): 41,
+        (10, 19): 44,
+        (10, 20): 47,
+        (11, 11): 25,
+        (11, 12): 28,
+        (11, 13): 31,
+        (11, 14): 34,
+        (11, 15): 37,
+        (11, 16): 41,
+        (11, 17): 44,
+        (11, 18): 47,
+        (11, 19): 50,
+        (11, 20): 53,
+        (12, 12): 31,
+        (12, 13): 35,
+        (12, 14): 38,
+        (12, 15): 42,
+        (12, 16): 46,
+        (12, 17): 49,
+        (12, 18): 53,
+        (12, 19): 56,
+        (12, 20): 60,
+        (13, 13): 39,
+        (13, 14): 43,
+        (13, 15): 47,
+        (13, 16): 51,
+        (13, 17): 55,
+        (13, 18): 59,
+        (13, 19): 53,
+        (13, 20): 60,
+        (14, 14): 47,
+        (14, 15): 51,
+        (14, 16): 56,
+        (14, 17): 60,
+        (14, 18): 65,
+        (14, 19): 69,
+        (14, 20): 73,
+        (15, 15): 56,
+        (15, 16): 61,
+        (15, 17): 66,
+        (15, 18): 70,
+        (15, 19): 75,
+        (15, 20): 80,
+        (16, 16): 66,
+        (16, 17): 71,
+        (16, 18): 76,
+        (16, 19): 82,
+        (16, 20): 87,
+        (17, 17): 77,
+        (17, 18): 82,
+        (17, 19): 88,
+        (17, 20): 93,
+        (18, 18): 88,
+        (18, 19): 94,
+        (18, 20): 100,
+        (19, 19): 101,
+        (19, 20): 107,
+        (20, 20): 114
     }
 }
 
@@ -1140,6 +1360,62 @@ w_critical_value_table = {
             28: 130,
             29: 140,
             30: 151
+        },
+        0.025: {
+            5: nan,
+            6: 0,
+            7: 2,
+            8: 3,
+            9: 5,
+            10: 8,
+            11: 10,
+            12: 13,
+            13: 17,
+            14: 21,
+            15: 25,
+            16: 29,
+            17: 34,
+            18: 40,
+            19: 46,
+            20: 52,
+            21: 58,
+            22: 65,
+            23: 73,
+            24: 81,
+            25: 89,
+            26: 98,
+            27: 107,
+            28: 116,
+            29: 126,
+            30: 137
+        },
+        0.005: {
+            5: nan,
+            6: nan,
+            7: nan,
+            8: 0,
+            9: 1,
+            10: 3,
+            11: 5,
+            12: 7,
+            13: 9,
+            14: 12,
+            15: 15,
+            16: 19,
+            17: 23,
+            18: 27,
+            19: 32,
+            20: 37,
+            21: 42,
+            22: 48,
+            23: 54,
+            24: 61,
+            25: 68,
+            26: 75,
+            27: 83,
+            28: 91,
+            29: 100,
+            30: 109
         }
     },
     'two-tail': {
@@ -1171,6 +1447,34 @@ w_critical_value_table = {
             29: 100,
             30: 109
         },
+        0.02: {
+            5: nan,
+            6: nan,
+            7: 0,
+            8: 1,
+            9: 3,
+            10: 5,
+            11: 7,
+            12: 9,
+            13: 12,
+            14: 15,
+            15: 19,
+            16: 23,
+            17: 27,
+            18: 32,
+            19: 37,
+            20: 43,
+            21: 49,
+            22: 55,
+            23: 62,
+            24: 69,
+            25: 76,
+            26: 84,
+            27: 92,
+            28: 101,
+            29: 110,
+            30: 120
+        },
         0.05: {
             5: nan,
             6: 0,
@@ -1198,6 +1502,34 @@ w_critical_value_table = {
             28: 116,
             29: 126,
             30: 137
+        },
+        0.10: {
+            5: 0,
+            6: 2,
+            7: 3,
+            8: 5,
+            9: 8,
+            10: 10,
+            11: 13,
+            12: 17,
+            13: 21,
+            14: 25,
+            15: 30,
+            16: 35,
+            17: 41,
+            18: 47,
+            19: 53,
+            20: 60,
+            21: 67,
+            22: 75,
+            23: 83,
+            24: 91,
+            25: 100,
+            26: 110,
+            27: 119,
+            28: 130,
+            29: 140,
+            30: 151
         }
     }
 }
