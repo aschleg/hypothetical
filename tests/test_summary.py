@@ -145,6 +145,12 @@ class TestVariance:
         np.testing.assert_almost_equal(variance_condition(self.fa[:, 1]), 1.7638342073763937)
         np.testing.assert_allclose(variance_condition(self.fa), array([2.23606798, 1.76383421, 5.19615242, 2.23606798]))
 
+        np.testing.assert_allclose(variance_condition(pd.DataFrame(self.fa)),
+                                   array([2.23606798, 1.76383421, 5.19615242, 2.23606798]))
+
+        np.testing.assert_allclose(variance_condition(list(self.fa)),
+                                   array([2.23606798, 1.76383421, 5.19615242, 2.23606798]))
+
         ff = np.array([np.array(self.f), np.array(self.f)])
 
         with pytest.raises(ValueError):

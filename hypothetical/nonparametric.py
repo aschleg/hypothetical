@@ -310,16 +310,40 @@ def wilcoxon_test(y1, y2=None, paired=False, mu=0):
 
     Notes
     -----
+    The Wilcoxon Rank Sum test is the nonparametric equivalent to a one-sample t-test and is also closely
+    related to the Mann Whitney U-test for independent samples. In fact, the Wilcoxon Rank Sum test for two
+    independent samples is equivalent to the Mann Whitney U-test. The respective test statistics :math:`W`
+    (Mann-Whitney) and :math:`U` (Wilcoxon Rank Sum) are related in the following way:
+
+    .. math::
+
+        U = W - \frac{n_1 (n_1 + 1)}{2}
+
+
+
+    When two sample observation vectors are passed into the :code:`wilcoxon_test` function, the Mann-Whitney
+    U-test is performed.
+
+    See Also
+    --------
+    WilcoxonTest : class containing the implemented algorithms and methods used when conducting the Wilcoxon
+        Rank Sum test.
+    mann_whitney : related nonparametric test for two independent samples.
 
     Examples
     --------
     The data used in this example is a subset of the professor salary dataset found in Fox and
     Weisberg (2011).
 
+    >>> professor_salary = [139750, 173200, 79750, 11500, 141500,
+    ...                     103450, 124750, 137000, 89565, 102580]
+
     References
     ----------
     Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
         Wiley. ISBN 978-1118840313.
+
+    Fox J. and Weisberg, S. (2011) An R Companion to Applied Regression, Second Edition Sage.
 
     """
     if y2 is not None and paired is False:
@@ -953,6 +977,7 @@ class WilcoxonTest(object):
     def __init__(self, y1, y2=None, paired=False, mu=0, alpha=0.05, alternative='two-sided'):
         self.paired = paired
         self.median = mu
+        self.alternative = alternative
         self.test_description = 'Wilcoxon signed rank test'
 
         if paired:
@@ -1025,7 +1050,12 @@ class WilcoxonTest(object):
         return z
 
     def pvalue(self):
-        p = (1 - norm.cdf(np.abs(self.z))) * 2
+        p = (1 - norm.cdf(np.abs(self.z)))
+
+        if self.alternative == 'two-sided':
+            p *= 2
+        elif self.alternative == 'greater':
+            p = 1 - p
 
         if p == 0:
             p = np.finfo(float).eps

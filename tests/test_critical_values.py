@@ -3,7 +3,7 @@ from hypothetical import critical as c
 import numpy as np
 
 
-def test_chi_square_critical_table():
+def test_chi_square_critical_value():
     dof, alpha = 10, 0.05
 
     critical_value = c.chi_square_critical_value(alpha, dof)
@@ -18,8 +18,31 @@ def test_chi_square_critical_table():
         c.chi_square_critical_value(31, 0.05)
     with pytest.raises(ValueError):
         c.chi_square_critical_value(5, 1)
+    with pytest.raises(ValueError):
+        c.chi_square_critical_value(0.05, 31)
 
-def test_w_critical_table():
+
+def test_u_critical_value():
+    alpha = 0.05
+    n, m = 10, 11
+
+    critical_value = c.u_critical_value(n, m, alpha)
+    critical_value2 = c.u_critical_value(str(n), str(m), str(alpha))
+
+    assert critical_value == 31
+    assert critical_value2 == 31
+
+    with pytest.raises(ValueError):
+        c.u_critical_value(31, 10, 0.05)
+    with pytest.raises(ValueError):
+        c.u_critical_value(10, 31, 0.05)
+    with pytest.raises(ValueError):
+        c.u_critical_value(10, 10, 0.50)
+    with pytest.raises(KeyError):
+        c.u_critical_value(10, 8, 0.05)
+
+
+def test_w_critical_value():
     n, alpha, alternative = 15, 0.05, 'two-tail'
 
     crit_val = c.w_critical_value(n, alpha, alternative)

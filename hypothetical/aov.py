@@ -445,7 +445,7 @@ class AnovaOneWay(object):
         else:
             self.group = self.design_matrix[:, 0]
 
-        self.group_statistics = self.group_statistics()
+        self.group_stats = self.group_statistics()
         self.group_names = np.unique(self.group)
         self.k = len(self.group_names)
         self.group_degrees_of_freedom = self.k - 1
@@ -489,8 +489,8 @@ class AnovaOneWay(object):
             Brigham Young University: John Wiley & Sons, Inc.
 
         """
-        group_n = self.group_statistics['Group Observations']
-        group_variance = self.group_statistics['Group Variance']
+        group_n = self.group_stats['Group Observations']
+        group_variance = self.group_stats['Group Variance']
 
         sse = 0
 
@@ -523,8 +523,8 @@ class AnovaOneWay(object):
             Brigham Young University: John Wiley & Sons, Inc.
 
         """
-        group_n = self.group_statistics['Group Observations']
-        group_means = self.group_statistics['Group Means']
+        group_n = self.group_stats['Group Observations']
+        group_means = self.group_stats['Group Means']
         total_mean = np.mean(self.design_matrix[:, 1])
 
         sst = 0
@@ -667,9 +667,9 @@ class AnovaOneWay(object):
             'Group Mean Squares': self.group_mean_squares,
             'Residual Sum of Squares': self.residual_sum_squares,
             'Residual Mean Squares': self.residual_mean_squares,
-            'Group Means': self.group_statistics['Group Means'],
-            'Group Obs Number': self.group_statistics['Group Observations'],
-            'Group Variance': self.group_statistics['Group Variance']
+            'Group Means': self.group_stats['Group Means'],
+            'Group Obs Number': self.group_stats['Group Observations'],
+            'Group Variance': self.group_stats['Group Variance']
         }
 
         return anova_results

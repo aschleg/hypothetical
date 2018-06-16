@@ -195,6 +195,9 @@ def test_kruskal_wallis():
 
     assert test_result == test_result2
 
+    with pytest.raises(ValueError):
+        kruskal_wallis(data['weight'], data['weight'], group=data['group'])
+
 
 def test_tie_correction():
     mult_data = multivariate_test_data()

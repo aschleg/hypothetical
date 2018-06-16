@@ -141,6 +141,8 @@ def t_test(y1, y2=None, group=None, mu=None, var_equal=False, paired=False, alte
 
     References
     ----------
+    Fox J. and Weisberg, S. (2011) An R Companion to Applied Regression, Second Edition Sage.
+
     Rencher, A. C., & Christensen, W. F. (2012). Methods of multivariate analysis (3rd Edition).
 
     Student's t-test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
