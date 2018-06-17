@@ -135,7 +135,7 @@ def test_wilcox_test(test_data):
     np.testing.assert_almost_equal(test_result['z-value'], 11.667217617844829)
 
     mw = mann_whitney(sal_a, sal_b).summary()
-    w2 = wilcoxon_test(sal_a, sal_b).summary()
+    w2 = wilcoxon_test(sal_a, sal_b, paired=False).summary()
 
     assert mw == w2
 
@@ -143,8 +143,6 @@ def test_wilcox_test(test_data):
 
     with pytest.raises(ValueError):
         wilcoxon_test(sal_a, sal_b, paired=True)
-    with pytest.raises(ValueError):
-        wilcoxon_test(sal_a, paired=True)
 
     paired_w = wilcoxon_test(mult_data[:, 1], mult_data[:, 2], paired=True)
 

@@ -26,6 +26,9 @@ Pearson correlation coefficient. (2017, July 12). In Wikipedia, The Free Encyclo
 Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
     Brigham Young University: John Wiley & Sons, Inc.
 
+Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+    McGraw-Hill. ISBN 07-057348-4
+
 Shift-invariant system. (2017, June 30). In Wikipedia, The Free Encyclopedia.
     From https://en.wikipedia.org/w/index.php?title=Shift-invariant_system&oldid=788228439
 

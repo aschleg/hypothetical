@@ -66,6 +66,9 @@ def chi_square_critical_value(alpha, dof):
     Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
         Wiley. ISBN 978-1118840313.
 
+    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+        McGraw-Hill. ISBN 07-057348-4
+
     """
     if isinstance(alpha, str):
         alpha = float(alpha)
@@ -121,6 +124,9 @@ def u_critical_value(n, m, alpha):
     ----------
     Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
         Wiley. ISBN 978-1118840313.
+
+    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+        McGraw-Hill. ISBN 07-057348-4
 
     """
     if isinstance(alpha, str):
@@ -181,6 +187,9 @@ def w_critical_value(n, alpha, alternative):
     ----------
     Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
         Wiley. ISBN 978-1118840313.
+
+    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+        McGraw-Hill. ISBN 07-057348-4
 
     """
     if isinstance(n, str):

@@ -34,10 +34,11 @@ Python library for conducting hypothesis and other group comparison tests.
   - Several algorithms for computing the covariance and covariance matrix of 
     sample data are available
 
-### Critical Value Tables
+### Critical Value Tables and Lookup Functions
 
 * Chi-square
-* Wilcoxon Rank Sum W Statistic
+* Wilcoxon Rank Sum W-statistic
+* Mann-Whitney U-statistic
 
 ### Helpful Functions
 
@@ -55,3 +56,7 @@ Python library for conducting hypothesis and other group comparison tests.
 * numpy_indexed >= 0.3.5
 
 ## Installation
+
+## License
+
+MIT

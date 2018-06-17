@@ -283,9 +283,9 @@ def mann_whitney(y1, y2=None, group=None, continuity=True):
     return res
 
 
-def wilcoxon_test(y1, y2=None, paired=False, mu=0):
+def wilcoxon_test(y1, y2=None, paired=True, mu=0):
     r"""
-    Performs one-sample Wilcoxon Rank Sum tests.
+    Performs Wilcoxon Rank Sum tests for matched pairs and independent samples.
 
     Parameters
     ----------
@@ -295,8 +295,9 @@ def wilcoxon_test(y1, y2=None, paired=False, mu=0):
     y2 : array-like, optional
         One-dimensional array-like (Pandas Series or DataFrame, Numpy array, or list)
         designating second sample observation vector.
-    paired : bool, optional
-        If True, performs a paired Wilcoxon Rank Sum test.
+    paired : bool, default True
+        If True (default), performs a paired Wilcoxon Rank Sum test. If two sample observation vectors
+        are passed and :code:`paired = False`, the Mann-Whitney U-test is performed.
     mu : float, optional
         Optional parameter to specify the value to form the null hypothesis.
 
@@ -310,19 +311,31 @@ def wilcoxon_test(y1, y2=None, paired=False, mu=0):
 
     Notes
     -----
-    The Wilcoxon Rank Sum test is the nonparametric equivalent to a one-sample t-test and is also closely
-    related to the Mann Whitney U-test for independent samples. In fact, the Wilcoxon Rank Sum test for two
-    independent samples is equivalent to the Mann Whitney U-test. The respective test statistics :math:`W`
-    (Mann-Whitney) and :math:`U` (Wilcoxon Rank Sum) are related in the following way:
+    The Wilcoxon Rank Sum test is the nonparametric equivalent to a matched pairs or independent sample
+    t-test and is also closely related to the Mann Whitney U-test for independent samples. In fact, the
+    Wilcoxon Rank Sum test for two independent samples is equivalent to the Mann Whitney U-test. The
+    respective test statistics :math:`W` (Mann-Whitney) and :math:`U` (Wilcoxon Rank Sum) are related
+    in the following way:
 
     .. math::
 
         U = W - \frac{n_1 (n_1 + 1)}{2}
 
+    The test procedure can be summarized into the following steps:
 
+    1. If the test is for an independent sample, the observations are subtracted by the true mean of
+    the null hypothesis :math:`mu` to obtain the signed differences. In the case of a paired test, the
+    signed difference between each matched observation vector is found.
+    2. The signed differences, typically denoted :math:`d_i`, are then ranked. Ties receive the average of
+    the tied ranks.
+    3. The test statistic :math:`V` (or :math:`T` in some literature) is then computed by assigning a
+    :math:`1` for ranked values where the corresponding matched pair difference is positive or a
+    :math:`0` for ranked values with a negative corresponding matched pair difference. These values are then
+    summed to obtain the test statistic.
+    4. The calculated test statistic can then be used to determine the significance of the observed value.
 
-    When two sample observation vectors are passed into the :code:`wilcoxon_test` function, the Mann-Whitney
-    U-test is performed.
+    When two sample observation vectors are passed into the :code:`wilcoxon_test` function with the parameter
+    :code:`paired = False`, the Mann-Whitney U-test is performed.
 
     See Also
     --------
@@ -337,6 +350,13 @@ def wilcoxon_test(y1, y2=None, paired=False, mu=0):
 
     >>> professor_salary = [139750, 173200, 79750, 11500, 141500,
     ...                     103450, 124750, 137000, 89565, 102580]
+    >>> w = wilcoxon_test(professor_salary)
+    >>> w.summary()
+    {'V': 55.0,
+     'effect size': 0.8864052604279182,
+     'p-value': 0.005062032126267768,
+     'test description': 'Wilcoxon signed rank test',
+     'z-value': 2.8030595529069404}
 
     References
     ----------
@@ -344,6 +364,9 @@ def wilcoxon_test(y1, y2=None, paired=False, mu=0):
         Wiley. ISBN 978-1118840313.
 
     Fox J. and Weisberg, S. (2011) An R Companion to Applied Regression, Second Edition Sage.
+
+    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+        McGraw-Hill. ISBN 07-057348-4
 
     """
     if y2 is not None and paired is False:
@@ -974,7 +997,7 @@ class WilcoxonTest(object):
         :code:`WilcoxonTest`.
 
     """
-    def __init__(self, y1, y2=None, paired=False, mu=0, alpha=0.05, alternative='two-sided'):
+    def __init__(self, y1, y2=None, paired=True, mu=0, alpha=0.05, alternative='two-sided'):
         self.paired = paired
         self.median = mu
         self.alternative = alternative
@@ -982,11 +1005,13 @@ class WilcoxonTest(object):
 
         if paired:
             if y2 is None:
-                raise ValueError('sample 2 is missing for paired test')
-            if len(y1) != len(y2):
-                raise ValueError('samples must have same length for paired test')
+                self.y1 = y1
 
-            self.y1 = np.array(y1) - np.array(y2)
+            else:
+                if len(y1) != len(y2):
+                    raise ValueError('samples must have same length for paired test')
+
+                self.y1 = np.array(y1) - np.array(y2)
 
         else:
             self.y1 = np.array(y1)
@@ -1014,16 +1039,50 @@ class WilcoxonTest(object):
 
     def v_statistic(self):
         r"""
-
+        Computes the Wilcoxon test :math:`V`-statistic.
 
         Returns
         -------
+        v : float
+            The computed Wilcoxon test statistic.
 
         Notes
         -----
+        The procedure to calculate :math:`V` can be summarized as the following:
+
+        1. If the test is for an independent sample, the observations are subtracted by the true mean of
+            the null hypothesis :math:`mu` to obtain the signed differences. In the case of a paired test, the
+            signed difference between each matched observation vector is found.
+        2. The signed differences, typically denoted :math:`d_i`, are then ranked. Ties receive the average of
+            the tied ranks.
+        3. The test statistic :math:`V` is then computed by assigning a :math:`1` for ranked values where the
+            corresponding matched pair difference is positive or a :math:`0` for ranked values with a negative
+            corresponding matched pair difference. These values are then
+            summed to obtain the test statistic.
+
+        More formally, the computation of the test statistic for a matched pair test can be written as:
+
+        .. math::
+
+            V = \sum_{i=1}^{N_r} \left[ sgn(x_{2,i} - x_{1,i}) R_i \right]
+
+        For an independent sample test, the computation is written as:
+
+        .. math::
+
+            V = \sum_{i=1}^{N_r} \left[ sgn(x_i - \mu) R_i \right]
+
+        Where :math:`\mu` is the value of the null hypothesis, :math:`H_0`.
+
+        The test statistic :math:`V` is also referred to as :math:`T` in some literature.
 
         References
         ----------
+        Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
+            Wiley. ISBN 978-1118840313.
+
+        Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+            McGraw-Hill. ISBN 07-057348-4
 
         """
         if self.paired:
@@ -1043,6 +1102,41 @@ class WilcoxonTest(object):
         return v
 
     def zvalue(self):
+        r"""
+        Calculates the :math:`z`-score.
+
+        Returns
+        -------
+        z : float
+            The computed :math:`z`-score of the :math:`V`-statistic.
+
+        Notes
+        -----
+        For larger sample sizes, :math:`N_r \geq 25`, (some literature states sample sizes of :math:`N_r \geq 10`
+        is enough), the distribution of the :math:`V`-statistic converges to a normal distribution and thus a
+        :math:`z`-score can be calculated.
+
+        The :math:`z`-score is calculated as:
+
+        .. math::
+
+            z = \frac{V}{\sigma_V}
+
+        Where :math:`\sigma_V` is the standard deviation of the distribution, which can be computed as:
+
+        .. math::
+
+            \sigma_V = \sqrt{\frac{N_r (N_r + 1)(2 N_r + 1)}{6}}
+
+        References
+        ----------
+        Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
+            Wiley. ISBN 978-1118840313.
+
+        Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+            McGraw-Hill. ISBN 07-057348-4
+
+        """
         sigma_w = np.sqrt((self.n * (self.n + 1) * (2 * self.n + 1)) / 6.)
 
         z = self.V / sigma_w
@@ -1050,6 +1144,23 @@ class WilcoxonTest(object):
         return z
 
     def pvalue(self):
+        r"""
+        Calculates the p-value.
+
+        Returns
+        -------
+        p : float
+            The calculated p-value
+
+        Notes
+        -----
+
+        References
+        ----------
+        Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+            McGraw-Hill. ISBN 07-057348-4
+
+        """
         p = (1 - norm.cdf(np.abs(self.z)))
 
         if self.alternative == 'two-sided':
@@ -1063,11 +1174,42 @@ class WilcoxonTest(object):
         return p
 
     def eff_size(self):
+        r"""
+        Computes the effect size for determining degree of association.
+
+        Returns
+        -------
+        es : float
+            The calculated effect size.
+
+        Notes
+        -----
+        The effect size is defined as:
+
+        .. math::
+
+            ES = \frac{|z|}{\sqrt{N_r}}
+
+        References
+        ----------
+        Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
+            Wiley. ISBN 978-1118840313.
+
+        """
         es = np.abs(self.z) / np.sqrt(self.n)
 
         return es
 
     def summary(self):
+        r"""
+        Method for returning the relevant statistics and information from a fitted Mann-Whitney U-test.
+
+        Returns
+        -------
+        test_results : dict
+            Dictionary containing the fitted Mann-Whitney test results.
+
+        """
         test_results = {
             'V': self.V,
             'z-value': self.z,
