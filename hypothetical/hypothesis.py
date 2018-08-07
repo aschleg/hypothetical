@@ -137,8 +137,8 @@ class tTest(object):
     ...                         'A', 'A', 'A', 'A', 'A']
     >>> professor_salary = [139750, 173200, 79750, 11500, 141500,
     ...                     103450, 124750, 137000, 89565, 102580]
-    >>> ttest = t_test(professor_salary, group=professor_discipline)
-    >>> ttest._generate_result_summary()
+    >>> ttest = tTest(professor_salary, group=professor_discipline)
+    >>> ttest.test_summary
     {'Sample 1 Mean': 111469.0,
      'Sample 2 Mean': 109140.0,
      'alternative': 'two-sided',

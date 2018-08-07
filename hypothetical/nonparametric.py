@@ -46,211 +46,6 @@ from hypothetical._lib import build_des_mat
 from hypothetical.summary import var
 
 
-def mann_whitney(y1, y2=None, group=None, continuity=True):
-    r"""
-    Performs the nonparametric Mann-Whitney U test of two independent sample groups.
-
-    Parameters
-    ----------
-    y1 : array-like
-        One-dimensional array-like (Pandas Series or DataFrame, Numpy array, or list)
-        designating first sample observation vector.
-    y2 : array-like, optional
-        One-dimensional array-like (Pandas Series or DataFrame, Numpy array, or list)
-        designating second sample observation vector.
-    group : array-like, optional
-        One-dimensional array (Numpy ndarray, Pandas Series or DataFrame, or list) that defines
-        the group membership of the sample vector(s). Must be the same length as the observation vector.
-    continuity : bool
-        If True, apply the continuity correction of :math:`\frac{1}{2}` to the
-        mean rank.
-
-    Returns
-    -------
-    res : _MannWhitney or _WilcoxonTest class object
-        :code:`_MannWhitney` class object containing the fitted results. If only one sample vector
-        is passed, a Wilcoxon Signed Rank Test is performed and a :code:`_WilcoxonTest` class
-        object containing the fitted results is returned.
-
-    Notes
-    -----
-    The Mann-Whitney U test is a nonparametric hypothesis test that tests the null hypothesis that
-    there is an equally likely chance that a randomly selected observation from one sample will be
-    less than or greater than a randomly selected observation from a second sample. Nonparametric
-    methods are so named since they do not rely on the assumption of normality of the data.
-
-    The test statistic in the Mann-Whitney setting is denoted as :math:`U` and is the minimum of
-    the summed ranks of the two samples. The null hypothesis is rejected if :math:`U \leq U_0`,
-    where :math:`U_0` is found in a table for small sample sizes. For larger sample sizes,
-    :math:`U` is approximately normally distributed.
-
-    The test is nonparametric in the sense it uses the ranks of the values rather than the values
-    themselves. Therefore, the values are ordered then ranked from 1 (smallest value) to the largest
-    value. Ranks of tied values get the mean of the ranks the values would have received. For example,
-    for a set of data points :math:`\{4, 7, 7, 8\}` the ranks are :math:`\{1, 2.5, 2.5, 4\}`. The
-    :math:`2.5` rank comes from :math:`2 + 3 = 5 / 2`. The ranks are then added for the values for
-    both samples. The sum of the ranks for each sample are typically denoted by :math:`R_k` where
-    :math:`k` is a sample indicator.
-
-    :math:`U` for the two samples in the test, is given by:
-
-    .. math::
-
-        U_1 = R_1 - \frac{n_1(n_1 + 1)}{2}
-        U_2 = R_2 - \frac{n_2(n_2 + 1)}{2}
-
-    Where :math:`R_1` and :math:`R_2` are the sum of the ranks of the two samples.
-
-    Examples
-    --------
-    Similar to the :code:`anova_one_way` function, there are several ways to perform a Mann-Whitney
-    U test with the :code:`mann_whitney` function. One of these approaches is to pass the sample data
-    vector and a group vector of the same length denoting group membership of the sample observations.
-
-    The data used in this example is a subset of the professor salary dataset found in Fox and
-    Weisberg (2011).
-
-    >>> professor_discipline = ['B', 'B', 'B', 'B', 'B',
-    ...                         'A', 'A', 'A', 'A', 'A']
-    >>> professor_salary = [139750, 173200, 79750, 11500, 141500,
-    ...                     103450, 124750, 137000, 89565, 102580]
-    >>> mw = mann_whitney(group=professor_discipline, y1=professor_salary)
-    >>> mw._generate_result_summary()
-    {'U': 10.0,
-     'continuity': True,
-     'mu meanrank': 13.0,
-     'p-value': 0.5308693039685082,
-     'sigma': 4.7871355387816905,
-     'test description': 'Mann-Whitney U test',
-     'z-value': 0.6266795614405122}
-
-    The other approach is to pass each group sample observation vector.
-
-    >>> sal_a = [139750, 173200, 79750, 11500, 141500]
-    >>> sal_b = [103450, 124750, 137000, 89565, 102580]
-    >>> mw2 = mann_whitney(sal_a, sal_b)
-    >>> mw2._generate_result_summary()
-    {'U': 10.0,
-     'continuity': True,
-     'mu meanrank': 13.0,
-     'p-value': 0.5308693039685082,
-     'sigma': 4.7871355387816905,
-     'test description': 'Mann-Whitney U test',
-     'z-value': 0.6266795614405122}
-
-    References
-    ----------
-    Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
-        Wiley. ISBN 978-1118840313.
-
-    Fox J. and Weisberg, S. (2011) An R Companion to Applied Regression, Second Edition Sage.
-
-    Mann–Whitney U test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
-        From https://en.wikipedia.org/w/index.php?title=Mann%E2%80%93Whitney_U_test&oldid=786593885
-
-    """
-    if y2 is None and group is None:
-        res = _WilcoxonTest(y1=y1)
-    else:
-        res = _MannWhitney(y1=y1, y2=y2, group=group, continuity=continuity)
-
-    return res
-
-
-def wilcoxon_test(y1, y2=None, paired=True, mu=0):
-    r"""
-    Performs Wilcoxon Rank Sum tests for matched pairs and independent samples.
-
-    Parameters
-    ----------
-    y1 : array-like
-        One-dimensional array-like (Pandas Series or DataFrame, Numpy array, or list)
-        designating first sample observation vector.
-    y2 : array-like, optional
-        One-dimensional array-like (Pandas Series or DataFrame, Numpy array, or list)
-        designating second sample observation vector.
-    paired : bool, default True
-        If True (default), performs a paired Wilcoxon Rank Sum test. If two sample observation vectors
-        are passed and :code:`paired = False`, the Mann-Whitney U-test is performed.
-    mu : float, optional
-        Optional parameter to specify the value to form the null hypothesis.
-
-    Returns
-    -------
-    res : _WilcoxonTest or _MannWhitney class object containing the fitted model results.
-        If only one sample vector is passed (or two sample vectors with the :code:`paired` parameter
-        set to :code:`True`), a fitted :code:`_WilcoxonTest` class object containing the
-        test results is returned. Otherwise, a Mann-Whitney U-test is performed and a
-        :code:`_MannWhitney` class object containing the fitted test results is returned.
-
-    Notes
-    -----
-    The Wilcoxon Rank Sum test is the nonparametric equivalent to a matched pairs or independent sample
-    t-test and is also closely related to the Mann Whitney U-test for independent samples. In fact, the
-    Wilcoxon Rank Sum test for two independent samples is equivalent to the Mann Whitney U-test. The
-    respective test statistics :math:`W` (Mann-Whitney) and :math:`U` (Wilcoxon Rank Sum) are related
-    in the following way:
-
-    .. math::
-
-        U = W - \frac{n_1 (n_1 + 1)}{2}
-
-    The test procedure can be summarized into the following steps:
-
-    1. If the test is for an independent sample, the observations are subtracted by the true mean of
-    the null hypothesis :math:`mu` to obtain the signed differences. In the case of a paired test, the
-    signed difference between each matched observation vector is found.
-    2. The signed differences, typically denoted :math:`d_i`, are then ranked. Ties receive the average of
-    the tied ranks.
-    3. The test statistic :math:`V` (or :math:`T` in some literature) is then computed by assigning a
-    :math:`1` for ranked values where the corresponding matched pair difference is positive or a
-    :math:`0` for ranked values with a negative corresponding matched pair difference. These values are then
-    summed to obtain the test statistic.
-    4. The calculated test statistic can then be used to determine the significance of the observed value.
-
-    When two sample observation vectors are passed into the :code:`wilcoxon_test` function with the parameter
-    :code:`paired = False`, the Mann-Whitney U-test is performed.
-
-    See Also
-    --------
-    _WilcoxonTest : class containing the implemented algorithms and methods used when conducting the Wilcoxon
-        Rank Sum test.
-    mann_whitney : related nonparametric test for two independent samples.
-
-    Examples
-    --------
-    The data used in this example is a subset of the professor salary dataset found in Fox and
-    Weisberg (2011).
-
-    >>> professor_salary = [139750, 173200, 79750, 11500, 141500,
-    ...                     103450, 124750, 137000, 89565, 102580]
-    >>> w = wilcoxon_test(professor_salary)
-    >>> w._generate_result_summary()
-    {'V': 55.0,
-     'effect size': 0.8864052604279182,
-     'p-value': 0.005062032126267768,
-     'test description': 'Wilcoxon signed rank test',
-     'z-value': 2.8030595529069404}
-
-    References
-    ----------
-    Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
-        Wiley. ISBN 978-1118840313.
-
-    Fox J. and Weisberg, S. (2011) An R Companion to Applied Regression, Second Edition Sage.
-
-    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
-        McGraw-Hill. ISBN 07-057348-4
-
-    """
-    if y2 is not None and paired is False:
-        res = _MannWhitney(y1=y1, y2=y2)
-    else:
-        res = _WilcoxonTest(y1=y1, y2=y2, paired=paired, mu=mu)
-
-    return res
-
-
 class KruskalWallis(object):
     r"""
     Class containing the algorithms and methods used in the construction and conduction of the
@@ -353,8 +148,8 @@ class KruskalWallis(object):
     >>> observation_vec = [4.17, 5.58, 5.18,
     ...                    4.81, 4.17, 4.41,
     ...                    5.31, 5.12, 5.54]
-    >>> kw = kruskal_wallis(observation_vec, group=group_vector)
-    >>> kw._generate_result_summary()
+    >>> kw = KruskalWallis(observation_vec, group=group_vector)
+    >>> kw.test_summary
     {'alpha': 0.05,
      'critical chisq value': 3.1148459383753497,
      'degrees of freedom': 2,
@@ -368,8 +163,8 @@ class KruskalWallis(object):
     >>> ctrl = [4.17, 5.58, 5.18]
     >>> trt1 = [4.81, 4.17, 4.41]
     >>> trt2 = [5.31, 5.12, 5.54]
-    >>> kw2 = kruskal_wallis(ctrl, trt1, trt2)
-    >>> kw2._generate_result_summary()
+    >>> kw2 = KruskalWallis(ctrl, trt1, trt2)
+    >>> kw2.test_summary
     {'alpha': 0.05,
      'critical chisq value': 3.1148459383753497,
      'degrees of freedom': 2,
@@ -592,10 +387,9 @@ class KruskalWallis(object):
         return sse / (self.n - self.k)
 
 
-class _MannWhitney(object):
+class MannWhitney(object):
     r"""
-    Class containing the implementations of the algorithms and methods used for performing a
-    Mann-Whitney U-test. Acts as an internal 'back-end' for the :code:`mann_whitney` function.
+    Performs the nonparametric Mann-Whitney U test of two independent sample groups.
 
     Parameters
     ----------
@@ -640,15 +434,81 @@ class _MannWhitney(object):
     effect_size : float
         Calculated estimated Cohen's effect size.
 
-    Notes
+        Notes
     -----
-    The :code:`_MannWhitney` class contains the implementations of the algorithms and methods used in the
-    computation of the test. The function :code:`mann_whitney` that acts as an interface to the class
-    is meant to be called rather than the class itself.
+    The Mann-Whitney U test is a nonparametric hypothesis test that tests the null hypothesis that
+    there is an equally likely chance that a randomly selected observation from one sample will be
+    less than or greater than a randomly selected observation from a second sample. Nonparametric
+    methods are so named since they do not rely on the assumption of normality of the data.
 
-    See Also
+    The test statistic in the Mann-Whitney setting is denoted as :math:`U` and is the minimum of
+    the summed ranks of the two samples. The null hypothesis is rejected if :math:`U \leq U_0`,
+    where :math:`U_0` is found in a table for small sample sizes. For larger sample sizes,
+    :math:`U` is approximately normally distributed.
+
+    The test is nonparametric in the sense it uses the ranks of the values rather than the values
+    themselves. Therefore, the values are ordered then ranked from 1 (smallest value) to the largest
+    value. Ranks of tied values get the mean of the ranks the values would have received. For example,
+    for a set of data points :math:`\{4, 7, 7, 8\}` the ranks are :math:`\{1, 2.5, 2.5, 4\}`. The
+    :math:`2.5` rank comes from :math:`2 + 3 = 5 / 2`. The ranks are then added for the values for
+    both samples. The sum of the ranks for each sample are typically denoted by :math:`R_k` where
+    :math:`k` is a sample indicator.
+
+    :math:`U` for the two samples in the test, is given by:
+
+    .. math::
+
+        U_1 = R_1 - \frac{n_1(n_1 + 1)}{2}
+        U_2 = R_2 - \frac{n_2(n_2 + 1)}{2}
+
+    Where :math:`R_1` and :math:`R_2` are the sum of the ranks of the two samples.
+
+    Examples
     --------
-    mann_whitney : function for performing the Mann-Whitney U-test.
+    Similar to the :code:`anova_one_way` function, there are several ways to perform a Mann-Whitney
+    U test with the :code:`mann_whitney` function. One of these approaches is to pass the sample data
+    vector and a group vector of the same length denoting group membership of the sample observations.
+
+    The data used in this example is a subset of the professor salary dataset found in Fox and
+    Weisberg (2011).
+
+    >>> professor_discipline = ['B', 'B', 'B', 'B', 'B',
+    ...                         'A', 'A', 'A', 'A', 'A']
+    >>> professor_salary = [139750, 173200, 79750, 11500, 141500,
+    ...                     103450, 124750, 137000, 89565, 102580]
+    >>> mw = MannWhitney(group=professor_discipline, y1=professor_salary)
+    >>> mw.test_summary
+    {'U': 10.0,
+     'continuity': True,
+     'mu meanrank': 13.0,
+     'p-value': 0.5308693039685082,
+     'sigma': 4.7871355387816905,
+     'test description': 'Mann-Whitney U test',
+     'z-value': 0.6266795614405122}
+
+    The other approach is to pass each group sample observation vector.
+
+    >>> sal_a = [139750, 173200, 79750, 11500, 141500]
+    >>> sal_b = [103450, 124750, 137000, 89565, 102580]
+    >>> mw2 = MannWhitney(sal_a, sal_b)
+    >>> mw2.test_summary
+    {'U': 10.0,
+     'continuity': True,
+     'mu meanrank': 13.0,
+     'p-value': 0.5308693039685082,
+     'sigma': 4.7871355387816905,
+     'test description': 'Mann-Whitney U test',
+     'z-value': 0.6266795614405122}
+
+    References
+    ----------
+    Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
+        Wiley. ISBN 978-1118840313.
+
+    Fox J. and Weisberg, S. (2011) An R Companion to Applied Regression, Second Edition Sage.
+
+    Mann–Whitney U test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
+        From https://en.wikipedia.org/w/index.php?title=Mann%E2%80%93Whitney_U_test&oldid=786593885
 
     """
     def __init__(self, y1, y2=None, group=None, continuity=True):
@@ -669,15 +529,16 @@ class _MannWhitney(object):
         self.n = self.n1 + self.n2
 
         self.continuity = continuity
-        self._ranks = self._rank()
-        self.u_statistic = self.u()
-        self.meanrank = self.mu()
-        self.sigma = self.sigma_val()
-        self.z_value = self.z()
-        self.p_value = self.p_val()
-        self.effect_size = self.eff_size()
+        self.ranks = self._rank()
+        self.u_statistic = self._u()
+        self.meanrank = self._mu()
+        self.sigma = self._sigma_val()
+        self.z_value = self._z()
+        self.p_value = self._p_val()
+        self.effect_size = self._eff_size()
+        self.test_summary = self._generate_result_summary()
 
-    def u(self):
+    def _u(self):
         r"""
         Calculates the Mann-Whitney U statistic.
 
@@ -709,14 +570,14 @@ class _MannWhitney(object):
             Wiley. ISBN 978-1118840313.
 
         """
-        u1 = self.n1 * self.n2 + (self.n1 * (self.n1 + 1)) / 2. - np.sum(self._ranks)
+        u1 = self.n1 * self.n2 + (self.n1 * (self.n1 + 1)) / 2. - np.sum(self.ranks)
         u2 = self.n1 * self.n2 - u1
 
         u = np.minimum(u1, u2)
 
         return u
 
-    def mu(self):
+    def _mu(self):
         r"""
         Computes the mean of the ranked sample observations.
 
@@ -746,7 +607,7 @@ class _MannWhitney(object):
 
         return mu_rank
 
-    def sigma_val(self):
+    def _sigma_val(self):
         r"""
         Calculates the standard deviation of the ranked sample observations.
 
@@ -782,14 +643,14 @@ class _MannWhitney(object):
             From https://en.wikipedia.org/w/index.php?title=Mann%E2%80%93Whitney_U_test&oldid=786593885
 
         """
-        rankcounts = np.unique(self._ranks, return_counts=True)[1]
+        rankcounts = np.unique(self.ranks, return_counts=True)[1]
 
         sigma = np.sqrt(((self.n1 * self.n2) * (self.n + 1)) / 12. * (
                     1 - np.sum(rankcounts ** 3 - rankcounts) / float(self.n ** 3 - self.n)))
 
         return sigma
 
-    def z(self):
+    def _z(self):
         r"""
         Computes the standardized :math:`z` value.
 
@@ -819,7 +680,7 @@ class _MannWhitney(object):
 
         return z
 
-    def p_val(self):
+    def _p_val(self):
         r"""
         Returns the p-value.
 
@@ -838,7 +699,7 @@ class _MannWhitney(object):
 
         return p * 2
 
-    def eff_size(self):
+    def _eff_size(self):
         r"""
         Computes the effect size for determining the degree of association between groups.
 
@@ -872,7 +733,7 @@ class _MannWhitney(object):
 
         return es
 
-    def summary(self):
+    def _generate_result_summary(self):
         r"""
         Method for returning the relevant statistics and information from a fitted Mann-Whitney U-test.
 
@@ -905,10 +766,9 @@ class _MannWhitney(object):
         return ranks
 
 
-class _WilcoxonTest(object):
+class WilcoxonTest(object):
     r"""
-    Class containing the implementations of the algorithms and methods used in the conduction of the
-    Wilcoxon Signed Rank test. Acts as an internal 'back-end' to the :code:`wilcoxon_test` function.
+    Performs Wilcoxon Rank Sum tests for matched pairs and independent samples.
 
     Parameters
     ----------
@@ -942,12 +802,62 @@ class _WilcoxonTest(object):
 
     Notes
     -----
-    The 'front-end' function :code:`wilcoxon_test` is meant to be used over the :code:`_WilcoxonTest` class.
+    The Wilcoxon Rank Sum test is the nonparametric equivalent to a matched pairs or independent sample
+    t-test and is also closely related to the Mann Whitney U-test for independent samples. In fact, the
+    Wilcoxon Rank Sum test for two independent samples is equivalent to the Mann Whitney U-test. The
+    respective test statistics :math:`W` (Mann-Whitney) and :math:`U` (Wilcoxon Rank Sum) are related
+    in the following way:
+
+    .. math::
+
+        U = W - \frac{n_1 (n_1 + 1)}{2}
+
+    The test procedure can be summarized into the following steps:
+
+    1. If the test is for an independent sample, the observations are subtracted by the true mean of
+    the null hypothesis :math:`mu` to obtain the signed differences. In the case of a paired test, the
+    signed difference between each matched observation vector is found.
+    2. The signed differences, typically denoted :math:`d_i`, are then ranked. Ties receive the average of
+    the tied ranks.
+    3. The test statistic :math:`V` (or :math:`T` in some literature) is then computed by assigning a
+    :math:`1` for ranked values where the corresponding matched pair difference is positive or a
+    :math:`0` for ranked values with a negative corresponding matched pair difference. These values are then
+    summed to obtain the test statistic.
+    4. The calculated test statistic can then be used to determine the significance of the observed value.
+
+    When two sample observation vectors are passed into the :code:`wilcoxon_test` function with the parameter
+    :code:`paired = False`, the Mann-Whitney U-test is performed.
 
     See Also
     --------
-    wilcoxon_test : function for performing Wilcoxon signed rank tests that acts as an interface to the
-        :code:`_WilcoxonTest`.
+    _WilcoxonTest : class containing the implemented algorithms and methods used when conducting the Wilcoxon
+        Rank Sum test.
+    mann_whitney : related nonparametric test for two independent samples.
+
+    Examples
+    --------
+    The data used in this example is a subset of the professor salary dataset found in Fox and
+    Weisberg (2011).
+
+    >>> professor_salary = [139750, 173200, 79750, 11500, 141500,
+    ...                     103450, 124750, 137000, 89565, 102580]
+    >>> w = WilcoxonTest(professor_salary)
+    >>> w.test_summary
+    {'V': 55.0,
+     'effect size': 0.8864052604279182,
+     'p-value': 0.005062032126267768,
+     'test description': 'Wilcoxon signed rank test',
+     'z-value': 2.8030595529069404}
+
+    References
+    ----------
+    Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
+        Wiley. ISBN 978-1118840313.
+
+    Fox J. and Weisberg, S. (2011) An R Companion to Applied Regression, Second Edition Sage.
+
+    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+        McGraw-Hill. ISBN 07-057348-4
 
     """
     def __init__(self, y1, y2=None, paired=True, mu=0, alpha=0.05, alternative='two-sided'):
@@ -971,11 +881,12 @@ class _WilcoxonTest(object):
 
         self.n = len(self.y1)
 
-        self.V = self.v_statistic()
+        self.V = self._v_statistic()
 
-        self.z = self.zvalue()
-        self.p = self.pvalue()
-        self.effect_size = self.eff_size()
+        self.z = self._zvalue()
+        self.p = self._pvalue()
+        self.effect_size = self._eff_size()
+        self.test_summary = self._generate_result_summary()
 
         # if self.n > 10:
         #     self.z = self._zvalue()
@@ -990,7 +901,7 @@ class _WilcoxonTest(object):
         #
         #     w_crit = w_critical_value(self.n, self.alpha, alt)
 
-    def v_statistic(self):
+    def _v_statistic(self):
         r"""
         Computes the Wilcoxon test :math:`V`-statistic.
 
@@ -1054,7 +965,7 @@ class _WilcoxonTest(object):
 
         return v
 
-    def zvalue(self):
+    def _zvalue(self):
         r"""
         Calculates the :math:`z`-score.
 
@@ -1096,7 +1007,7 @@ class _WilcoxonTest(object):
 
         return z
 
-    def pvalue(self):
+    def _pvalue(self):
         r"""
         Calculates the p-value.
 
@@ -1126,7 +1037,7 @@ class _WilcoxonTest(object):
 
         return p
 
-    def eff_size(self):
+    def _eff_size(self):
         r"""
         Computes the effect size for determining degree of association.
 
@@ -1153,7 +1064,7 @@ class _WilcoxonTest(object):
 
         return es
 
-    def summary(self):
+    def _generate_result_summary(self):
         r"""
         Method for returning the relevant statistics and information from a fitted Mann-Whitney U-test.
 

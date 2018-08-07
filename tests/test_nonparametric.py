@@ -1,6 +1,6 @@
 import pytest
 
-from hypothetical.nonparametric import mann_whitney, wilcoxon_test, tie_correction, KruskalWallis
+from hypothetical.nonparametric import MannWhitney, WilcoxonTest, tie_correction, KruskalWallis
 import pandas as pd
 import numpy as np
 import os
@@ -77,13 +77,13 @@ def plants_test_data():
     return plants
 
 
-def test_mann_whitney(test_data):
+def test_MannWhitney(test_data):
     sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
     sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
 
-    mw = mann_whitney(sal_a, sal_b)
+    mw = MannWhitney(sal_a, sal_b)
 
-    test_result = mw.summary()
+    test_result = mw.test_summary
 
     np.testing.assert_equal(test_result['U'], 15710.0)
     np.testing.assert_almost_equal(test_result['p-value'], 0.0007492490583558276)
@@ -93,13 +93,13 @@ def test_mann_whitney(test_data):
 
     assert test_result['continuity']
 
-    mw2 = mann_whitney(group=test_data['discipline'], y1=test_data['salary'])
+    mw2 = MannWhitney(group=test_data['discipline'], y1=test_data['salary'])
 
-    assert test_result == mw2.summary()
+    assert test_result == mw2.test_summary
 
-    mw_no_cont = mann_whitney(sal_a, sal_b, continuity=False)
+    mw_no_cont = MannWhitney(sal_a, sal_b, continuity=False)
 
-    no_cont_result = mw_no_cont.summary()
+    no_cont_result = mw_no_cont.test_summary
 
     np.testing.assert_equal(no_cont_result['U'], 15710.0)
     np.testing.assert_almost_equal(no_cont_result['p-value'], 0.0007504441137706763)
@@ -109,15 +109,10 @@ def test_mann_whitney(test_data):
 
     assert no_cont_result['continuity'] is False
 
-    mw2 = mann_whitney(sal_a).summary()
-    w = wilcoxon_test(sal_a).summary()
-
-    assert mw2 == w
-
     mult_data = multivariate_test_data()
 
     with pytest.raises(ValueError):
-        mann_whitney(y1=mult_data[:, 1], group=mult_data[:, 0])
+        MannWhitney(y1=mult_data[:, 1], group=mult_data[:, 0])
 
 
 def test_wilcox_test(test_data):
@@ -126,27 +121,20 @@ def test_wilcox_test(test_data):
     sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
     sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
 
-    w = wilcoxon_test(sal_a)
+    w = WilcoxonTest(sal_a)
 
-    test_result = w.summary()
+    test_result = w.test_summary
 
     np.testing.assert_equal(test_result['V'], 16471.0)
     np.testing.assert_almost_equal(test_result['p-value'], np.finfo(float).eps)
     np.testing.assert_almost_equal(test_result['z-value'], 11.667217617844829)
 
-    mw = mann_whitney(sal_a, sal_b).summary()
-    w2 = wilcoxon_test(sal_a, sal_b, paired=False).summary()
-
-    assert mw == w2
-
-    assert test_result['test description'] == 'Wilcoxon signed rank test'
-
     with pytest.raises(ValueError):
-        wilcoxon_test(sal_a, sal_b, paired=True)
+        WilcoxonTest(sal_a, sal_b, paired=True)
 
-    paired_w = wilcoxon_test(mult_data[:, 1], mult_data[:, 2], paired=True)
+    paired_w = WilcoxonTest(mult_data[:, 1], mult_data[:, 2], paired=True)
 
-    paired_result = paired_w.summary()
+    paired_result = paired_w.test_summary
 
     np.testing.assert_equal(paired_result['V'], 1176.0)
     np.testing.assert_almost_equal(paired_result['p-value'], 1.6310099937300038e-09)
