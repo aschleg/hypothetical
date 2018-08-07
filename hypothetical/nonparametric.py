@@ -7,18 +7,6 @@ act as 'back-ends' to their respective functions.
 Nonparametric Inference Methods
 -------------------------------
 
-The functions listed here are the primary interfaces and are meant to be used over their respective classes.
-
-.. autosummary::
-    :toctree: generated/
-
-    kruskal_wallis
-    mann_whitney
-    wilcoxon_test
-
-The following classes contain the implementations of the algorithms and methods used in the respective
-nonparametric inference methods.
-
 .. autosummary::
     :toctree: generated/
 
@@ -58,120 +46,6 @@ from hypothetical._lib import build_des_mat
 from hypothetical.summary import var
 
 
-def kruskal_wallis(*args, group=None, alpha=0.05):
-    r"""
-    Performs the nonparametric one-way anaylsis of variance Kruskal-Wallis test for two or
-    more groups.
-
-    Parameters
-    ----------
-    group_sample1, group_sample2, ... : array-like
-        Corresponding observation vectors of the group samples. Must be the same length
-        as the group parameter. If the group parameter is None, each observation vector
-        will be treated as a group sample vector.
-    group: array-like, optional
-        One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
-        membership of the dependent variable(s). Must be the same length as the observation vector.
-    alpha : float
-        Desired alpha level for testing for significance.
-
-    Returns
-    -------
-    kw : KruskalWallis class object
-        :code:`KruskalWallis` class containing the fitted results. Please see the
-        :code:`KruskalWallis` documentation for available attributes and methods.
-
-    Notes
-    -----
-    The Kruskal-Wallis test extends the Mann-Whitney U test for more than two groups and can be
-    considered the nonparametric equivalent of the one-way analysis of variance (ANOVA) method.
-    The test is nonparametric similar to the Mann-Whitney test and as such does not
-    assume the data are normally distributed and can, therefore, be used when the assumption
-    of normality is violated.
-
-    The Kruskal-Wallis test proceeds by ranking the data from 1 (the smallest) to the largest
-    with ties replaced by the mean of the ranks the values would have received. The sum of
-    the ranks for each treatment is typically denoted $T_i$ or $R_i$.
-
-    The test statistic is denoted :code:`H` and can be defined as the following when the
-    ranked data does not contain ties.
-
-    .. math::
-
-        H = \frac{12}{N(N + 1)} \left[ \frac{\sum_{i=1}^k T_{i}^2}{n_i} - 3(N + 1) \right]
-
-    If the ranked data contains ties, a correction can be used by dividing :code:`H` by:
-
-    .. math::
-
-        1 - \frac{\sum_{t=1}^G (t_i^3 - t_i)}{N^3 - N}
-
-    Where :code:`G` is the number of groups of tied ranks and :code:`t_i` is the number of
-    tied values within the :code:`i^{th}` group. The p-value is usually approximated using
-    a Chi-Square distribution as calculating exact probabilities can be computationally
-    intensive for larger sample sizes.
-
-    See Also
-    --------
-    KruskalWallis : class containing the implementation of the algorithms and methods used
-    when performing thr Kruskal-Wallis test.
-
-    Examples
-    --------
-    There are several ways to perform the Kruskal-Wallis test with the :code:`kruskal_wallis` function.
-    Similar to the parametric one-way ANOVA method implemented by the :code:`anova_one_way` function,
-    one approach is to pass a group vector with the :code:`group` parameter and the corresponding
-    observation vector as below.
-
-    The data used in this example is a subset of the data obtained from the plant growth
-    dataset given in Dobson (1983).
-
-    >>> group_vector = ['ctrl', 'ctrl', 'ctrl',
-    ...                 'trt1', 'trt1', 'trt1',
-    ...                 'trt2', 'trt2', 'trt2']
-    >>> observation_vec = [4.17, 5.58, 5.18,
-    ...                    4.81, 4.17, 4.41,
-    ...                    5.31, 5.12, 5.54]
-    >>> kw = kruskal_wallis(observation_vec, group=group_vector)
-    >>> kw.summary()
-    {'alpha': 0.05,
-     'critical chisq value': 3.1148459383753497,
-     'degrees of freedom': 2,
-     'least significant difference': 4.916428084371546,
-     'p-value': 0.21067829669685478,
-     't-value': 2.4469118487916806,
-     'test description': 'Kruskal-Wallis rank sum test'}
-
-    The other approach is to pass each group sample vector similar to the below.
-
-    >>> ctrl = [4.17, 5.58, 5.18]
-    >>> trt1 = [4.81, 4.17, 4.41]
-    >>> trt2 = [5.31, 5.12, 5.54]
-    >>> kw2 = kruskal_wallis(ctrl, trt1, trt2)
-    >>> kw2.summary()
-    {'alpha': 0.05,
-     'critical chisq value': 3.1148459383753497,
-     'degrees of freedom': 2,
-     'least significant difference': 4.916428084371546,
-     'p-value': 0.21067829669685478,
-     't-value': 2.4469118487916806,
-     'test description': 'Kruskal-Wallis rank sum test'}
-
-    References
-    ----------
-    Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
-        Wiley. ISBN 978-1118840313.
-
-    Wikipedia contributors. (2018, May 21). Kruskal–Wallis one-way analysis of variance.
-        In Wikipedia, The Free Encyclopedia. From
-        https://en.wikipedia.org/w/index.php?title=Kruskal%E2%80%93Wallis_one-way_analysis_of_variance&oldid=842351945
-
-    """
-    kw = KruskalWallis(*args, group=group, alpha=alpha)
-
-    return kw
-
-
 def mann_whitney(y1, y2=None, group=None, continuity=True):
     r"""
     Performs the nonparametric Mann-Whitney U test of two independent sample groups.
@@ -193,9 +67,9 @@ def mann_whitney(y1, y2=None, group=None, continuity=True):
 
     Returns
     -------
-    res : MannWhitney or WilcoxonTest class object
-        :code:`MannWhitney` class object containing the fitted results. If only one sample vector
-        is passed, a Wilcoxon Signed Rank Test is performed and a :code:`WilcoxonTest` class
+    res : _MannWhitney or _WilcoxonTest class object
+        :code:`_MannWhitney` class object containing the fitted results. If only one sample vector
+        is passed, a Wilcoxon Signed Rank Test is performed and a :code:`_WilcoxonTest` class
         object containing the fitted results is returned.
 
     Notes
@@ -241,7 +115,7 @@ def mann_whitney(y1, y2=None, group=None, continuity=True):
     >>> professor_salary = [139750, 173200, 79750, 11500, 141500,
     ...                     103450, 124750, 137000, 89565, 102580]
     >>> mw = mann_whitney(group=professor_discipline, y1=professor_salary)
-    >>> mw.summary()
+    >>> mw._generate_result_summary()
     {'U': 10.0,
      'continuity': True,
      'mu meanrank': 13.0,
@@ -255,7 +129,7 @@ def mann_whitney(y1, y2=None, group=None, continuity=True):
     >>> sal_a = [139750, 173200, 79750, 11500, 141500]
     >>> sal_b = [103450, 124750, 137000, 89565, 102580]
     >>> mw2 = mann_whitney(sal_a, sal_b)
-    >>> mw2.summary()
+    >>> mw2._generate_result_summary()
     {'U': 10.0,
      'continuity': True,
      'mu meanrank': 13.0,
@@ -276,9 +150,9 @@ def mann_whitney(y1, y2=None, group=None, continuity=True):
 
     """
     if y2 is None and group is None:
-        res = WilcoxonTest(y1=y1)
+        res = _WilcoxonTest(y1=y1)
     else:
-        res = MannWhitney(y1=y1, y2=y2, group=group, continuity=continuity)
+        res = _MannWhitney(y1=y1, y2=y2, group=group, continuity=continuity)
 
     return res
 
@@ -303,11 +177,11 @@ def wilcoxon_test(y1, y2=None, paired=True, mu=0):
 
     Returns
     -------
-    res : WilcoxonTest or MannWhitney class object containing the fitted model results.
+    res : _WilcoxonTest or _MannWhitney class object containing the fitted model results.
         If only one sample vector is passed (or two sample vectors with the :code:`paired` parameter
-        set to :code:`True`), a fitted :code:`WilcoxonTest` class object containing the
+        set to :code:`True`), a fitted :code:`_WilcoxonTest` class object containing the
         test results is returned. Otherwise, a Mann-Whitney U-test is performed and a
-        :code:`MannWhitney` class object containing the fitted test results is returned.
+        :code:`_MannWhitney` class object containing the fitted test results is returned.
 
     Notes
     -----
@@ -339,7 +213,7 @@ def wilcoxon_test(y1, y2=None, paired=True, mu=0):
 
     See Also
     --------
-    WilcoxonTest : class containing the implemented algorithms and methods used when conducting the Wilcoxon
+    _WilcoxonTest : class containing the implemented algorithms and methods used when conducting the Wilcoxon
         Rank Sum test.
     mann_whitney : related nonparametric test for two independent samples.
 
@@ -351,7 +225,7 @@ def wilcoxon_test(y1, y2=None, paired=True, mu=0):
     >>> professor_salary = [139750, 173200, 79750, 11500, 141500,
     ...                     103450, 124750, 137000, 89565, 102580]
     >>> w = wilcoxon_test(professor_salary)
-    >>> w.summary()
+    >>> w._generate_result_summary()
     {'V': 55.0,
      'effect size': 0.8864052604279182,
      'p-value': 0.005062032126267768,
@@ -370,9 +244,9 @@ def wilcoxon_test(y1, y2=None, paired=True, mu=0):
 
     """
     if y2 is not None and paired is False:
-        res = MannWhitney(y1=y1, y2=y2)
+        res = _MannWhitney(y1=y1, y2=y2)
     else:
-        res = WilcoxonTest(y1=y1, y2=y2, paired=paired, mu=mu)
+        res = _WilcoxonTest(y1=y1, y2=y2, paired=paired, mu=mu)
 
     return res
 
@@ -427,13 +301,91 @@ class KruskalWallis(object):
         As the Kruskal-Wallis is a univariate test, only one sample observation vector should be passed
         when including a group vector in the :code:`group` parameter.
 
+    Notes
+    -----
+    The Kruskal-Wallis test extends the Mann-Whitney U test for more than two groups and can be
+    considered the nonparametric equivalent of the one-way analysis of variance (ANOVA) method.
+    The test is nonparametric similar to the Mann-Whitney test and as such does not
+    assume the data are normally distributed and can, therefore, be used when the assumption
+    of normality is violated.
+
+    The Kruskal-Wallis test proceeds by ranking the data from 1 (the smallest) to the largest
+    with ties replaced by the mean of the ranks the values would have received. The sum of
+    the ranks for each treatment is typically denoted $T_i$ or $R_i$.
+
+    The test statistic is denoted :code:`H` and can be defined as the following when the
+    ranked data does not contain ties.
+
+    .. math::
+
+        H = \frac{12}{N(N + 1)} \left[ \frac{\sum_{i=1}^k T_{i}^2}{n_i} - 3(N + 1) \right]
+
+    If the ranked data contains ties, a correction can be used by dividing :code:`H` by:
+
+    .. math::
+
+        1 - \frac{\sum_{t=1}^G (t_i^3 - t_i)}{N^3 - N}
+
+    Where :code:`G` is the number of groups of tied ranks and :code:`t_i` is the number of
+    tied values within the :code:`i^{th}` group. The p-value is usually approximated using
+    a Chi-Square distribution as calculating exact probabilities can be computationally
+    intensive for larger sample sizes.
+
     See Also
     --------
-    kruskal_wallis : function that acts as an 'interface' to the :code:`KruskalWallis` class and its
-        implementations of the test.
     AnovaOneWay : class containing the implementations of the algorithms and methods used in the
         conduction of the one-way analysis of variance procedure. The Kruskal-Wallis test can be
         considered the nonparametric equivalent of the one-way analysis of variance method.
+
+    Examples
+    --------
+    There are several ways to perform the Kruskal-Wallis test with the :code:`kruskal_wallis` function.
+    Similar to the parametric one-way ANOVA method implemented by the :code:`anova_one_way` function,
+    one approach is to pass a group vector with the :code:`group` parameter and the corresponding
+    observation vector as below.
+
+    The data used in this example is a subset of the data obtained from the plant growth
+    dataset given in Dobson (1983).
+
+    >>> group_vector = ['ctrl', 'ctrl', 'ctrl',
+    ...                 'trt1', 'trt1', 'trt1',
+    ...                 'trt2', 'trt2', 'trt2']
+    >>> observation_vec = [4.17, 5.58, 5.18,
+    ...                    4.81, 4.17, 4.41,
+    ...                    5.31, 5.12, 5.54]
+    >>> kw = kruskal_wallis(observation_vec, group=group_vector)
+    >>> kw._generate_result_summary()
+    {'alpha': 0.05,
+     'critical chisq value': 3.1148459383753497,
+     'degrees of freedom': 2,
+     'least significant difference': 4.916428084371546,
+     'p-value': 0.21067829669685478,
+     't-value': 2.4469118487916806,
+     'test description': 'Kruskal-Wallis rank sum test'}
+
+    The other approach is to pass each group sample vector similar to the below.
+
+    >>> ctrl = [4.17, 5.58, 5.18]
+    >>> trt1 = [4.81, 4.17, 4.41]
+    >>> trt2 = [5.31, 5.12, 5.54]
+    >>> kw2 = kruskal_wallis(ctrl, trt1, trt2)
+    >>> kw2._generate_result_summary()
+    {'alpha': 0.05,
+     'critical chisq value': 3.1148459383753497,
+     'degrees of freedom': 2,
+     'least significant difference': 4.916428084371546,
+     'p-value': 0.21067829669685478,
+     't-value': 2.4469118487916806,
+     'test description': 'Kruskal-Wallis rank sum test'}
+
+    References
+    ----------
+    Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
+        Wiley. ISBN 978-1118840313.
+
+    Wikipedia contributors. (2018, May 21). Kruskal–Wallis one-way analysis of variance.
+        In Wikipedia, The Free Encyclopedia. From
+        https://en.wikipedia.org/w/index.php?title=Kruskal%E2%80%93Wallis_one-way_analysis_of_variance&oldid=842351945
 
     """
     def __init__(self, *args, group=None, alpha=0.05):
@@ -454,13 +406,14 @@ class KruskalWallis(object):
         self.n = self.design_matrix.shape[0]
         self.k = len(np.unique(self.design_matrix[:, 0]))
         self.dof = self.k - 1
-        self.H = self.h_statistic()
-        self.p_value = self.p_val()
-        self.t_value = self.t_val()
-        self.least_significant_difference = self.lsd()
+        self.H = self._h_statistic()
+        self.p_value = self._p_value()
+        self.t_value = self._t_value()
+        self.least_significant_difference = self._lsd()
         self.test_description = 'Kruskal-Wallis rank sum test'
+        self.test_summary = self._generate_result_summary()
 
-    def h_statistic(self):
+    def _h_statistic(self):
         r"""
         Computes the Kruskal-Wallis :math:`H`-statistic.
 
@@ -512,7 +465,7 @@ class KruskalWallis(object):
 
         return h
 
-    def p_val(self):
+    def _p_value(self):
         r"""
         Computes the p-value of the :math:`H`-statistic approximated by the chi-square distribution.
 
@@ -541,7 +494,7 @@ class KruskalWallis(object):
 
         return p
 
-    def t_val(self):
+    def _t_value(self):
         r"""
         Returns the critical t-statistic given the input alpha-level (defaults to 0.05).
 
@@ -559,7 +512,7 @@ class KruskalWallis(object):
 
         return tval
 
-    def lsd(self):
+    def _lsd(self):
         r"""
         Returns the Least Significant Difference statistic used for determining if treatment group
         means are significantly different from each other.
@@ -593,7 +546,7 @@ class KruskalWallis(object):
 
         return lsd
 
-    def summary(self):
+    def _generate_result_summary(self):
         r"""
         Returns a summary of the Kruskal-Wallis test as a dictionary.
 
@@ -639,7 +592,7 @@ class KruskalWallis(object):
         return sse / (self.n - self.k)
 
 
-class MannWhitney(object):
+class _MannWhitney(object):
     r"""
     Class containing the implementations of the algorithms and methods used for performing a
     Mann-Whitney U-test. Acts as an internal 'back-end' for the :code:`mann_whitney` function.
@@ -689,7 +642,7 @@ class MannWhitney(object):
 
     Notes
     -----
-    The :code:`MannWhitney` class contains the implementations of the algorithms and methods used in the
+    The :code:`_MannWhitney` class contains the implementations of the algorithms and methods used in the
     computation of the test. The function :code:`mann_whitney` that acts as an interface to the class
     is meant to be called rather than the class itself.
 
@@ -952,7 +905,7 @@ class MannWhitney(object):
         return ranks
 
 
-class WilcoxonTest(object):
+class _WilcoxonTest(object):
     r"""
     Class containing the implementations of the algorithms and methods used in the conduction of the
     Wilcoxon Signed Rank test. Acts as an internal 'back-end' to the :code:`wilcoxon_test` function.
@@ -989,12 +942,12 @@ class WilcoxonTest(object):
 
     Notes
     -----
-    The 'front-end' function :code:`wilcoxon_test` is meant to be used over the :code:`WilcoxonTest` class.
+    The 'front-end' function :code:`wilcoxon_test` is meant to be used over the :code:`_WilcoxonTest` class.
 
     See Also
     --------
     wilcoxon_test : function for performing Wilcoxon signed rank tests that acts as an interface to the
-        :code:`WilcoxonTest`.
+        :code:`_WilcoxonTest`.
 
     """
     def __init__(self, y1, y2=None, paired=True, mu=0, alpha=0.05, alternative='two-sided'):

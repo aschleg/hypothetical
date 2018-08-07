@@ -9,14 +9,6 @@ Hypothesis Testing
 .. autosummary::
     :toctree: generated/
 
-    t_test
-
-The listed classes contain the implementations of the methods and algorithms used when performing a t-test and
-are meant to act as an 'internal' back-end to the above functions.
-
-.. autosummary::
-    :toctree: generated/
-
     tTest
 
 References
@@ -33,129 +25,9 @@ import numpy_indexed as npi
 from scipy.stats import t
 
 
-def t_test(y1, y2=None, group=None, mu=None, var_equal=False, paired=False, alternative='two-sided'):
-    r"""
-    Performs one and two sample t-tests.
-
-    Parameters
-    ----------
-    y1 : array-like
-        One-dimensional array-like object (list, numpy array, pandas DataFrame or pandas Series) containing
-        the observed sample values.
-    y2 : array-like, optional
-        One-dimensional array-like object (list, numpy array, pandas DataFrame or pandas Series) containing
-        the observed sample values. Not necessary to include when performing one-sample t-tests.
-    group : array-like, optional
-        Optional group vector array denoting class membership. Cannot contain more than two unique groups
-        and must be the same length as :code:`y1`.
-    mu : float, optional
-        True mean to test difference when performing a one-sample t-test.
-    var_equal : bool, optional
-        If True, the two samples are assumed to have equal variances and Student's t-test is performed.
-        Defaults to False, which performs Welch's t-test for unequal sample variances.
-    paired : bool, optional
-        If True, performs a paired t-test.
-    alternative : str, {'two-sided', 'greater', 'less'}
-        Specifies the alternative hypothesis :math:`H_1`. Must be one of 'two-sided' (default), 'greater',
-        or 'less'.
-    alpha : float, default 0.05
-        The alpha-level for computing the confidence intervals.
-
-    Returns
-    -------
-    tTest : class object
-        :code:`tTest` class object containing the fitted results.
-
-    Notes
-    -----
-    Welch's t-test is an adaption of Student's t test and is more performant when the
-    sample variances and size are unequal. The test still depends on the assumption of
-    the underlying population distributions being normally distributed.
-
-    Welch's t test is defined as:
-
-    .. math::
-
-        t = \frac{\bar{X_1} - \bar{X_2}}{\sqrt{\frac{s_{1}^{2}}{N_1} + \frac{s_{2}^{2}}{N_2}}}
-
-    where:
-
-    :math:`\bar{X}` is the sample mean, :math:`s^2` is the sample variance, :math:`n` is the sample size
-
-    If the :code:`var_equal` argument is True, Student's t-test is used, which assumes the two samples
-    have equal variance. The t statistic is computed as:
-
-    .. math::
-
-        t = \frac{\bar{X}_1 - \bar{X}_2}{s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}
-
-    where:
-
-    .. math::
-
-        s_p = \sqrt{\frac{(n_1 - 1)s^2_{X_1} + (n_2 - 1)s^2_{X_2}}{n_1 + n_2 - 2}
-
-    Examples
-    --------
-    Similar to other inference methods, there are generally two ways of performing a t-test. The first is to pass
-    a group vector with the :code:`group` parameter and the corresponding observation vector as below.
-
-    The data used in this example is a subset of the professor salary dataset found in Fox and
-    Weisberg (2011).
-
-    >>> professor_discipline = ['B', 'B', 'B', 'B', 'B',
-    ...                         'A', 'A', 'A', 'A', 'A']
-    >>> professor_salary = [139750, 173200, 79750, 11500, 141500,
-    ...                     103450, 124750, 137000, 89565, 102580]
-    >>> ttest = t_test(professor_salary, group=professor_discipline)
-    >>> ttest.summary()
-    {'Sample 1 Mean': 111469.0,
-     'Sample 2 Mean': 109140.0,
-     'alternative': 'two-sided',
-     'confidence interval': (-67873.67468585065, 72531.67468585065),
-     'degrees of freedom': 4.698886994702439,
-     'p-value': 0.9342936060799869,
-     't-statistic': 0.08695024086399619,
-     'test description': "Two-Sample Welch's t-test"}
-
-    The other approach is to pass each group sample vector similar to the below.
-
-    >>> sal_a = [139750, 173200, 79750, 11500, 141500]
-    >>> sal_b = [103450, 124750, 137000, 89565, 102580]
-    >>> ttest2 = t_test(sal_a, sal_b)
-    >>> ttest2.summary()
-    {'Sample 1 Mean': 109140.0,
-     'Sample 2 Mean': 111469.0,
-     'alternative': 'two-sided',
-     'confidence interval': (-72531.67468585065, 67873.67468585065),
-     'degrees of freedom': 4.698886994702439,
-     'p-value': 0.9342936060799869,
-     't-statistic': -0.08695024086399619,
-     'test description': "Two-Sample Welch's t-test"}
-
-    See Also
-    --------
-    tTest : class
-        The :code:`tTest` class contains the implemented algorithms and methods used when performing a
-        t-test.
-
-    References
-    ----------
-    Fox J. and Weisberg, S. (2011) An R Companion to Applied Regression, Second Edition Sage.
-
-    Rencher, A. C., & Christensen, W. F. (2012). Methods of multivariate analysis (3rd Edition).
-
-    Student's t-test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
-        From https://en.wikipedia.org/w/index.php?title=Student%27s_t-test&oldid=786562367
-
-    """
-    return tTest(y1=y1, y2=y2, group=group, mu=mu, var_equal=var_equal, paired=paired, alternative=alternative)
-
-
 class tTest(object):
     r"""
-    Class containing the implementations of the algorithms and methods used in the conduction of t-tests. The
-    class is meant to act as a 'back-end' to the :code:`t_test` function.
+    Performs one and two-sample t-tests.
 
     Parameters
     ----------
@@ -226,18 +98,84 @@ class tTest(object):
 
     Notes
     -----
-    The :code:`tTest` class acts as a 'back-end' to the :code:`t_test` function that contains the
-    implemented algorithms and functions used in a t-test. As such, it is recommended to use the
-    :code:`t_test` function over the class.
+    Welch's t-test is an adaption of Student's t test and is more performant when the
+    sample variances and size are unequal. The test still depends on the assumption of
+    the underlying population distributions being normally distributed.
 
-    See Also
+    Welch's t test is defined as:
+
+    .. math::
+
+        t = \frac{\bar{X_1} - \bar{X_2}}{\sqrt{\frac{s_{1}^{2}}{N_1} + \frac{s_{2}^{2}}{N_2}}}
+
+    where:
+
+    :math:`\bar{X}` is the sample mean, :math:`s^2` is the sample variance, :math:`n` is the sample size
+
+    If the :code:`var_equal` argument is True, Student's t-test is used, which assumes the two samples
+    have equal variance. The t statistic is computed as:
+
+    .. math::
+
+        t = \frac{\bar{X}_1 - \bar{X}_2}{s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}
+
+    where:
+
+    .. math::
+
+        s_p = \sqrt{\frac{(n_1 - 1)s^2_{X_1} + (n_2 - 1)s^2_{X_2}}{n_1 + n_2 - 2}
+
+    Examples
     --------
-    t_test : function for performing t-test that acts as an 'interface' to the :code:`tTest` class and its
-        implemented algorithms and methods.
+    Similar to other inference methods, there are generally two ways of performing a t-test. The first is to pass
+    a group vector with the :code:`group` parameter and the corresponding observation vector as below.
+
+    The data used in this example is a subset of the professor salary dataset found in Fox and
+    Weisberg (2011).
+
+    >>> professor_discipline = ['B', 'B', 'B', 'B', 'B',
+    ...                         'A', 'A', 'A', 'A', 'A']
+    >>> professor_salary = [139750, 173200, 79750, 11500, 141500,
+    ...                     103450, 124750, 137000, 89565, 102580]
+    >>> ttest = t_test(professor_salary, group=professor_discipline)
+    >>> ttest._generate_result_summary()
+    {'Sample 1 Mean': 111469.0,
+     'Sample 2 Mean': 109140.0,
+     'alternative': 'two-sided',
+     'confidence interval': (-67873.67468585065, 72531.67468585065),
+     'degrees of freedom': 4.698886994702439,
+     'p-value': 0.9342936060799869,
+     't-statistic': 0.08695024086399619,
+     'test description': "Two-Sample Welch's t-test"}
+
+    The other approach is to pass each group sample vector similar to the below.
+
+    >>> sal_a = [139750, 173200, 79750, 11500, 141500]
+    >>> sal_b = [103450, 124750, 137000, 89565, 102580]
+    >>> ttest2 = tTest(sal_a, sal_b)
+    >>> ttest2.test_summary
+    {'Sample 1 Mean': 109140.0,
+     'Sample 2 Mean': 111469.0,
+     'alternative': 'two-sided',
+     'confidence interval': (-72531.67468585065, 67873.67468585065),
+     'degrees of freedom': 4.698886994702439,
+     'p-value': 0.9342936060799869,
+     't-statistic': -0.08695024086399619,
+     'test description': "Two-Sample Welch's t-test"}
+
+    References
+    ----------
+    Fox J. and Weisberg, S. (2011) An R Companion to Applied Regression, Second Edition Sage.
+
+    Rencher, A. C., & Christensen, W. F. (2012). Methods of multivariate analysis (3rd Edition).
+
+    Student's t-test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
+        From https://en.wikipedia.org/w/index.php?title=Student%27s_t-test&oldid=786562367
 
     """
     def __init__(self, y1, y2=None, group=None, mu=None, var_equal=False, paired=False,
                  alternative='two-sided', alpha=0.05):
+
         self.group = group
         self.paired = paired
         self.alpha = alpha
@@ -265,11 +203,13 @@ class tTest(object):
             self._y1_summary_stat_name = 'Sample Difference'
             self.y2 = None
             self.sample_statistics = {self._y1_summary_stat_name: self._sample_stats(self.y1)}
+
         elif y2 is None and group is None:
             self.test_description = 'One-Sample t-test'
             self._y1_summary_stat_name = 'Sample 1'
             self.y1, self.y2 = y1, None
             self.sample_statistics = {self._y1_summary_stat_name: self._sample_stats(self.y1)}
+
         else:
             self.test_description = 'Two-Sample' + ' ' + self.method
             self._y1_summary_stat_name = 'Sample 1'
@@ -283,12 +223,13 @@ class tTest(object):
 
             self.sample_statistics['Sample 2'] = self._sample_stats(self.y2)
 
-        self.parameter = self.degrees_of_freedom()
-        self.t_statistic = self.test_statistic()
-        self.p_value = self.pvalue()
-        self.confidence_interval = self.conf_int()
+        self.parameter = self._degrees_of_freedom()
+        self.t_statistic = self._test_statistic()
+        self.p_value = self._pvalue()
+        self.confidence_interval = self._conf_int()
+        self.test_summary = self._generate_result_summary()
 
-    def degrees_of_freedom(self):
+    def _degrees_of_freedom(self):
         r"""
         Computes the degrees of freedom of one or two samples.
 
@@ -349,7 +290,7 @@ class tTest(object):
 
         return float(v)
 
-    def test_statistic(self):
+    def _test_statistic(self):
         r"""
         Computes Student's t-statistic.
 
@@ -420,7 +361,7 @@ class tTest(object):
 
         return tval
 
-    def pvalue(self):
+    def _pvalue(self):
         r"""
         Returns the p-value.
 
@@ -465,7 +406,7 @@ class tTest(object):
 
         return p
 
-    def conf_int(self):
+    def _conf_int(self):
         r"""
         Computes the confidence interval.
 
@@ -523,7 +464,7 @@ class tTest(object):
 
         return intervals
 
-    def summary(self):
+    def _generate_result_summary(self):
         r"""
         Returns a dictionary of the t-test results.
 

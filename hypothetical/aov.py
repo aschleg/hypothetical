@@ -3,7 +3,7 @@
 """
 Functions for performing one-way analysis of variance (ANOVA) and multivariate analysis of variance (MANOVA).
 The functions :code:`anova_one_way` and :code:`manova_one_way` are the main interface while their respective
-classes :code:`AnovaOneWay` and :code:`ManovaOneWay`, contain the underlying implementations of the algorithms and
+classes :code:`_AnovaOneWay` and :code:`_ManovaOneWay`, contain the underlying implementations of the algorithms and
 methods used to perform ANOVA or MANOVA.
 
 One-Way Analysis of Variance
@@ -25,8 +25,8 @@ procedure.
 .. autosummary::
     :toctree: generated/
 
-    AnovaOneWay
-    ManovaOneWay
+    _AnovaOneWay
+    _ManovaOneWay
 
 References
 ----------
@@ -69,8 +69,8 @@ def anova_one_way(*args, group=None):
 
     Returns
     -------
-    AnovaOneWay or ManovaOneWay : class object
-        AnovaOneWay or ManovaOneWay (if more than one observation vector is passed with a group
+    _AnovaOneWay or _ManovaOneWay : class object
+        _AnovaOneWay or _ManovaOneWay (if more than one observation vector is passed with a group
         variable) class object containing the fitted results.
 
     Notes
@@ -142,7 +142,7 @@ def anova_one_way(*args, group=None):
     ...                    4.81, 4.17, 4.41,
     ...                    5.31, 5.12, 5.54]
     >>> aov = anova_one_way(observation_vec, group=group_vector)
-    >>> aov.summary()
+    >>> aov._generate_result_summary()
     {'F-statistic': 2.4895587076438104,
      'Group DoF': 2,
      'Group Mean Squares': 0.5616444444444436,
@@ -166,7 +166,7 @@ def anova_one_way(*args, group=None):
     >>> trt1 = [4.81, 4.17, 4.41]
     >>> trt2 = [5.31, 5.12, 5.54]
     >>> aov1 = anova_one_way(ctrl, trt1, trt2)
-    >>> aov1.summary()
+    >>> aov1._generate_result_summary()
     {'F-statistic': 2.4895587076438104,
      'Group DoF': 2,
      'Group Mean Squares': 0.5616444444444436,
@@ -186,8 +186,8 @@ def anova_one_way(*args, group=None):
 
     See Also
     --------
-    AnovaOneWay : one-way ANOVA class
-    ManovaOneWay : one-way MANOVA class
+    _AnovaOneWay : one-way ANOVA class
+    _ManovaOneWay : one-way MANOVA class
 
     References
     ----------
@@ -199,9 +199,9 @@ def anova_one_way(*args, group=None):
 
     """
     if (len(args) > 1 and group is None) or (len(args) == 1 and group is not None):
-        aov_result = AnovaOneWay(*args, group=group)
+        aov_result = _AnovaOneWay(*args, group=group)
     else:
-        aov_result = ManovaOneWay(*args, group=group)
+        aov_result = _ManovaOneWay(*args, group=group)
 
     return aov_result
 
@@ -224,7 +224,7 @@ def manova_one_way(*args, group=None):
 
     Returns
     -------
-    AnovaOneWay or ManovaOneWay : class object
+    _AnovaOneWay or _ManovaOneWay : class object
         MANOVA or ANOVA (if only one observation vector is passed with a group variable) class object
         containing the fitted results.
 
@@ -336,7 +336,7 @@ def manova_one_way(*args, group=None):
     >>> maov = manova_one_way(trunk_girth_four_years, ext_growth_four_years,
     ...                       trunk_girth_fifteen_years, weight_above_ground_fifteen_years,
     ...                       group=tree_number)
-    >>> maov.summary()
+    >>> maov._generate_result_summary()
     {'Dependent variable num.': 4,
      'Group Means': array([[1.13      , 2.78733333, 3.75333333, 0.83633333],
             [1.11      , 2.779     , 4.64666667, 1.255     ],
@@ -375,14 +375,14 @@ def manova_one_way(*args, group=None):
 
     """
     if len(args) > 1:
-        maov_result = ManovaOneWay(*args, group=group)
+        maov_result = _ManovaOneWay(*args, group=group)
     else:
-        maov_result = AnovaOneWay(*args, group=group)
+        maov_result = _AnovaOneWay(*args, group=group)
 
     return maov_result
 
 
-class AnovaOneWay(object):
+class _AnovaOneWay(object):
     r"""
     Class that contains the implementations of the algorithms and methods used when performing analysis
     of variance.
@@ -427,13 +427,13 @@ class AnovaOneWay(object):
 
     Notes
     -----
-    The :code:`AnovaOneWay` class is meant to serve as a 'back-end' of sorts to house the algorithms
+    The :code:`_AnovaOneWay` class is meant to serve as a 'back-end' of sorts to house the algorithms
     and methods used in performing one-way analysis of variance. The function :code:`anova_one_way`
     is meant to be the main interface function.
 
     See Also
     --------
-    anova_one_way : primary function that wraps the AnovaOneWay class.
+    anova_one_way : primary function that wraps the _AnovaOneWay class.
 
     """
     def __init__(self, *args, group):
@@ -698,7 +698,7 @@ class AnovaOneWay(object):
         return group_stats
 
 
-class ManovaOneWay(object):
+class _ManovaOneWay(object):
     r"""
     Contains the methods and algorithm implementations used when performing multivariate analysis of
     variance.
@@ -751,13 +751,13 @@ class ManovaOneWay(object):
 
     Notes
     -----
-    The :code:`ManovaOneWay` class acts as a 'back-end' of sorts to the main function
-    :code:`manova_one_way`. An initialized :code:`ManovaOneWay` class object is returned
+    The :code:`_ManovaOneWay` class acts as a 'back-end' of sorts to the main function
+    :code:`manova_one_way`. An initialized :code:`_ManovaOneWay` class object is returned
     when using the :code:`manova_one_way` function.
 
     See Also
     --------
-    manova_one_way : primary function that wraps the ManovaOneWay class and its algorithm
+    manova_one_way : primary function that wraps the _ManovaOneWay class and its algorithm
 
     """
     def __init__(self, *args, group):

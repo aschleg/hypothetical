@@ -1,6 +1,6 @@
 import pytest
 
-from hypothetical.nonparametric import mann_whitney, wilcoxon_test, tie_correction, kruskal_wallis
+from hypothetical.nonparametric import mann_whitney, wilcoxon_test, tie_correction, KruskalWallis
 import pandas as pd
 import numpy as np
 import os
@@ -158,9 +158,9 @@ def test_wilcox_test(test_data):
 def test_kruskal_wallis():
     data = plants_test_data()
 
-    kw = kruskal_wallis(data['weight'], group=data['group'])
+    kw = KruskalWallis(data['weight'], group=data['group'])
 
-    test_result = kw.summary()
+    test_result = kw.test_summary
 
     assert test_result['alpha'] == 0.05
     assert test_result['degrees of freedom'] == 2
@@ -187,14 +187,14 @@ def test_kruskal_wallis():
     del trt2['index']
     trt2.rename(columns={'weight': 'trt2'}, inplace=True)
 
-    kw2 = kruskal_wallis(ctrl, trt1, trt2)
+    kw2 = KruskalWallis(ctrl, trt1, trt2)
 
-    test_result2 = kw2.summary()
+    test_result2 = kw2.test_summary
 
     assert test_result == test_result2
 
     with pytest.raises(ValueError):
-        kruskal_wallis(data['weight'], data['weight'], group=data['group'])
+        KruskalWallis(data['weight'], data['weight'], group=data['group'])
 
 
 def test_tie_correction():

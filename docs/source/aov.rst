@@ -18,5 +18,5 @@ of variance and multivariate analysis of variance.
 .. autosummary::
     :toctree: generated/
 
-    AnovaOneWay
-    ManovaOneWay
+    _AnovaOneWay
+    _ManovaOneWay

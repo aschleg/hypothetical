@@ -1,5 +1,7 @@
+
+
 import pytest
-from hypothetical.hypothesis import t_test
+from hypothetical.hypothesis import tTest
 import pandas as pd
 import numpy as np
 import os
@@ -26,9 +28,9 @@ def test_two_sample_welch_test(test_data):
     sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
     sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
 
-    ttest = t_test(y1=sal_a, y2=sal_b)
+    ttest = tTest(y1=sal_a, y2=sal_b)
 
-    test_summary = ttest.summary()
+    test_summary = ttest.test_summary
 
     np.testing.assert_almost_equal(test_summary['Sample 1 Mean'], np.mean(sal_a))
     np.testing.assert_almost_equal(test_summary['Sample 2 Mean'], np.mean(sal_b))
@@ -40,8 +42,8 @@ def test_two_sample_welch_test(test_data):
     assert test_summary['alternative'] == 'two-sided'
     assert test_summary['test description'] == "Two-Sample Welch's t-test"
 
-    ttest_group = t_test(group=test_data['discipline'], y1=test_data['salary'])
-    test_group_summary = ttest_group.summary()
+    ttest_group = tTest(group=test_data['discipline'], y1=test_data['salary'])
+    test_group_summary = ttest_group.test_summary
 
     np.testing.assert_almost_equal(test_summary['Sample 1 Mean'], test_group_summary['Sample 1 Mean'])
     np.testing.assert_almost_equal(test_summary['Sample 2 Mean'], test_group_summary['Sample 2 Mean'])
@@ -57,9 +59,9 @@ def test_two_sample_students_test(test_data):
     sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
     sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
 
-    ttest = t_test(y1=sal_a, y2=sal_b, var_equal=True)
+    ttest = tTest(y1=sal_a, y2=sal_b, var_equal=True)
 
-    test_summary = ttest.summary()
+    test_summary = ttest.test_summary
 
     np.testing.assert_almost_equal(test_summary['Sample 1 Mean'], np.mean(sal_a))
     np.testing.assert_almost_equal(test_summary['Sample 2 Mean'], np.mean(sal_b))
@@ -76,9 +78,9 @@ def test_two_sample_students_test(test_data):
 def test_one_sample_test(test_data):
     sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
 
-    ttest = t_test(y1=sal_a)
+    ttest = tTest(y1=sal_a)
 
-    test_summary = ttest.summary()
+    test_summary = ttest.test_summary
 
     np.testing.assert_almost_equal(test_summary['Sample 1 Mean'], np.mean(sal_a))
     np.testing.assert_almost_equal(test_summary['t-statistic'], 47.95382017797468)
@@ -89,9 +91,9 @@ def test_one_sample_test(test_data):
 
     assert len(sal_a) - 1 == test_summary['degrees of freedom']
 
-    ttest_mu = t_test(y1=sal_a, mu=100000)
+    ttest_mu = tTest(y1=sal_a, mu=100000)
 
-    test_mu_summary = ttest_mu.summary()
+    test_mu_summary = ttest_mu._generate_result_summary()
 
     np.testing.assert_almost_equal(test_mu_summary['Sample 1 Mean'], np.mean(sal_a))
     np.testing.assert_almost_equal(test_mu_summary['p-value'], 0.0002159346891279501)
@@ -108,9 +110,9 @@ def test_paired_sample_test(test_data):
     sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
     sal_b2 = sal_b[0:len(sal_a)]
 
-    ttest = t_test(y1=sal_a, y2=sal_b2, paired=True)
+    ttest = tTest(y1=sal_a, y2=sal_b2, paired=True)
 
-    test_summary = ttest.summary()
+    test_summary = ttest.test_summary
 
     np.testing.assert_almost_equal(test_summary['Sample Difference Mean'], np.mean(np.array(sal_a) - np.array(sal_b2)))
     np.testing.assert_almost_equal(test_summary['t-statistic'], -2.3158121700626406)
@@ -127,18 +129,18 @@ def test_alternatives(test_data):
     sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
     sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
 
-    ttest = t_test(y1=sal_a, y2=sal_b, alternative='greater')
+    ttest = tTest(y1=sal_a, y2=sal_b, alternative='greater')
 
-    test_summary = ttest.summary()
+    test_summary = ttest.test_summary
 
     np.testing.assert_almost_equal(test_summary['p-value'], 0.9990848459959981)
     np.testing.assert_almost_equal(test_summary['t-statistic'], -3.1386989278486013)
 
     assert test_summary['alternative'] == 'greater'
 
-    ttest_less = t_test(y1=sal_a, y2=sal_b, alternative='less')
+    ttest_less = tTest(y1=sal_a, y2=sal_b, alternative='less')
 
-    test_less_summary = ttest_less.summary()
+    test_less_summary = ttest_less.test_summary
 
     assert test_less_summary['alternative'] == 'less'
     np.testing.assert_almost_equal(test_less_summary['t-statistic'], -3.1386989278486013)
@@ -150,13 +152,13 @@ def test_ttest_exceptions(test_data, test_multiclass_data):
     sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
 
     with pytest.raises(ValueError):
-        t_test(y1=sal_a, paired=True)
+        tTest(y1=sal_a, paired=True)
 
     with pytest.raises(ValueError):
-        t_test(y1=sal_a, y2=sal_b, paired=True)
+        tTest(y1=sal_a, y2=sal_b, paired=True)
 
     with pytest.raises(ValueError):
-        t_test(sal_a, sal_b, alternative='asdh')
+        tTest(sal_a, sal_b, alternative='asdh')
 
     with pytest.raises(ValueError):
-        t_test(group=test_multiclass_data['spray'], y1=test_multiclass_data['count'])
+        tTest(group=test_multiclass_data['spray'], y1=test_multiclass_data['count'])
