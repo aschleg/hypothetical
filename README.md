@@ -19,12 +19,17 @@ Python library for conducting hypothesis and other group comparison tests.
 
 * Mann-Whitney (two sample nonparametric variant of t-test)
 * Wilcoxon Rank Sum Test (one sample nonparametric variant of paired and one-sample t-test)
+* Kruskal-Wallis (nonparametric equivalent of one-way ANOVA)
 
 ### Analysis of Variance
 
 * One-way Analysis of Variance (ANOVA)
-* One-way Multivariate Analysis of Variance (MANOVA)  
-* Kruskal-Wallis (nonparametric equivalent of one-way ANOVA)
+* One-way Multivariate Analysis of Variance (MANOVA)
+
+### Post-Hoc Analysis
+
+* Tukey's Honestly Significant Difference (HSD)
+* Games-Howell (nonparametric)
 
 ### Correlation and Covariance
 
@@ -51,9 +56,9 @@ Python library for conducting hypothesis and other group comparison tests.
 ## Requirements
 
 * Python 3.4+
-* pandas >= 0.22.0
-* numpy >= 1.13.0
-* numpy_indexed >= 0.3.5
+* `pandas >= 0.22.0`
+* `numpy >= 1.13.0`
+* `numpy_indexed >= 0.3.5`
 
 ## Installation
 

@@ -51,8 +51,7 @@ class AnovaOneWay(object):
     group_sample1, group_sample2, ... : array-like
         Corresponding observation vectors of the group samples. Must be the same length
         as the group parameter. If the group parameter is None, each observation vector
-        will be treated as a group sample vector. If more than one sample vector is passed and
-        the group parameter is not None, one-way MANOVA will be performed.
+        will be treated as a group sample vector.
 
     Attributes
     ----------
