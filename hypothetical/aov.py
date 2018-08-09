@@ -2,9 +2,6 @@
 
 """
 Functions for performing one-way analysis of variance (ANOVA) and multivariate analysis of variance (MANOVA).
-The functions :code:`anova_one_way` and :code:`manova_one_way` are the main interface while their respective
-classes :code:`_AnovaOneWay` and :code:`ManovaOneWay`, contain the underlying implementations of the algorithms and
-methods used to perform ANOVA or MANOVA.
 
 One-Way Analysis of Variance
 ----------------------------

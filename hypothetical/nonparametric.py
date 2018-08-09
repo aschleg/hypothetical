@@ -1,8 +1,7 @@
 # encoding=utf8
 
 """
-Functions for performing nonparametric statistical inference. The classes listed in this module are intended to
-act as 'back-ends' to their respective functions.
+Functions for performing nonparametric statistical inference.
 
 Nonparametric Inference Methods
 -------------------------------
@@ -827,12 +826,6 @@ class WilcoxonTest(object):
 
     When two sample observation vectors are passed into the :code:`wilcoxon_test` function with the parameter
     :code:`paired = False`, the Mann-Whitney U-test is performed.
-
-    See Also
-    --------
-    _WilcoxonTest : class containing the implemented algorithms and methods used when conducting the Wilcoxon
-        Rank Sum test.
-    mann_whitney : related nonparametric test for two independent samples.
 
     Examples
     --------

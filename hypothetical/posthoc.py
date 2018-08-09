@@ -1,6 +1,7 @@
 # encoding=utf8
 
 """
+Functions for performing post-hoc analysis.
 
 Post-Hoc Analysis
 -----------------
@@ -10,6 +11,15 @@ Post-Hoc Analysis
 
     GamesHowell
     TukeysTest
+
+References
+----------
+
+Ruxton, G.D., and Beauchamp, G. (2008) 'Time for some a priori thinking about post hoc testing',
+    Behavioral Ecology, 19(3), pp. 690-693. doi: 10.1093/beheco/arn020.
+    In-text citations: (Ruxton and Beauchamp, 2008)
+
+Post-hoc (no date) Available at: http://www.unt.edu/rss/class/Jon/ISSS_SC/Module009/isss_m91_onewayanova/node7.html
 
 """
 
@@ -35,6 +45,8 @@ class GamesHowell(object):
         Corresponding observation vectors of the group samples. Must be the same length
         as the group parameter. If the group parameter is None, each observation vector
         will be treated as a group sample vector.
+    alpha : float, default 0.05
+        Alpha level for computing upper and lower confidence intervals
 
     Attributes
     ----------
@@ -96,7 +108,7 @@ class GamesHowell(object):
     References
     ----------
     Ruxton, G.D., and Beauchamp, G. (2008) 'Time for some a priori thinking about post hoc testing',
-    Behavioral Ecology, 19(3), pp. 690-693. doi: 10.1093/beheco/arn020.
+        Behavioral Ecology, 19(3), pp. 690-693. doi: 10.1093/beheco/arn020.
         In-text citations: (Ruxton and Beauchamp, 2008)
 
     Post-hoc (no date) Available at: http://www.unt.edu/rss/class/Jon/ISSS_SC/Module009/isss_m91_onewayanova/node7.html
@@ -114,6 +126,16 @@ class GamesHowell(object):
         self.test_result = self._games_howell_test()
 
     def _group_sample_statistics(self):
+        r"""
+        Computes group summary statistics (mean, number of observations, and variance), for use when
+        performing analysis of variance.
+
+        Returns
+        -------
+        group_stats : dict
+            Dictionary containing each group's mean, number of observations and variance.
+
+        """
         group_means = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], np.mean)
         group_obs = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], len)
         group_variance = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], var)
@@ -186,7 +208,106 @@ class GamesHowell(object):
 
 
 class TukeysTest(object):
+    r"""
+    Performs Tukey's Honestly Significant Difference posthoc analysis test.
 
+    Parameters
+    ----------
+    group: array-like, optional
+        One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
+        membership of the dependent variable(s). Must be the same length as the observation vector.
+    group_sample1, group_sample2, ... : array-like
+        Corresponding observation vectors of the group samples. Must be the same length
+        as the group parameter. If the group parameter is None, each observation vector
+        will be treated as a group sample vector.
+    alpha : float, default 0.05
+        Alpha level for computing upper and lower confidence intervals
+
+    Attributes
+    ----------
+    design_matrix : array-like
+        Numpy ndarray representing the data matrix for the analysis.
+    group : array-like
+        Group vector passed or coerced from sample observation vectors.
+    alpha : float, default 0.05
+        Alpha level for computing upper and lower confidence intervals
+    test_description : str, default 'Tukey multiple comparison of means'
+        String denoting the type of procedure performed.
+    n : int
+        Number of total observations.
+    k : int
+        Number of groups
+    dof : int
+        Degrees of freedom
+    tukey_q_value : float
+        The computed q-value used in determining the HSD
+    mse : float
+        The mean square error
+    hsd : float
+        Tukey's Honestly Significant Difference value
+    group_comparison : array-like
+        pandas DataFrame of group comparison results calculated by Tukey's HSD test.
+    test_summary : dict
+        Dictionary of test results.
+
+    Notes
+    -----
+    After a multivariate test, it is often desired to know more about the specific groups to find out if they
+    are significantly different or similar. This step after analysis is referred to as 'post-hoc analysis' and
+    is a major step in hypothesis testing.
+
+    One common and popular method of post-hoc analysis is Tukey's Test. The test is known by several different names.
+    Tukey's test compares the means of all treatments to the mean of every other treatment and is considered the best
+    available method in cases when confidence intervals are desired or if sample sizes are unequal.
+
+    The test statistic used in Tukey's test is denoted :math:`q` and is essentially a modified t-statistic that
+    corrects for multiple comparisons.
+
+    :math:`q` can be found similarly to the t-statistic:
+
+    .. math::
+
+        q_{\alpha,k,N-k}
+
+    The studentized range distribution of :math:`q` is defined as:
+
+    .. math::
+
+        q_s = \frac{Y_{max} - Y_{min}}{SE}
+
+    Where :math:`Y_{max}` and :math:`Y_{min}` are the larger and smaller means of the two groups being compared.
+    :math:`SE` is defined as the standard error of the entire design.
+
+    The Honestly Significant Difference is defined as the q-value multiplied by the square root of the MSE
+    divided by the sample size.
+
+    .. math::
+
+        HSD = q_{\alpha,k,N-k} \sqrt{\frac{MSE}{n}}
+
+    If the absolute value of the difference of the two groups' means is greater than or equal to the HSD,
+    the difference is significant.
+
+    .. math::
+
+        \left|Y_1 - Y_2\right| \geq HSD
+
+    Intervals for Tukey's Test can also be estimated. Since the test uses the studentized range, estimation is
+    similar to the t-test setting. Intervals with :math:`1 - \alpha` confidence can be found using the
+    Tukey-Kramer method. The Tukey-Kramer method allows for unequal sample sizes between the treatments and is,
+    therefore, more often applicable. The Tukey-Kramer method is defined as:
+
+    .. math::
+
+        y_i - y_j \pm q_{\alpha,k,N-k} \sqrt{\left(\frac{MSE}{2}\right) \left(\frac{1}{n_i} + \frac{1}{n_j}\right)}
+
+    Examples
+    --------
+
+    References
+    ----------
+
+    """
     def __init__(self, *args, group=None, alpha=0.95):
         self.alpha = alpha
         self.test_description = 'Tukey multiple comparisons of means'
@@ -208,7 +329,24 @@ class TukeysTest(object):
         self.test_summary = self._generate_results_summary()
 
     def _mse(self):
+        r"""
+        Calculates the Mean Square Error for use in computing Tukey's HSD.
 
+        Returns
+        -------
+        mse : float
+            The Mean Square Error of the design.
+
+        Notes
+        -----
+        The MSE is found by diving the standard error of the design by the total number of observations minus
+        the number of groups.
+
+        .. math::
+
+            MSE = \frac{SE}{(N - k)}
+
+        """
         group_variance = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], var)
         group_n = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], len)
 
@@ -217,9 +355,37 @@ class TukeysTest(object):
         for i, j in zip(group_n, group_variance):
             sse += (i[1] - 1) * j[1]
 
-        return sse / (self.n - self.k)
+        mse = sse / (self.n - self.k)
+
+        return mse
 
     def _qvalue(self):
+        r"""
+        Computes the q-value.
+
+        Returns
+        -------
+        q : float
+            The q-value
+
+        Notes
+        -----
+        :math:`q` can be found similarly to the t-statistic:
+
+        .. math::
+
+            q_{\alpha,k,N-k}
+
+        The studentized range distribution of :math:`q` is defined as:
+
+        .. math::
+
+            q_s = \frac{Y_{max} - Y_{min}}{SE}
+
+        Where :math:`Y_{max}` and :math:`Y_{min}` are the larger and smaller means of the two groups being compared.
+        :math:`SE` is defined as the standard error of the entire design.
+
+        """
         q = qsturng(self.alpha, self.k, self.n - self.k)
 
         return q
@@ -228,11 +394,41 @@ class TukeysTest(object):
         pass
 
     def _hsd(self):
+        r"""
+        Computes Tukey's Honestly Significant Difference
+
+        Returns
+        -------
+        hsd : float
+            Tukey's Honestly Significant Difference
+
+        Notes
+        -----
+        The Honestly Significant Difference is defined as the q-value multiplied by the square root of the MSE
+        divided by the sample size.
+
+        .. math::
+
+            HSD = q_{\alpha,k,N-k} \sqrt{\frac{MSE}{n}}
+
+        If the absolute value of the difference of the two groups' means is greater than or equal to the HSD,
+        the difference is significant.
+
+        """
         hsd = self.tukey_q_value * np.sqrt(self.mse / (self.n / self.k))
 
         return hsd
 
     def _group_comparison(self):
+        r"""
+        Constructs a pandas DataFrame containing the test results and group comparisons as found by Tukey's HSD test.
+
+        Returns
+        -------
+        groups : array-like
+            pandas DataFrame of group comparison results.
+
+        """
         group_means = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], np.mean)
 
         group_means = [i for _, i in group_means]
@@ -271,6 +467,14 @@ class TukeysTest(object):
         return groups
 
     def _generate_results_summary(self):
+        r"""
+        Generates a dictionary of computed test results.
+
+        Returns
+        -------
+        test_results : dict
+            Dictionary containing results of Tukey's HSD test.
+        """
         test_results = {
             'test description': self.test_description,
             'HSD': self.hsd,

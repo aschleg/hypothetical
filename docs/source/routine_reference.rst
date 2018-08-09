@@ -10,5 +10,7 @@ API Reference
 
     aov.rst
     critical.rst
+    hypothesis.rst
     nonparametric.rst
+    posthoc.rst
     summary.rst
