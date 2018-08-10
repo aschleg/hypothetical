@@ -18,11 +18,62 @@ Rencher, A. C., & Christensen, W. F. (2012). Methods of multivariate analysis (3
 Student's t-test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
     From https://en.wikipedia.org/w/index.php?title=Student%27s_t-test&oldid=786562367
 
+Wikipedia contributors. (2018, July 14). Binomial proportion confidence interval.
+        In Wikipedia, The Free Encyclopedia. Retrieved 15:03, August 10, 2018,
+        from https://en.wikipedia.org/w/index.php?title=Binomial_proportion_confidence_interval&oldid=850256725
+
 """
 
 import numpy as np
 import numpy_indexed as npi
 from scipy.stats import t
+from scipy.special import comb
+
+
+class BinomialTest(object):
+    r"""
+
+    References
+    ----------
+    Wikipedia contributors. (2018, July 14). Binomial proportion confidence interval.
+        In Wikipedia, The Free Encyclopedia. Retrieved 15:03, August 10, 2018,
+        from https://en.wikipedia.org/w/index.php?title=Binomial_proportion_confidence_interval&oldid=850256725
+
+    """
+    def __init__(self, n, x, p=0.5, alternative='two-sided', alpha=0.05, continuity=True):
+        self.n = n
+        self.x = x
+        self.p = float(p)
+        self.q = 1.0 - self.p
+        self.alpha = alpha
+        self.alternative = alternative
+        self.continuity = continuity
+        self.p_value = self._p_value()
+
+    def _p_value(self):
+
+        successes = np.arange(self.x)
+
+        pval = np.sum(comb(self.n, successes) * self.p ** successes * self.q ** (self.n - successes))
+
+        if self.alternative == 'two-sided':
+            y = comb(self.n, self.x) * (self.p ** self.x) * (1. - self.p) ** (self.n - self.x)
+            other_tail = np.arange(self.x + 1, self.n + 1)
+
+            p_othertail = np.sum(
+                (comb(self.n, other_tail) * self.p ** other_tail * self.q ** (self.n - successes)) <= y)
+
+            pval = pval + p_othertail
+
+        return pval
+
+    def _clopper_pearson_interval(self):
+        success_probability = self.x / self.n
+
+    def _wilson_score_interval(self):
+        z = ((self.x - 0.) - self.n * self.p) / np.sqrt(self.n * self.p * (1. - self.p))
+
+        success_probability = (self.p + (z ** 2 / (2 * self.n))) / (1 + (z ** 2 / self.n))
 
 
 class tTest(object):
@@ -527,3 +578,9 @@ class tTest(object):
         }
 
         return sample_stats
+
+
+class zTest(object):
+
+    def __init__(self):
+        pass
