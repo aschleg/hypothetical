@@ -26,12 +26,33 @@ Wikipedia contributors. (2018, July 14). Binomial proportion confidence interval
 
 import numpy as np
 import numpy_indexed as npi
-from scipy.stats import t
+from scipy.stats import beta, norm, t
 from scipy.special import comb
 
 
 class BinomialTest(object):
     r"""
+
+    Parameters
+    ----------
+    n : int
+    x : int
+    p : float, optional
+    alternative: str, optional
+    alpha : float, optional
+    continuity: bool, optional
+
+    Attributes
+    ----------
+
+    Raises
+    ------
+
+    Notes
+    -----
+
+    Examples
+    --------
 
     References
     ----------
@@ -41,6 +62,16 @@ class BinomialTest(object):
 
     """
     def __init__(self, n, x, p=0.5, alternative='two-sided', alpha=0.05, continuity=True):
+
+        if x > n:
+            raise ValueError('number of successes cannot be greater than number of trials.')
+
+        if p > 1.0:
+            raise ValueError('expected probability of success cannot be greater than 1.')
+
+        if alternative not in ('two-sided', 'greater', 'lesser'):
+            raise ValueError("'alternative must be one of 'two-sided' (default), 'greater', or 'lesser'.")
+
         self.n = n
         self.x = x
         self.p = float(p)
@@ -49,6 +80,11 @@ class BinomialTest(object):
         self.alternative = alternative
         self.continuity = continuity
         self.p_value = self._p_value()
+        self.clopper_pearson_interval = self._clopper_pearson_interval()
+        self.wilson_score_interval = self._wilson_score_interval()
+        self.agresti_coull_interval = self._agresti_coull_interval()
+        self.z = norm.ppf(1 - self.alpha / 2)
+        self.test_summary = self._generate_test_summary()
 
     def _p_value(self):
 
@@ -68,12 +104,84 @@ class BinomialTest(object):
         return pval
 
     def _clopper_pearson_interval(self):
-        success_probability = self.x / self.n
+        p = self.x / self.n
+
+        upper_bound = beta.ppf(self.alpha / 2, self.x, self.n - self.x + 1)
+        lower_bound = beta.ppf(1 - self.alpha / 2, self.x + 1, self.n - self.x)
+
+        clopper_pearson_interval = {
+            'probability of success': p,
+            'lower_bound': lower_bound,
+            'upper_bound': upper_bound
+        }
+
+        return clopper_pearson_interval
 
     def _wilson_score_interval(self):
-        z = ((self.x - 0.) - self.n * self.p) / np.sqrt(self.n * self.p * (1. - self.p))
+        p = (self.p + (self.z ** 2 / (2 * self.n))) / (1 + (self.z ** 2 / self.n))
 
-        success_probability = (self.p + (z ** 2 / (2 * self.n))) / (1 + (z ** 2 / self.n))
+        if self.continuity:
+            numerator = 2 * self.n * self.p + self.z ** 2 - (self.z * np.sqrt(
+                self.z ** 2 - (1 / self.n) + 4 * self.n * self.p * self.q + (4 * self.p - 2) + 1))
+            denominator = 2 * (self.n + self.z ** 2)
+
+            bound = numerator / denominator
+
+            upper_bound, lower_bound = np.min(1, bound), np.max(0, bound)
+
+        else:
+            bound = (self.z / (1 + self.z ** 2) / self.n) * np.sqrt(
+                (self.p * self.q) / self.n + (self.z ** 2 / (4 * self.n ** 2)))
+
+            upper_bound, lower_bound = p + bound, p - bound
+
+        wilson_interval = {
+            'probability of success': p,
+            'lower_bound': lower_bound,
+            'upper_bound': upper_bound
+        }
+
+        return wilson_interval
+
+    def _agresti_coull_interval(self):
+        r"""
+
+        References
+        ----------
+        Agresti, Alan; Coull, Brent A. (1998). "Approximate is better than 'exact' for interval estimation of binomial
+            proportions". The American Statistician.
+
+        """
+        nbar = self.n + self.z ** 2
+
+        p = (1 / nbar) * (self.x + self.z ** 2 / 2)
+
+        bound = self.z * np.sqrt((p / nbar) * (1 - p))
+
+        upper_bound, lower_bound = p + bound, p - bound
+
+        agresti_coull_interval = {
+            'probability of success': p,
+            'lower_bound': lower_bound,
+            'upper_bound': upper_bound
+        }
+
+        return agresti_coull_interval
+
+    def _generate_test_summary(self):
+        results = {
+            'Number of Successes': self.x,
+            'Number of Trials': self.n,
+            'p-value': self.p_value,
+            'alpha': self.alpha,
+            'intervals': {
+                'Clopper-Pearson': self.clopper_pearson_interval,
+                'Wilson Score': self.wilson_score_interval,
+                'Agresti-Coull': self.agresti_coull_interval
+            }
+        }
+
+        return results
 
 
 class tTest(object):
