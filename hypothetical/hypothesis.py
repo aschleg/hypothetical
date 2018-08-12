@@ -9,6 +9,7 @@ Hypothesis Testing
 .. autosummary::
     :toctree: generated/
 
+    BinomialTest
     tTest
 
 References
@@ -19,8 +20,8 @@ Student's t-test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
     From https://en.wikipedia.org/w/index.php?title=Student%27s_t-test&oldid=786562367
 
 Wikipedia contributors. (2018, July 14). Binomial proportion confidence interval.
-        In Wikipedia, The Free Encyclopedia. Retrieved 15:03, August 10, 2018,
-        from https://en.wikipedia.org/w/index.php?title=Binomial_proportion_confidence_interval&oldid=850256725
+    In Wikipedia, The Free Encyclopedia. Retrieved 15:03, August 10, 2018,
+    from https://en.wikipedia.org/w/index.php?title=Binomial_proportion_confidence_interval&oldid=850256725
 
 """
 
@@ -32,21 +33,64 @@ from scipy.special import comb
 
 class BinomialTest(object):
     r"""
+    Performs a one-sample binomial test.
 
     Parameters
     ----------
-    n : int
     x : int
+        Number of successes out of :math:`n` trials.
+    n : int
+        Number of trials
     p : float, optional
-    alternative: str, optional
+        Expected probability of success
+    alternative: str, {'two-sided', 'greater', 'lesser'}, optional
+        Specifies the alternative hypothesis :math:`H_1`. Must be one of 'two-sided' (default), 'greater',
+        or 'less'.
     alpha : float, optional
+        Significance level
     continuity: bool, optional
+        If True, the continuity corrected version of the Wilson score interval is used.
 
     Attributes
     ----------
+    x : int
+        Number of successes out of :math:`n` trials.
+    n : int
+        Number of trials
+    p : float
+        Expected probability of success
+    q : float
+        Defined as :math:`1 - p`
+    alternative : str
+        Specifies the alternative hypothesis :math:`H_1`. Must be one of 'two-sided' (default), 'greater',
+        or 'less'.
+    alpha : float
+        Significance level
+    continuity : bool
+        If True, the continuity corrected version of the Wilson score interval is used.
+    p_value : float
+        Computed p-value
+    z : float
+        z-score used in computation of intervals
+    clopper_pearson_interval : dict
+        Dictionary of the Clopper-Pearson lower and upper intervals and probability of success.
+    wilson_score_interval : dict
+        Dictionary of the Wilson Score lower and upper intervals and probability of success.
+    agresti_coull_interval : dict
+        Dictionary of the Agresti-Coull lower and upper intervals and probability of success.
+    arcsine_transform_interval : dict
+        Dictionary of the arcsine transformation lower and upper intervals and probability of success.
+    test_summary : dict
+        Dictionary containing test summary statistics.
 
     Raises
     ------
+    ValueError
+        If number of successes :math:`x` is greater than the number of trials :math:`n`.
+    ValueError
+        If expected probability :math:`p` is greater than 1.
+    ValueError
+        If parameter :code:`alternative` is not one of {'two-sided', 'greater', 'lesser'}
 
     Notes
     -----
@@ -74,40 +118,42 @@ class BinomialTest(object):
 
         self.n = n
         self.x = x
-        self.p = float(p)
+        self.p = p
         self.q = 1.0 - self.p
         self.alpha = alpha
         self.alternative = alternative
         self.continuity = continuity
         self.p_value = self._p_value()
+        self.z = norm.ppf(1 - self.alpha / 2)
         self.clopper_pearson_interval = self._clopper_pearson_interval()
         self.wilson_score_interval = self._wilson_score_interval()
         self.agresti_coull_interval = self._agresti_coull_interval()
-        self.z = norm.ppf(1 - self.alpha / 2)
+        self.arcsine_transform_interval = self._arcsine_transform_interval()
         self.test_summary = self._generate_test_summary()
 
     def _p_value(self):
 
-        successes = np.arange(self.x)
+        successes = np.arange(self.x + 1)
 
         pval = np.sum(comb(self.n, successes) * self.p ** successes * self.q ** (self.n - successes))
 
         if self.alternative == 'two-sided':
-            y = comb(self.n, self.x) * (self.p ** self.x) * (1. - self.p) ** (self.n - self.x)
             other_tail = np.arange(self.x + 1, self.n + 1)
 
-            p_othertail = np.sum(
-                (comb(self.n, other_tail) * self.p ** other_tail * self.q ** (self.n - successes)) <= y)
+            y = comb(self.n, self.x) * (self.p ** self.x) * self.q ** (self.n - self.x)
 
-            pval = pval + p_othertail
+            p_othertail = comb(self.n, other_tail) * self.p ** other_tail * self.q ** (self.n - other_tail)
+            p_othertail = np.sum(p_othertail[p_othertail <= y])
+
+            pval += p_othertail
 
         return pval
 
     def _clopper_pearson_interval(self):
         p = self.x / self.n
 
-        upper_bound = beta.ppf(self.alpha / 2, self.x, self.n - self.x + 1)
-        lower_bound = beta.ppf(1 - self.alpha / 2, self.x + 1, self.n - self.x)
+        lower_bound = beta.ppf(self.alpha / 2, self.x, self.n - self.x + 1)
+        upper_bound = beta.ppf(1 - self.alpha / 2, self.x + 1, self.n - self.x)
 
         clopper_pearson_interval = {
             'probability of success': p,
@@ -118,20 +164,22 @@ class BinomialTest(object):
         return clopper_pearson_interval
 
     def _wilson_score_interval(self):
-        p = (self.p + (self.z ** 2 / (2 * self.n))) / (1 + (self.z ** 2 / self.n))
+        p = (self.p + (self.z ** 2 / (2. * self.n))) / (1. + (self.z ** 2. / self.n))
 
         if self.continuity:
-            numerator = 2 * self.n * self.p + self.z ** 2 - (self.z * np.sqrt(
-                self.z ** 2 - (1 / self.n) + 4 * self.n * self.p * self.q + (4 * self.p - 2) + 1))
-            denominator = 2 * (self.n + self.z ** 2)
+            lower = (2. * self.n * self.p + self.z ** 2. - (self.z * np.sqrt(
+                self.z ** 2. - (1. / self.n) + 4. * self.n * self.p * self.q + (4. * self.p - 2.) + 1.))) / \
+                    (2. * (self.n + self.z ** 2.))
 
-            bound = numerator / denominator
+            upper = (2. * self.n * self.p + self.z ** 2. + (self.z * np.sqrt(
+                self.z ** 2. - (1. / self.n) + 4. * self.n * self.p * self.q + (4. * self.p - 2.) + 1))) / (2. * (
+                                      self.n + self.z ** 2.))
 
-            upper_bound, lower_bound = np.min(1, bound), np.max(0, bound)
+            upper_bound, lower_bound = np.minimum(1.0, upper), np.maximum(0.0, lower)
 
         else:
-            bound = (self.z / (1 + self.z ** 2) / self.n) * np.sqrt(
-                (self.p * self.q) / self.n + (self.z ** 2 / (4 * self.n ** 2)))
+            bound = (self.z / (1. + self.z ** 2. / self.n)) * \
+                    np.sqrt(((self.p * self.q) / self.n) + (self.z ** 2. / (4. * self.n ** 2.)))
 
             upper_bound, lower_bound = p + bound, p - bound
 
@@ -168,6 +216,23 @@ class BinomialTest(object):
 
         return agresti_coull_interval
 
+    def _arcsine_transform_interval(self):
+        p = self.clopper_pearson_interval['probability of success']
+
+        p_var = (p * (1 - p)) / self.n
+
+        lower_bound = np.sin(np.arcsin(np.sqrt(p)) - (self.z / (2. * np.sqrt(self.n)))) ** 2
+        upper_bound = np.sin(np.arcsin(np.sqrt(p)) + (self.z / (2. * np.sqrt(self.n)))) ** 2
+
+        arcsine_transform_interval = {
+            'probability of success': p,
+            'probability variance': p_var,
+            'lower_bound': lower_bound,
+            'upper_bound': upper_bound
+        }
+
+        return arcsine_transform_interval
+
     def _generate_test_summary(self):
         results = {
             'Number of Successes': self.x,
@@ -177,7 +242,8 @@ class BinomialTest(object):
             'intervals': {
                 'Clopper-Pearson': self.clopper_pearson_interval,
                 'Wilson Score': self.wilson_score_interval,
-                'Agresti-Coull': self.agresti_coull_interval
+                'Agresti-Coull': self.agresti_coull_interval,
+                'Arcsine Transform': self.arcsine_transform_interval
             }
         }
 

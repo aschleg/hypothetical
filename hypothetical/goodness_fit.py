@@ -1,0 +1,4 @@
+
+
+class ChiSquare(object):
+    pass

@@ -10,4 +10,5 @@ Hypothesis Tests
 .. autosummary::
     :toctree: generated/
 
+    BinomialTest
     tTest
