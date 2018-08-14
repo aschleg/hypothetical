@@ -9,6 +9,7 @@ API Reference
     :maxdepth: 1
 
     aov.rst
+    contingency.rst
     critical.rst
     hypothesis.rst
     nonparametric.rst

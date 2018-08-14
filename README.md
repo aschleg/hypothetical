@@ -10,27 +10,13 @@ Python library for conducting hypothesis and other group comparison tests.
 
 ## Available Methods
 
-### Hypothesis Testing
-
-* Binomial Test
-* t-test
-  - paired, one and two sample testing
-
-### Nonparametric Methods
-
-* Mann-Whitney (two sample nonparametric variant of t-test)
-* Wilcoxon Rank Sum Test (one sample nonparametric variant of paired and one-sample t-test)
-* Kruskal-Wallis (nonparametric equivalent of one-way ANOVA)
-
 ### Analysis of Variance
 
 * One-way Analysis of Variance (ANOVA)
 * One-way Multivariate Analysis of Variance (MANOVA)
 
-### Post-Hoc Analysis
-
-* Tukey's Honestly Significant Difference (HSD)
-* Games-Howell (nonparametric)
+### Contigency Tables and Related Tests
+* Fisher's Exact Test
 
 ### Correlation and Covariance
 
@@ -45,6 +31,23 @@ Python library for conducting hypothesis and other group comparison tests.
 * Chi-square
 * Wilcoxon Rank Sum W-statistic
 * Mann-Whitney U-statistic
+
+### Hypothesis Testing
+
+* Binomial Test
+* t-test
+  - paired, one and two sample testing
+
+### Nonparametric Methods
+
+* Mann-Whitney (two sample nonparametric variant of t-test)
+* Wilcoxon Rank Sum Test (one sample nonparametric variant of paired and one-sample t-test)
+* Kruskal-Wallis (nonparametric equivalent of one-way ANOVA)
+
+### Post-Hoc Analysis
+
+* Tukey's Honestly Significant Difference (HSD)
+* Games-Howell (nonparametric)
 
 ### Helpful Functions
 

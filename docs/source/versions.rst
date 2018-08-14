@@ -9,6 +9,8 @@ Version 0.2.0
 - Many new statistical and hypothesis testing functions have been added and a ton of refactoring has been performed
   in an effort to create a cohesive library structure that can be utilized as the library grows.
 - Below is a list of functions that have been added in the new release:
+    - Contingency Tables and Related Tests:
+        - Fisher's Exact Test
     - Critical Value Tables and Lookup Functions:
         - Chi-Square Critical Values
         - U-Statistic Critical Values
