@@ -95,6 +95,7 @@ class BinomialTest(object):
     Notes
     -----
 
+
     Examples
     --------
 

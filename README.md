@@ -12,6 +12,7 @@ Python library for conducting hypothesis and other group comparison tests.
 
 ### Hypothesis Testing
 
+* Binomial Test
 * t-test
   - paired, one and two sample testing
 
