@@ -16,6 +16,9 @@ References
 ----------
 Rencher, A. C., & Christensen, W. F. (2012). Methods of multivariate analysis (3rd Edition).
 
+Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+    McGraw-Hill. ISBN 07-057348-4
+
 Student's t-test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
     From https://en.wikipedia.org/w/index.php?title=Student%27s_t-test&oldid=786562367
 
@@ -101,6 +104,9 @@ class BinomialTest(object):
 
     References
     ----------
+    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+        McGraw-Hill. ISBN 07-057348-4
+
     Wikipedia contributors. (2018, July 14). Binomial proportion confidence interval.
         In Wikipedia, The Free Encyclopedia. Retrieved 15:03, August 10, 2018,
         from https://en.wikipedia.org/w/index.php?title=Binomial_proportion_confidence_interval&oldid=850256725
@@ -151,6 +157,15 @@ class BinomialTest(object):
         return pval
 
     def _clopper_pearson_interval(self):
+        r"""
+
+        References
+        ----------
+        Wikipedia contributors. (2018, July 14). Binomial proportion confidence interval.
+            In Wikipedia, The Free Encyclopedia. Retrieved 00:40, August 15, 2018,
+            from https://en.wikipedia.org/w/index.php?title=Binomial_proportion_confidence_interval&oldid=850256725
+
+        """
         p = self.x / self.n
 
         lower_bound = beta.ppf(self.alpha / 2, self.x, self.n - self.x + 1)
@@ -165,6 +180,15 @@ class BinomialTest(object):
         return clopper_pearson_interval
 
     def _wilson_score_interval(self):
+        r"""
+
+        References
+        ----------
+        Wikipedia contributors. (2018, July 14). Binomial proportion confidence interval.
+            In Wikipedia, The Free Encyclopedia. Retrieved 00:40, August 15, 2018,
+            from https://en.wikipedia.org/w/index.php?title=Binomial_proportion_confidence_interval&oldid=850256725
+
+        """
         p = (self.p + (self.z ** 2 / (2. * self.n))) / (1. + (self.z ** 2. / self.n))
 
         if self.continuity:
@@ -198,7 +222,11 @@ class BinomialTest(object):
         References
         ----------
         Agresti, Alan; Coull, Brent A. (1998). "Approximate is better than 'exact' for interval estimation of binomial
-            proportions". The American Statistician.
+            proportions". The American Statistician. http://users.stat.ufl.edu/~aa/articles/agresti_coull_1998.pdf
+
+        Wikipedia contributors. (2018, July 14). Binomial proportion confidence interval.
+            In Wikipedia, The Free Encyclopedia. Retrieved 00:40, August 15, 2018,
+            from https://en.wikipedia.org/w/index.php?title=Binomial_proportion_confidence_interval&oldid=850256725
 
         """
         nbar = self.n + self.z ** 2
@@ -218,6 +246,15 @@ class BinomialTest(object):
         return agresti_coull_interval
 
     def _arcsine_transform_interval(self):
+        r"""
+
+        References
+        ----------
+        Wikipedia contributors. (2018, July 14). Binomial proportion confidence interval.
+            In Wikipedia, The Free Encyclopedia. Retrieved 00:40, August 15, 2018,
+            from https://en.wikipedia.org/w/index.php?title=Binomial_proportion_confidence_interval&oldid=850256725
+
+        """
         p = self.clopper_pearson_interval['probability of success']
 
         p_var = (p * (1 - p)) / self.n

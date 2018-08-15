@@ -209,28 +209,6 @@ def w_critical_value(n, alpha, alternative):
     return w_crit
 
 
-"""
-The following section contains the critical value tables written as dictionaries.
-
-Included Critical Value Tables
-------------------------------
-
-Chi-Square
-W-statistic (Wilcoxon Test Statistic, also written as :math:`T` in some literature.
-U-statistic (Mann-Whitney test statistic)
-
-Critical Value Table Dictionaries
----------------------------------
-
-.. autosummary::
-    :toctree: generated/
-
-    chi_square_critical_value_table
-    w_critical_value_table
-    u_critical_value_table
-
-"""
-
 chi_square_critical_value_table = {
     0.995: {
         1: nan,

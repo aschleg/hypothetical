@@ -32,8 +32,8 @@ Mann–Whitney U test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
     From https://en.wikipedia.org/w/index.php?title=Mann%E2%80%93Whitney_U_test&oldid=786593885
 
 Wikipedia contributors. (2018, May 21). Kruskal–Wallis one-way analysis of variance.
-        In Wikipedia, The Free Encyclopedia. From
-        https://en.wikipedia.org/w/index.php?title=Kruskal%E2%80%93Wallis_one-way_analysis_of_variance&oldid=842351945
+    In Wikipedia, The Free Encyclopedia. From
+    https://en.wikipedia.org/w/index.php?title=Kruskal%E2%80%93Wallis_one-way_analysis_of_variance&oldid=842351945
 
 """
 
@@ -176,6 +176,9 @@ class KruskalWallis(object):
     ----------
     Corder, G.W.; Foreman, D.I. (2014). Nonparametric Statistics: A Step-by-Step Approach.
         Wiley. ISBN 978-1118840313.
+
+    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+        McGraw-Hill. ISBN 07-057348-4
 
     Wikipedia contributors. (2018, May 21). Kruskal–Wallis one-way analysis of variance.
         In Wikipedia, The Free Encyclopedia. From
@@ -433,7 +436,7 @@ class MannWhitney(object):
     effect_size : float
         Calculated estimated Cohen's effect size.
 
-        Notes
+    Notes
     -----
     The Mann-Whitney U test is a nonparametric hypothesis test that tests the null hypothesis that
     there is an equally likely chance that a randomly selected observation from one sample will be
@@ -508,6 +511,10 @@ class MannWhitney(object):
 
     Mann–Whitney U test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
         From https://en.wikipedia.org/w/index.php?title=Mann%E2%80%93Whitney_U_test&oldid=786593885
+
+    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+        McGraw-Hill. ISBN 07-057348-4
+
 
     """
     def __init__(self, y1, y2=None, group=None, continuity=True):
