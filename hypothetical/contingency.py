@@ -10,6 +10,7 @@ Contingency Tables
     :toctree: generated/
 
     FisherTest
+    McNemarTest
 
 References
 ----------
@@ -31,18 +32,24 @@ Wikipedia contributors. (2018, May 20). Fisher's exact test. In Wikipedia, The F
 
 import numpy as np
 from scipy.special import comb
-from scipy.stats import chi2
-
-
-class ContingencyTable(object):
-
-    def __init__(self):
-        pass
+from scipy.stats import chi2, binom
 
 
 class FisherTest(object):
     r"""
     Performs Fisher's Exact Test for a 2x2 contingency table.
+
+    Parameters
+    ----------
+
+    Attributes
+    ----------
+
+    Notes
+    -----
+
+    Examples
+    --------
 
     References
     ----------
@@ -102,13 +109,26 @@ class FisherTest(object):
 
 class McNemarTest(object):
     r"""
-    Computes the McNemar Test for two related samples.
+    Computes the McNemar Test for two related samples in a 2x2 contingency table.
 
     Parameters
     ----------
+    table : array-like
+    continuity : bool, False
+    alternative : str, {'two-sided', 'greater', 'less'}
 
     Attributes
     ----------
+    table : array-like
+    alternative : str
+    continuity : bool
+    n : int
+    mcnemar_x2_statistic : float
+    z_asymptotic_statistic : float
+    mcnemar_p_value : float
+    exact_p_value : float
+    mid_p_value : float
+    test_summary : dict
 
     Notes
     -----
@@ -130,7 +150,7 @@ class McNemarTest(object):
         from https://en.wikipedia.org/w/index.php?title=McNemar%27s_test&oldid=838855782
 
     """
-    def __init__(self, table=None, continuity=False, alternative='two-sided'):
+    def __init__(self, table, continuity=False, alternative='two-sided'):
         if not isinstance(table, np.ndarray):
             self.table = np.array(table)
         else:
@@ -154,6 +174,7 @@ class McNemarTest(object):
         self.mcnemar_p_value = self._mcnemar_p_value()
         self.exact_p_value = self._exact_p_value()
         self.mid_p_value = self._mid_p_value()
+        self.test_summary = self._generate_test_summary()
 
     def _mcnemar_test_stat(self):
 
@@ -165,24 +186,25 @@ class McNemarTest(object):
         return x2
 
     def _mcnemar_p_value(self):
-        p = chi2.cdf(self.mcnemar_x2_statistic, 1)
+        p = 1 - chi2.cdf(self.mcnemar_x2_statistic, 1)
 
         return p
 
     def _asymptotic_test(self):
         if not self.continuity:
-            z_asymptotic = (self.table[0, 1] - self.table[1, 0]) / np.sqrt(self.table[0, 1] + self.table[1, 0])
+            z_asymptotic = (self.table[1, 0] - self.table[0, 1]) / np.sqrt(self.table[0, 1] + self.table[1, 0])
         else:
-            z_asymptotic = (np.absolute(self.table[0, 1] - self.table[1, 0]) - 1) / \
+            z_asymptotic = (np.absolute(self.table[1, 0] - self.table[0, 1]) - 1) / \
                            np.sqrt(self.table[0, 1] + self.table[1, 0])
 
         return z_asymptotic
 
     def _exact_p_value(self):
         i = self.table[0, 1]
-        i_n = np.arange(i, self.n + 1)
+        n = self.table[1, 0] + self.table[0, 1]
+        i_n = np.arange(i + 1, n + 1)
 
-        p_value = np.sum(comb(self.n, i_n) * 0.5 ** i_n * (1 - 0.5) ** (self.n - i_n))
+        p_value = 1 - np.sum(comb(n, i_n) * 0.5 ** i_n * (1 - 0.5) ** (n - i_n))
 
         if self.alternative == 'two-sided':
             p_value *= 2
@@ -190,8 +212,8 @@ class McNemarTest(object):
         return p_value
 
     def _mid_p_value(self):
-        mid_p = self.exact_p_value - comb(self.n, self.table[0, 1]) * \
-                0.5 ** self.table[0, 1] * (1 - 0.5) ** (self.n - self.table[0, 1])
+        n = self.table[1, 0] + self.table[0, 1]
+        mid_p = self.exact_p_value - binom.pmf(self.table[0, 1], n, 0.5)
 
         return mid_p
 

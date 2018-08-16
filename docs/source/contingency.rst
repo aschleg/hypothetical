@@ -10,3 +10,4 @@ Contingency Tables
     :toctree: generated/
 
     FisherTest
+    McNemarTest
