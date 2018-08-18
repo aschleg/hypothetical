@@ -1,7 +1,7 @@
 
 
 import pytest
-from hypothetical.hypothesis import tTest
+from hypothetical.hypothesis import tTest, BinomialTest
 import pandas as pd
 import numpy as np
 import os
@@ -161,14 +161,27 @@ class Test_tTest(object):
             tTest(group=test_multiclass_data['spray'], y1=test_multiclass_data['count'])
 
 
+@pytest.fixture
+def sample1():
+    x = 682
+    n = 925
+
+    return x, n
+
+
 class TestBinomial(object):
-
-    @staticmethod
-    def sample1():
-        x = 682
-        n = 925
-
-        return x, n
 
     def test_binomialtest(self):
         pass
+
+    def test_binomial_test_exceptions(self):
+        x, n = sample1()
+
+        with pytest.raises(ValueError):
+            BinomialTest(x=200, n=100)
+
+        with pytest.raises(ValueError):
+            BinomialTest(x=x, n=n, p=2)
+
+        with pytest.raises(ValueError):
+            BinomialTest(x=x, n=n, alternative='na')

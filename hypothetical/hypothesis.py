@@ -102,6 +102,7 @@ class BinomialTest(object):
     Examples
     --------
 
+
     References
     ----------
     Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.

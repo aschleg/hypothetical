@@ -1085,6 +1085,12 @@ class WilcoxonTest(object):
         return test_results
 
 
+class MedianTest(object):
+
+    def __init__(self, *args):
+        pass
+
+
 def tie_correction(rank_array):
     r"""
     Computes the tie correction factor used in Mann-Whitney and Kruskal-Wallis tests.

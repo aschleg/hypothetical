@@ -9,7 +9,6 @@ Contingency Tables
 .. autosummary::
     :toctree: generated/
 
-    FisherTest
     McNemarTest
 
 References
