@@ -11,6 +11,7 @@ Nonparametric Inference Methods
 
     KruskalWallis
     MannWhitney
+    SignTest
     WilcoxonTest
 
 Other Functions
@@ -31,6 +32,9 @@ Fox J. and Weisberg, S. (2011) An R Companion to Applied Regression, Second Edit
 Mann–Whitney U test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
     From https://en.wikipedia.org/w/index.php?title=Mann%E2%80%93Whitney_U_test&oldid=786593885
 
+Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+    McGraw-Hill. ISBN 07-057348-4
+
 Wikipedia contributors. (2018, May 21). Kruskal–Wallis one-way analysis of variance.
     In Wikipedia, The Free Encyclopedia. From
     https://en.wikipedia.org/w/index.php?title=Kruskal%E2%80%93Wallis_one-way_analysis_of_variance&oldid=842351945
@@ -39,7 +43,8 @@ Wikipedia contributors. (2018, May 21). Kruskal–Wallis one-way analysis of var
 
 import numpy as np
 import numpy_indexed as npi
-from scipy.stats import rankdata, norm, chi2, t
+from scipy.stats import beta, chi2, norm, rankdata, t
+from scipy.special import comb
 
 from hypothetical._lib import build_des_mat
 from hypothetical.summary import var
@@ -772,6 +777,109 @@ class MannWhitney(object):
         return ranks
 
 
+class MedianTest(object):
+
+    def __init__(self, *args):
+        pass
+
+
+class SignTest(object):
+    r"""
+    Computes the nonparametric sign test of differences between paired observations.
+
+    Parameters
+    ----------
+
+    Attributes
+    ----------
+
+    Notes
+    -----
+
+    Examples
+    --------
+
+    References
+    ----------
+
+    """
+    def __init__(self, x, y=None, alternative='two-sided', alpha=0.95):
+        if not isinstance(x, np.ndarray):
+            self.x = np.array(x)
+        else:
+            self.x = x
+
+        if self.x.shape[1] > 2:
+            raise ValueError('x must not have more than two columns.')
+
+        if self.x.shape[1] == 1 and y is None:
+            raise ValueError('sample y must be passed if x does not contain two columns.')
+
+        if self.x.shape[1] == 2:
+            self.x = self.x[:, 0]
+            self.y = self.x[:, 1]
+        else:
+            if not isinstance(y, np.ndarray):
+                self.y = np.ndarray(y)
+            else:
+                self.y = y
+
+            if self.x.shape[0] != self.y.shape[0]:
+                raise ValueError('x and y must have the same length.')
+
+        if alternative not in ('two-sided', 'greater', 'lesser'):
+            raise ValueError("'alternative must be one of 'two-sided' (default), 'greater', or 'lesser'.")
+
+        self.alternative = alternative
+        self.n = self.x.shape[0]
+        self.alpha = alpha
+        self.sample_differences = self.x - self.y
+        self.sample_differences_median = np.median(self.sample_differences)
+        self.sample_sign_differences = np.sign(self.sample_differences)
+        self.differences_counts = {
+            'positive': np.sum(self.sample_sign_differences == 1),
+            'negative': np.sum(self.sample_sign_differences == -1),
+            'ties': np.sum(self.sample_sign_differences == 0)
+        }
+
+        self.p_value = self._p_value()
+        self.confidence_interval = self._conf_int()
+
+    def _p_value(self):
+        pos, neg = self.differences_counts['positive'], self.differences_counts['negative']
+
+        lower_prob_range = np.arange(neg + 1)
+
+        lower_prob = np.sum(comb(self.n, lower_prob_range) *
+                            0.50 ** lower_prob_range * (1 - 0.50) ** (self.n - lower_prob_range))
+
+        p_val = lower_prob
+
+        if self.alternative in ('two-sided', 'greater'):
+            upper_prob_range = np.arange(pos, self.n + 1)
+            upper_prob = np.sum(comb(self.n, upper_prob_range) *
+                                0.50 ** upper_prob_range * (1 - 0.50) ** (self.n - upper_prob_range))
+
+            if self.alternative == 'two-sided':
+                p_val = lower_prob + upper_prob
+            elif self.alternative == 'greater':
+                p_val = upper_prob
+
+        return p_val
+
+    def _conf_int(self):
+        lower_bound = beta.ppf(self.alpha / 2, self.x, self.n - self.x + 1)
+        upper_bound = beta.ppf(1 - self.alpha / 2, self.x + 1, self.n - self.x)
+
+        confidence_interval = {
+            'confidence_level': 1 - self.alpha,
+            'lower_bound': lower_bound,
+            'upper_bound': upper_bound
+        }
+
+        return confidence_interval
+
+
 class WilcoxonTest(object):
     r"""
     Performs Wilcoxon Rank Sum tests for matched pairs and independent samples.
@@ -1083,12 +1191,6 @@ class WilcoxonTest(object):
         }
 
         return test_results
-
-
-class MedianTest(object):
-
-    def __init__(self, *args):
-        pass
 
 
 def tie_correction(rank_array):

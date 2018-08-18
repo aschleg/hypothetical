@@ -195,3 +195,7 @@ def test_tie_correction():
     tie_correct = tie_correction(ranks[:, 5])
 
     np.testing.assert_almost_equal(tie_correct, tiecorrect(ranks[:, 5]))
+
+
+def test_sign_test():
+    pass
