@@ -44,7 +44,7 @@ class AnovaOneWay(object):
     ----------
     group: array-like, optional
         One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
-        membership of the dependent variable(s). Must be the same length as the observation vector.
+        membership of the dependent variable(s). Must be the same length as the observation vector(s).
     group_sample1, group_sample2, ... : array-like
         Corresponding observation vectors of the group samples. Must be the same length
         as the group parameter. If the group parameter is None, each observation vector
@@ -822,8 +822,7 @@ class ManovaOneWay(object):
             Brigham Young University: John Wiley & Sons, Inc.
 
         """
-        nn, s, m = self._intermediate_statistic_parameters['nn'], \
-                   self._intermediate_statistic_parameters['s'], \
+        nn, s, m = self._intermediate_statistic_parameters['nn'], self._intermediate_statistic_parameters['s'], \
                    self._intermediate_statistic_parameters['m']
 
         pillai = np.sum(np.diag(np.dot(np.linalg.inv(self.hypothesis_matrix + self.error_matrix),

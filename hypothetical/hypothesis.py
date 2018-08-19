@@ -30,7 +30,7 @@ Wikipedia contributors. (2018, July 14). Binomial proportion confidence interval
 
 import numpy as np
 import numpy_indexed as npi
-from scipy.stats import beta, norm, t
+from scipy.stats import beta, chi2, norm, t
 from scipy.special import comb
 
 
@@ -287,6 +287,75 @@ class BinomialTest(object):
         }
 
         return results
+
+
+class ChiSquareTest(object):
+    r"""
+    Performs the one-sample Chi-Square goodness-of-fit test.
+
+    Parameters
+    ----------
+
+    Attributes
+    ----------
+
+    Notes
+    -----
+
+    Examples
+    --------
+
+    References
+    ----------
+    Weisstein, Eric W. "Chi-Squared Test." From MathWorld--A Wolfram Web Resource.
+        http://mathworld.wolfram.com/Chi-SquaredTest.html
+
+    Wikipedia contributors. (2018, July 5). Chi-squared test. In Wikipedia, The Free Encyclopedia. Retrieved 13:56,
+        August 19, 2018, from https://en.wikipedia.org/w/index.php?title=Chi-squared_test&oldid=848986171
+
+    """
+    def __init__(self, observed, expected=None, continuity=True, degrees_freedom=1):
+
+        if not isinstance(observed, np.ndarray):
+            self.observed = np.array(observed)
+        else:
+            self.observed = observed
+
+        if expected is None:
+            obs_mean = np.mean(self.observed)
+            self.expected = np.full_like(self.observed, obs_mean)
+
+        else:
+            if not isinstance(expected, np.ndarray):
+                self.expected = np.array(expected)
+            else:
+                self.expected = expected
+
+            if self.observed.shape[0] != self.expected.shape[0]:
+                raise ValueError('number of observations must be of the same length as expected values.')
+
+        self.degrees_of_freedom = degrees_freedom
+        self.continuity_correction = continuity
+        self.n = self.observed.shape[0]
+        self.chi_square = self._chisquare_value()
+        self.p_value = self._p_value()
+        self.test_summary = {
+            'chi-square': self.chi_square,
+            'p-value': self.p_value,
+            'degrees of freedom': self.degrees_of_freedom,
+            'continuity correction': self.continuity_correction
+        }
+
+    def _chisquare_value(self):
+        x2 = np.sum((np.absolute(self.observed - self.expected) - (0.5 * self.continuity_correction)) ** 2 /
+                    self.expected)
+
+        return x2
+
+    def _p_value(self):
+        pval = chi2.cdf(self.chi_square, self.degrees_of_freedom)
+
+        return pval
 
 
 class tTest(object):
@@ -791,9 +860,3 @@ class tTest(object):
         }
 
         return sample_stats
-
-
-class zTest(object):
-
-    def __init__(self):
-        pass

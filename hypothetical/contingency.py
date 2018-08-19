@@ -34,6 +34,12 @@ from scipy.special import comb
 from scipy.stats import chi2, binom
 
 
+class ChiSquareContingency(object):
+
+    def __init__(self):
+        pass
+
+
 class FisherTest(object):
     r"""
     Performs Fisher's Exact Test for a 2x2 contingency table.

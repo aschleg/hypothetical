@@ -3,16 +3,6 @@ import pandas as pd
 
 
 def build_des_mat(*args, group=None):
-    # arg_shapes = []
-    #
-    # for a in args:
-    #     arg_shapes.append(a.shape[1])
-    #
-    # if len(set(arg_shapes)) != 1:
-    #     raise ValueError('all input arrays must be of the same dimension')
-    #
-    # if all(x == 1 for x in arg_shapes):
-
     arg_list = []
 
     for arg in args:

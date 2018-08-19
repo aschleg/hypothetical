@@ -39,6 +39,9 @@ Wikipedia contributors. (2018, May 21). Kruskal–Wallis one-way analysis of var
     In Wikipedia, The Free Encyclopedia. From
     https://en.wikipedia.org/w/index.php?title=Kruskal%E2%80%93Wallis_one-way_analysis_of_variance&oldid=842351945
 
+Wikipedia contributors. (2017, June 27). Median test. In Wikipedia, The Free Encyclopedia.
+    Retrieved 12:23, August 19, 2018, from https://en.wikipedia.org/w/index.php?title=Median_test&oldid=787822318
+
 """
 
 import numpy as np
@@ -778,9 +781,74 @@ class MannWhitney(object):
 
 
 class MedianTest(object):
+    r"""
 
+    Parameters
+    ----------
+     group: array-like, optional
+        One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
+        membership of the dependent variable(s). Must be the same length as the observation vector(s).
+    group_sample1, group_sample2, ... : array-like
+        Corresponding observation vectors of the group samples. Must be the same length
+        as the group parameter. If the group parameter is None, each observation vector
+        will be treated as a group sample vector.
+
+    Attributes
+    ----------
+
+    Notes
+    -----
+
+    Examples
+    --------
+
+    References
+    ----------
+    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+        McGraw-Hill. ISBN 07-057348-4
+
+    Wikipedia contributors. (2017, June 27). Median test. In Wikipedia, The Free Encyclopedia.
+        Retrieved 12:23, August 19, 2018, from https://en.wikipedia.org/w/index.php?title=Median_test&oldid=787822318
+
+    """
     def __init__(self, *args):
-        pass
+        self.observation_vectors = args
+        self.combined_array = np.hstack(self.observation_vectors)
+        self.sample_median = np.median(self.combined_array)
+        self.n = self.combined_array.shape[0]
+        self.degrees_of_freedom = len(*args) - 1
+
+    #     self.chi_square = self._chi_square()
+    #     self.p_value = self._p_value()
+    #     self.test_summary = {
+    #         'chi-square': self.chi_square,
+    #         'p-value': self.p_value
+    #     }
+    #
+    # def _chi_square(self):
+    #     a, c = self.x[self.x > self.sample_median], self.x[self.x < self.sample_median]
+    #     b, d = self.y[self.y > self.sample_median], self.y[self.y < self.sample_median]
+    #
+    #     x2 = (self.n * np.absolute(a * d - b * c) - self.n / 2) ** 2 / ((a + b) * (c + d) * (a + c) * (b + d))
+    #
+    #     return x2
+    #
+    # def _p_value(self):
+    #     pval = chi2.cdf(self.chi_square, self.degrees_of_freedom)
+    #
+    #     return pval
+
+    def _cont_table(self):
+        above = []
+        below = []
+
+        for vec in self.observation_vectors:
+            above.append(vec[vec > self.sample_median])
+            below.append(vec[vec < self.sample_median])
+
+        cont_table = np.vstack((above, below))
+
+        return cont_table
 
 
 class SignTest(object):
