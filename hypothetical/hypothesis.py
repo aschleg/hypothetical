@@ -121,8 +121,8 @@ class BinomialTest(object):
         if p > 1.0:
             raise ValueError('expected probability of success cannot be greater than 1.')
 
-        if alternative not in ('two-sided', 'greater', 'lesser'):
-            raise ValueError("'alternative must be one of 'two-sided' (default), 'greater', or 'lesser'.")
+        if alternative not in ('two-sided', 'greater', 'less'):
+            raise ValueError("'alternative must be one of 'two-sided' (default), 'greater', or 'less'.")
 
         self.n = n
         self.x = x
@@ -132,12 +132,31 @@ class BinomialTest(object):
         self.alternative = alternative
         self.continuity = continuity
         self.p_value = self._p_value()
-        self.z = norm.ppf(1 - self.alpha / 2)
+
+        if self.alternative == 'greater':
+            self.z = norm.ppf(self.alpha)
+        elif self.alternative == 'lesser':
+            self.z = norm.ppf(1 - self.alpha)
+        else:
+            self.z = norm.ppf(1 - self.alpha / 2)
+
         self.clopper_pearson_interval = self._clopper_pearson_interval()
         self.wilson_score_interval = self._wilson_score_interval()
         self.agresti_coull_interval = self._agresti_coull_interval()
         self.arcsine_transform_interval = self._arcsine_transform_interval()
-        self.test_summary = self._generate_test_summary()
+
+        self.test_summary = {
+            'Number of Successes': self.x,
+            'Number of Trials': self.n,
+            'p-value': self.p_value,
+            'alpha': self.alpha,
+            'intervals': {
+                'Clopper-Pearson': self.clopper_pearson_interval,
+                'Wilson Score': self.wilson_score_interval,
+                'Agresti-Coull': self.agresti_coull_interval,
+                'Arcsine Transform': self.arcsine_transform_interval
+            }
+        }
 
     def _p_value(self):
 
@@ -145,7 +164,7 @@ class BinomialTest(object):
 
         pval = np.sum(comb(self.n, successes) * self.p ** successes * self.q ** (self.n - successes))
 
-        if self.alternative == 'two-sided':
+        if self.alternative in ('two-sided', 'greater'):
             other_tail = np.arange(self.x + 1, self.n + 1)
 
             y = comb(self.n, self.x) * (self.p ** self.x) * self.q ** (self.n - self.x)
@@ -153,7 +172,11 @@ class BinomialTest(object):
             p_othertail = comb(self.n, other_tail) * self.p ** other_tail * self.q ** (self.n - other_tail)
             p_othertail = np.sum(p_othertail[p_othertail <= y])
 
-            pval += p_othertail
+            if self.alternative == 'two-sided':
+                pval += p_othertail
+                pval = 1 - pval
+            elif self.alternative == 'greater':
+                pval = p_othertail
 
         return pval
 
@@ -169,13 +192,20 @@ class BinomialTest(object):
         """
         p = self.x / self.n
 
-        lower_bound = beta.ppf(self.alpha / 2, self.x, self.n - self.x + 1)
-        upper_bound = beta.ppf(1 - self.alpha / 2, self.x + 1, self.n - self.x)
+        if self.alternative == 'less':
+            lower_bound = 0.0
+            upper_bound = beta.ppf(1 - self.alpha, self.x + 1, self.n - self.x)
+        elif self.alternative == 'greater':
+            upper_bound = 1.0
+            lower_bound = beta.ppf(self.alpha, self.x, self.n - self.x + 1)
+        else:
+            lower_bound = beta.ppf(self.alpha / 2, self.x, self.n - self.x + 1)
+            upper_bound = beta.ppf(1 - self.alpha / 2, self.x + 1, self.n - self.x)
 
         clopper_pearson_interval = {
             'probability of success': p,
-            'lower_bound': lower_bound,
-            'upper_bound': upper_bound
+            'conf level': 1 - self.alpha,
+            'interval': (lower_bound, upper_bound)
         }
 
         return clopper_pearson_interval
@@ -193,13 +223,19 @@ class BinomialTest(object):
         p = (self.p + (self.z ** 2 / (2. * self.n))) / (1. + (self.z ** 2. / self.n))
 
         if self.continuity:
-            lower = (2. * self.n * self.p + self.z ** 2. - (self.z * np.sqrt(
-                self.z ** 2. - (1. / self.n) + 4. * self.n * self.p * self.q + (4. * self.p - 2.) + 1.))) / \
-                    (2. * (self.n + self.z ** 2.))
+            if self.alternative == 'less':
+                lower = 0.0
+            else:
+                lower = (2. * self.n * self.p + self.z ** 2. - (self.z * np.sqrt(
+                    self.z ** 2. - (1. / self.n) + 4. * self.n * self.p * self.q + (4. * self.p - 2.) + 1.))) / \
+                        (2. * (self.n + self.z ** 2.))
 
-            upper = (2. * self.n * self.p + self.z ** 2. + (self.z * np.sqrt(
-                self.z ** 2. - (1. / self.n) + 4. * self.n * self.p * self.q + (4. * self.p - 2.) + 1))) / (2. * (
-                                      self.n + self.z ** 2.))
+            if self.alternative == 'greater':
+                upper = 1.0
+            else:
+                upper = (2. * self.n * self.p + self.z ** 2. + (self.z * np.sqrt(
+                    self.z ** 2. - (1. / self.n) + 4. * self.n * self.p * self.q + (4. * self.p - 2.) + 1))) / (2. * (
+                                          self.n + self.z ** 2.))
 
             upper_bound, lower_bound = np.minimum(1.0, upper), np.maximum(0.0, lower)
 
@@ -207,12 +243,20 @@ class BinomialTest(object):
             bound = (self.z / (1. + self.z ** 2. / self.n)) * \
                     np.sqrt(((self.p * self.q) / self.n) + (self.z ** 2. / (4. * self.n ** 2.)))
 
-            upper_bound, lower_bound = p + bound, p - bound
+            if self.alternative == 'less':
+                lower_bound = 0.0
+            else:
+                lower_bound = p - bound
+
+            if self.alternative == 'greater':
+                upper_bound = 1.0
+            else:
+                upper_bound = p + bound
 
         wilson_interval = {
             'probability of success': p,
-            'lower_bound': lower_bound,
-            'upper_bound': upper_bound
+            'conf level': 1 - self.alpha,
+            'interval': (lower_bound, upper_bound)
         }
 
         return wilson_interval
@@ -236,12 +280,20 @@ class BinomialTest(object):
 
         bound = self.z * np.sqrt((p / nbar) * (1 - p))
 
-        upper_bound, lower_bound = p + bound, p - bound
+        if self.alternative == 'less':
+            lower_bound = 0.0
+        else:
+            lower_bound = p - bound
+
+        if self.alternative == 'greater':
+            upper_bound = 1.0
+        else:
+            upper_bound = p + bound
 
         agresti_coull_interval = {
             'probability of success': p,
-            'lower_bound': lower_bound,
-            'upper_bound': upper_bound
+            'conf level': 1 - self.alpha,
+            'interval': (lower_bound, upper_bound)
         }
 
         return agresti_coull_interval
@@ -260,33 +312,24 @@ class BinomialTest(object):
 
         p_var = (p * (1 - p)) / self.n
 
-        lower_bound = np.sin(np.arcsin(np.sqrt(p)) - (self.z / (2. * np.sqrt(self.n)))) ** 2
-        upper_bound = np.sin(np.arcsin(np.sqrt(p)) + (self.z / (2. * np.sqrt(self.n)))) ** 2
+        if self.alternative == 'less':
+            lower_bound = 0.0
+        else:
+            lower_bound = np.sin(np.arcsin(np.sqrt(p)) - (self.z / (2. * np.sqrt(self.n)))) ** 2
+
+        if self.alternative == 'greater':
+            upper_bound = 1.0
+        else:
+            upper_bound = np.sin(np.arcsin(np.sqrt(p)) + (self.z / (2. * np.sqrt(self.n)))) ** 2
 
         arcsine_transform_interval = {
             'probability of success': p,
             'probability variance': p_var,
-            'lower_bound': lower_bound,
-            'upper_bound': upper_bound
+            'conf level': 1 - self.alpha,
+            'interval': (lower_bound, upper_bound)
         }
 
         return arcsine_transform_interval
-
-    def _generate_test_summary(self):
-        results = {
-            'Number of Successes': self.x,
-            'Number of Trials': self.n,
-            'p-value': self.p_value,
-            'alpha': self.alpha,
-            'intervals': {
-                'Clopper-Pearson': self.clopper_pearson_interval,
-                'Wilson Score': self.wilson_score_interval,
-                'Agresti-Coull': self.agresti_coull_interval,
-                'Arcsine Transform': self.arcsine_transform_interval
-            }
-        }
-
-        return results
 
 
 class ChiSquareTest(object):
@@ -295,9 +338,21 @@ class ChiSquareTest(object):
 
     Parameters
     ----------
+    observed : array-like
+    expected : array-like, optional
+    continuity : bool, optional
+    degrees_freedom : int, optional
 
     Attributes
     ----------
+    observed : array-like
+    expected : array-like
+    degrees_of_freedom : int
+    continuity_correction : bool
+    n : int
+    chi_square : float
+    p_value : float
+    test_summary : dict
 
     Notes
     -----
