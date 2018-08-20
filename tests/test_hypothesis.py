@@ -215,7 +215,14 @@ class TestBinomial(object):
 
         assert binomial_test.agresti_coull_interval == agresti_coull_interval
 
-        assert binomial_test.arcsine_transform_interval == arcsine_interval
+        np.testing.assert_almost_equal(binomial_test.arcsine_transform_interval['conf level'],
+                                       arcsine_interval['conf level'])
+        np.testing.assert_almost_equal(binomial_test.arcsine_transform_interval['probability of success'],
+                                       arcsine_interval['probability of success'])
+        np.testing.assert_almost_equal(binomial_test.arcsine_transform_interval['probability variance'],
+                                       arcsine_interval['probability variance'])
+        np.testing.assert_array_almost_equal(binomial_test.arcsine_transform_interval['interval'],
+                                             arcsine_interval['interval'])
 
         assert binomial_test.clopper_pearson_interval == clopper_pearson_interval
 
@@ -267,7 +274,14 @@ class TestBinomial(object):
 
         assert binomial_test.agresti_coull_interval == agresti_coull_interval
 
-        assert binomial_test.arcsine_transform_interval == arcsine_interval
+        np.testing.assert_almost_equal(binomial_test.arcsine_transform_interval['conf level'],
+                                       arcsine_interval['conf level'])
+        np.testing.assert_almost_equal(binomial_test.arcsine_transform_interval['probability of success'],
+                                       arcsine_interval['probability of success'])
+        np.testing.assert_almost_equal(binomial_test.arcsine_transform_interval['probability variance'],
+                                       arcsine_interval['probability variance'])
+        np.testing.assert_array_almost_equal(binomial_test.arcsine_transform_interval['interval'],
+                                             arcsine_interval['interval'])
 
         assert binomial_test.clopper_pearson_interval == clopper_pearson_interval
 
@@ -320,7 +334,14 @@ class TestBinomial(object):
 
         assert binomial_test.agresti_coull_interval == agresti_coull_interval
 
-        assert binomial_test.arcsine_transform_interval == arcsine_interval
+        np.testing.assert_almost_equal(binomial_test.arcsine_transform_interval['conf level'],
+                                       arcsine_interval['conf level'])
+        np.testing.assert_almost_equal(binomial_test.arcsine_transform_interval['probability of success'],
+                                       arcsine_interval['probability of success'])
+        np.testing.assert_almost_equal(binomial_test.arcsine_transform_interval['probability variance'],
+                                       arcsine_interval['probability variance'])
+        np.testing.assert_array_almost_equal(binomial_test.arcsine_transform_interval['interval'],
+                                             arcsine_interval['interval'])
 
         assert binomial_test.clopper_pearson_interval == clopper_pearson_interval
 
