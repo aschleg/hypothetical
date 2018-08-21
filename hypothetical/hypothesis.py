@@ -97,11 +97,129 @@ class BinomialTest(object):
 
     Notes
     -----
+    The Binomial test is a one-sample test applicable in the case of populations consisting of two classes or groups,
+    such as male/female, cat/dog, etc. The proportion of the first group is denoted :math:`p`, while the second group
+    is often denoted :math:`q`, which we know to be :math:`1 - p`. The null hypothesis of the test is that the
+    proportion of the population is indeed :math:`p` and gives the researcher more information to determine if the
+    random sample that was drawn could have come from a population having a proportion of :math:`p`.
 
+    As the name of the test implies, the binomial distribution is the sampling distribution the of the proportions
+    that could be observed when drawing random samples from a population. Therefore, the probability of obtaining
+    :math:`x` objects in one category and :math:`n - x` in the other category out of a total :math:`n` trials is
+    given by the binomial distribution probability mass function:
+
+    .. math::
+
+        p(x) = \binom{n}{x} P^x (1 - P)^{n - x}
+
+    :math:`(1 - P)` may be substituted for :math:`Q`. The binomial coefficient :math:`\binom{n}{x}` is defined as:
+
+    .. math::
+
+        \binom{n}{x} = \frac{n!}{k!(n - k)!}
+
+    The p-value of the test is calculated by the binomial distribution's cumulative distribution function, defined as:
+
+    .. math::
+
+        Pr(X \leq x) = \sum^{[k]}_{i=0} \binom{n}{i} P^i (1 - P)^{n - i}
+
+    There are several confidence intervals that can be computed when performing a binomial test. The most common is
+    known as the Clopper-Pearson interval, which is an exact interval as it is based on the binomial distribution. The
+    Clopper-Pearson interval can be defined several ways, one of which uses the relationship between the binomial
+    distribution nad the beta distribution.
+
+    .. math::
+
+        B\left(\frac{\alpha}{2};x,n-x+1\right) < \theta < B\left(1 - \frac{\alpha}{2};x + 1, n - x \right)
+
+    The Agresti-Coull interval utilizes the standard normal distribution. :math:`z` is given as
+    :math:`1 - \frac{\alpha}{2}`. The interval calculation proceeds as:
+
+    With :math:`x` successes out of a total :math:`n` trials, we define :math:`\tilde{n}` as:
+
+    .. math::
+
+        `\tilde{n} = n + z^2
+
+    and,
+
+    .. math::
+
+        \tilde{p} = \frac{1}{\tilde{n}} \left(x + \frac{z^2}{2} \right)
+
+    The confidence interval for the probability of success, :math:`p`, is then given as:
+
+    .. math::
+
+        \tilde{p} \pm z \sqrt{\frac{\tilde{p}}{\tilde{n}} (1 - \tilde{p})}
+
+    The arcsine transformation confidence interval is defined as:
+
+    .. math::
+
+        sin^2 \left(\arcsin{\sqrt{p}} - \frac{z}{2\sqrt{n}} \right) < \theta < sin^2 \left(arcsin{\sqrt{p}} +
+        \frac{z}{2\sqrt{n}} \right)
+
+    Where :math:`z` is the quantile :math:`1 - \frac{\alpha}{2}}` of the standard normal distribution, as before.
+
+    Lastly, the Wilson score interval can be computed with or without continuity correction. Without correction, the
+    Wilson score interval success proability :math:`p` is defined as:
+
+    .. math::
+
+        \frac{\hat{p} + \frac{z^2}{2n}}{1 + \frac{z^2}{n} \pm \frac{z}{1 + \frac{z^2}{n}}
+        \sqrt{\frac{\hat{p} (1 - \hat{p}}{n}}{1 + \frac{z^2}{n}}}
+
+    The Wilson score interval with continuity correction is defined as:
+
+    .. math::
+
+        w^- = max \Bigg\{0, \frac{2n\hat{P} + z^2 -
+        \Big[z \sqrt{z^2 - \frac{1}{n} + 4n\hat{p}(1 - \hat{p}) + (4\hat{p} - 2) + 1}\Big]}{2(n + z^2)}\Bigg\}
+
+        w^+ = min \Bigg\{1, \frac{2n\hat{P} + z^2 +
+        \Big[z \sqrt{z^2 - \frac{1}{n} + 4n\hat{p}(1 - \hat{p}) - (4\hat{p} - 2) + 1}\Big]}{2(n + z^2)}\Bigg\}
+
+    Where :math:`w^-` and :math:`w^+` are the lower and upper bounds of the Wilson score interval corrected for
+    contiunity.
 
     Examples
     --------
-
+    >>> x = 682
+    >>> n = 925
+    >>> bt = BinomialTest(n, x)
+    >>> bt.test_summary
+    {'Number of Successes': 682,
+     'Number of Trials': 925,
+     'alpha': 0.05,
+     'intervals': {'Agresti-Coull': {'conf level': 0.95,
+       'interval': (0.7079790581519885, 0.7646527304391209),
+       'probability of success': 0.7363158942955547},
+      'Arcsine Transform': {'conf level': 0.95,
+       'interval': (0.708462749220724, 0.7651467076803447),
+       'probability of success': 0.7372972972972973,
+       'probability variance': 0.00020939458669772768},
+      'Clopper-Pearson': {'conf level': 0.95,
+       'interval': (0.7076682640790369, 0.7654065582415227),
+       'probability of success': 0.7372972972972973},
+      'Wilson Score': {'conf level': 0.95,
+       'interval': (0.46782780413153596, 0.5321721958684641),
+       'probability of success': 0.5}},
+     'p-value': 2.4913404672588513e-13}
+     >>> bt.p_value
+     2.4913404672588513e-13
+     >>> bt.clopper_pearson_interval
+    {'conf level': 0.95,
+     'interval': (0.7076682640790369, 0.7654065582415227),
+     'probability of success': 0.7372972972972973}
+     >>> bt2 = BinomialTest(n, x, alternative='greater')
+     >>> bt2.p_value
+    1.2569330927920093e-49
+    >>> bt2.clopper_pearson_interval
+    {'conf level': 0.95,
+     'interval': (0.7124129244365457, 1.0),
+     'probability of success': 0.7372972972972973}
 
     References
     ----------
@@ -135,7 +253,7 @@ class BinomialTest(object):
 
         if self.alternative == 'greater':
             self.z = norm.ppf(self.alpha)
-        elif self.alternative == 'lesser':
+        elif self.alternative == 'less':
             self.z = norm.ppf(1 - self.alpha)
         else:
             self.z = norm.ppf(1 - self.alpha / 2)
@@ -159,7 +277,15 @@ class BinomialTest(object):
         }
 
     def _p_value(self):
+        r"""
+        Calculates the p-value of the binomial test.
 
+        Returns
+        -------
+        pval : float
+            The computed p-value.
+
+        """
         successes = np.arange(self.x + 1)
 
         pval = np.sum(comb(self.n, successes) * self.p ** successes * self.q ** (self.n - successes))
