@@ -10,6 +10,7 @@ Hypothesis Testing
     :toctree: generated/
 
     BinomialTest
+    ChiSquareTest
     tTest
 
 References
@@ -308,6 +309,7 @@ class BinomialTest(object):
 
     def _clopper_pearson_interval(self):
         r"""
+        Computes the Clopper-Pearson 'exact' confidence interval.
 
         References
         ----------
@@ -338,6 +340,7 @@ class BinomialTest(object):
 
     def _wilson_score_interval(self):
         r"""
+        Computes the Wilson score confidence interval.
 
         References
         ----------
@@ -389,6 +392,8 @@ class BinomialTest(object):
 
     def _agresti_coull_interval(self):
         r"""
+        Calculates the Agresti-Coull confidence interval as defined in Agresti and Coull's paper
+        "Approximate is Better than 'Exact' for Interval Estimation of Binomial Proportions."
 
         References
         ----------
@@ -426,6 +431,7 @@ class BinomialTest(object):
 
     def _arcsine_transform_interval(self):
         r"""
+        Calculates the arcsine transformation interval.
 
         References
         ----------
@@ -465,26 +471,61 @@ class ChiSquareTest(object):
     Parameters
     ----------
     observed : array-like
+        One-dimensional array of observed frequencies.
     expected : array-like, optional
+        One-dimensional array of expected frequencies. If not given, the expected frequencies are computed
+        as the mean of the observed frequencies (each category is equally likely to occur).
     continuity : bool, optional
+        Applies Yates's continuity correction for approximation error. Defaults to False as the correction can
+        tend to overcorrect and result in a type II error.
     degrees_freedom : int, optional
+        Degrees of freedom. The p-value in the chi-square test is computed with degrees of freedom is :math:`k - 1`,
+        where :math:`k` is the number of observed frequencies.
 
     Attributes
     ----------
     observed : array-like
+        One-dimensional array of observed frequencies.
     expected : array-like
+        One-dimensional array of expected frequencies.
     degrees_of_freedom : int
+        Total degrees of freedom used in the computation of the p-value.
     continuity_correction : bool
+        If True, Yates's continuity correction is applied when performing the chi-square test
     n : int
+        Total number of observed frequencies.
     chi_square : float
+        The computed test statistic, the chi-square, :math:`\chi^2` value.
     p_value : float
+        The calculated p-value of the test given the chi-square statistic and degrees of freedom.
     test_summary : dict
+        Dictionary containing a collection of the resulting test statistics and other information.
+
+    Raises
+    ------
+    ValueError
+        If the :code:`expected` parameter is passed but is not of the same length as the required :code:`observed`
+        parameter, a :code:`ValueError` is raised.
 
     Notes
     -----
 
     Examples
     --------
+    >>> observed = [29, 19, 18, 25, 17, 10, 15, 11]
+    >>> expected = [18, 18, 18, 18, 18, 18, 18, 18]
+    >>> ch = ChiSquareTest(observed, expected)
+    >>> ch.test_summary
+    {'chi-square': 16.333333333333332,
+     'continuity correction': False,
+     'degrees of freedom': 7,
+     'p-value': 0.022239477462390588}
+    >>> ch = ChiSquareTest(observed)
+    >>> ch.test_summary
+    {'chi-square': 16.333333333333332,
+     'continuity correction': False,
+     'degrees of freedom': 7,
+     'p-value': 0.022239477462390588}
 
     References
     ----------
@@ -495,7 +536,7 @@ class ChiSquareTest(object):
         August 19, 2018, from https://en.wikipedia.org/w/index.php?title=Chi-squared_test&oldid=848986171
 
     """
-    def __init__(self, observed, expected=None, continuity=True, degrees_freedom=1):
+    def __init__(self, observed, expected=None, continuity=False, degrees_freedom=0):
 
         if not isinstance(observed, np.ndarray):
             self.observed = np.array(observed)
@@ -515,7 +556,7 @@ class ChiSquareTest(object):
             if self.observed.shape[0] != self.expected.shape[0]:
                 raise ValueError('number of observations must be of the same length as expected values.')
 
-        self.degrees_of_freedom = degrees_freedom
+        self.degrees_of_freedom = self.observed.shape[0] - 1 - degrees_freedom
         self.continuity_correction = continuity
         self.n = self.observed.shape[0]
         self.chi_square = self._chisquare_value()
@@ -534,7 +575,7 @@ class ChiSquareTest(object):
         return x2
 
     def _p_value(self):
-        pval = chi2.cdf(self.chi_square, self.degrees_of_freedom)
+        pval = chi2.sf(self.chi_square, self.degrees_of_freedom)
 
         return pval
 

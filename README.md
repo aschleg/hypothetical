@@ -37,6 +37,7 @@ Python library for conducting hypothesis and other group comparison tests.
 ### Hypothesis Testing
 
 * Binomial Test
+* Chi-square one-sample goodness-of-fit
 * t-test
   - paired, one and two sample testing
 

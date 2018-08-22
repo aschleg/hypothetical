@@ -17,6 +17,7 @@ Version 0.2.0
         - W-Statistic Critical Values
     - Hypothesis Tests:
         - Binomial Test
+        - Chi-square one-sample goodness-of-fit
     - Nonparametric Tests:
         - Kruskal-Wallis
         - Mann-Whitney U-test
