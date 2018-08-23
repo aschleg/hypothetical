@@ -23,9 +23,19 @@ Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
 Student's t-test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
     From https://en.wikipedia.org/w/index.php?title=Student%27s_t-test&oldid=786562367
 
+Weisstein, Eric W. "Chi-Squared Test." From MathWorld--A Wolfram Web Resource.
+    http://mathworld.wolfram.com/Chi-SquaredTest.html
+
 Wikipedia contributors. (2018, July 14). Binomial proportion confidence interval.
     In Wikipedia, The Free Encyclopedia. Retrieved 15:03, August 10, 2018,
     from https://en.wikipedia.org/w/index.php?title=Binomial_proportion_confidence_interval&oldid=850256725
+
+Wikipedia contributors. (2018, July 5). Chi-squared test. In Wikipedia, The Free Encyclopedia. Retrieved 13:56,
+    August 19, 2018, from https://en.wikipedia.org/w/index.php?title=Chi-squared_test&oldid=848986171
+
+Wikipedia contributors. (2018, April 12). Pearson's chi-squared test. In Wikipedia, The Free Encyclopedia.
+    Retrieved 12:55, August 23, 2018,
+    from https://en.wikipedia.org/w/index.php?title=Pearson%27s_chi-squared_test&oldid=836064929
 
 """
 
@@ -292,7 +302,7 @@ class BinomialTest(object):
         pval = np.sum(comb(self.n, successes) * self.p ** successes * self.q ** (self.n - successes))
 
         if self.alternative in ('two-sided', 'greater'):
-            other_tail = np.arange(self.x + 1, self.n + 1)
+            other_tail = np.arange(self.x, self.n + 1)
 
             y = comb(self.n, self.x) * (self.p ** self.x) * self.q ** (self.n - self.x)
 
@@ -300,8 +310,8 @@ class BinomialTest(object):
             p_othertail = np.sum(p_othertail[p_othertail <= y])
 
             if self.alternative == 'two-sided':
-                pval += p_othertail
-                pval = 1 - pval
+                pval = p_othertail * 2
+                #pval = 1 - pval
             elif self.alternative == 'greater':
                 pval = p_othertail
 
@@ -509,6 +519,25 @@ class ChiSquareTest(object):
 
     Notes
     -----
+    The chi-squared test, often called the :math:`\chi^2` test, is also known as Pearson's chi-squared test. The
+    chi-square test is a one-sample goodnes-of-fit test that evaluates whether a significant difference exists between
+    an observed number of frequencies from two or more groups and an expected frequency based on a null hypothesis. A
+    simple example of a chi-square test is testing wheher a six-sided die is 'fair', in that all outcomes are equally
+    likely to occur.
+
+    The chi-square test statistic, :math:`\chi^2` is defined as:
+
+    .. math::
+
+        \chi^2 = \sum^k_{i=1} \frac{O_i - E_i)^2}{E_i}
+
+    Where :math:`O_i` is the observed number of frequencies in the :math:`i`th category, :math:`E_i` is the expected
+    number of frequencies in the respective :math:`i`th group, and :math:`k` is the total number of groups or
+    categories, or 'cells'.
+
+    The p-value can then be found by comparing the calculated :math:`\chi^2` statistic to a chi-square distribution.
+    The degrees of freedom is equal to :math:`k - 1` minus any additional reduction in the degrees of freedom, if
+    specified.
 
     Examples
     --------
@@ -529,11 +558,18 @@ class ChiSquareTest(object):
 
     References
     ----------
+    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+        McGraw-Hill. ISBN 07-057348-4
+
     Weisstein, Eric W. "Chi-Squared Test." From MathWorld--A Wolfram Web Resource.
         http://mathworld.wolfram.com/Chi-SquaredTest.html
 
     Wikipedia contributors. (2018, July 5). Chi-squared test. In Wikipedia, The Free Encyclopedia. Retrieved 13:56,
         August 19, 2018, from https://en.wikipedia.org/w/index.php?title=Chi-squared_test&oldid=848986171
+
+    Wikipedia contributors. (2018, April 12). Pearson's chi-squared test. In Wikipedia, The Free Encyclopedia.
+        Retrieved 12:55, August 23, 2018,
+        from https://en.wikipedia.org/w/index.php?title=Pearson%27s_chi-squared_test&oldid=836064929
 
     """
     def __init__(self, observed, expected=None, continuity=False, degrees_freedom=0):

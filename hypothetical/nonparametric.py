@@ -51,6 +51,7 @@ from scipy.special import comb
 
 from hypothetical._lib import build_des_mat
 from hypothetical.summary import var
+from hypothetical.hypothesis import BinomialTest
 
 
 class KruskalWallis(object):
@@ -782,10 +783,11 @@ class MannWhitney(object):
 
 class MedianTest(object):
     r"""
+    Performs Mood's Median test for a 2x2 contingency table.
 
     Parameters
     ----------
-     group: array-like, optional
+    group: array-like, optional
         One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
         membership of the dependent variable(s). Must be the same length as the observation vector(s).
     group_sample1, group_sample2, ... : array-like
@@ -811,12 +813,19 @@ class MedianTest(object):
         Retrieved 12:23, August 19, 2018, from https://en.wikipedia.org/w/index.php?title=Median_test&oldid=787822318
 
     """
-    def __init__(self, *args):
+    def __init__(self, *args, ties='below', continuity=False):
         self.observation_vectors = args
         self.combined_array = np.hstack(self.observation_vectors)
         self.sample_median = np.median(self.combined_array)
+
         self.n = self.combined_array.shape[0]
         self.degrees_of_freedom = len(*args) - 1
+
+        if ties not in ('below', 'above', 'ignore'):
+            raise ValueError("ties parameter must be one of 'below' (default), 'above', or 'ignore'")
+
+        self.ties = ties
+        self.continuity = continuity
 
     #     self.chi_square = self._chi_square()
     #     self.p_value = self._p_value()
@@ -857,9 +866,23 @@ class SignTest(object):
 
     Parameters
     ----------
+    x : array-like
+    y : array-like, optional
+    alternative : str, {'two-sided', 'greater', 'less'}
+    alpha : float
 
     Attributes
     ----------
+    x : array-like
+    y : array-like
+    alternative : str, {'two-sided', 'greater', 'less'}
+    alpha : float
+    n : int
+    sample_differences : array-like
+    sample_differences_median : float
+    difference_counts : dict
+    p_value : float
+    test_summary : dict
 
     Notes
     -----
@@ -869,34 +892,39 @@ class SignTest(object):
 
     References
     ----------
+    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+        McGraw-Hill. ISBN 07-057348-4
+
+    Wikipedia contributors. (2018, July 25). Sign test. In Wikipedia, The Free Encyclopedia.
+        Retrieved 14:52, August 23, 2018, from https://en.wikipedia.org/w/index.php?title=Sign_test&oldid=851943717
 
     """
-    def __init__(self, x, y=None, alternative='two-sided', alpha=0.95):
+    def __init__(self, x, y=None, alternative='two-sided', alpha=0.05):
         if not isinstance(x, np.ndarray):
             self.x = np.array(x)
         else:
             self.x = x
 
-        if self.x.shape[1] > 2:
+        if self.x.ndim >= 2:
             raise ValueError('x must not have more than two columns.')
 
-        if self.x.shape[1] == 1 and y is None:
+        if self.x.ndim == 1 and y is None:
             raise ValueError('sample y must be passed if x does not contain two columns.')
 
-        if self.x.shape[1] == 2:
+        if self.x.ndim == 2:
             self.x = self.x[:, 0]
             self.y = self.x[:, 1]
         else:
             if not isinstance(y, np.ndarray):
-                self.y = np.ndarray(y)
+                self.y = np.array(y)
             else:
                 self.y = y
 
             if self.x.shape[0] != self.y.shape[0]:
                 raise ValueError('x and y must have the same length.')
 
-        if alternative not in ('two-sided', 'greater', 'lesser'):
-            raise ValueError("'alternative must be one of 'two-sided' (default), 'greater', or 'lesser'.")
+        if alternative not in ('two-sided', 'greater', 'less'):
+            raise ValueError("'alternative must be one of 'two-sided' (default), 'greater', or 'less'.")
 
         self.alternative = alternative
         self.n = self.x.shape[0]
@@ -910,42 +938,22 @@ class SignTest(object):
             'ties': np.sum(self.sample_sign_differences == 0)
         }
 
-        self.p_value = self._p_value()
-        self.confidence_interval = self._conf_int()
+        self.p_value = self._sign_test()
 
-    def _p_value(self):
-        pos, neg = self.differences_counts['positive'], self.differences_counts['negative']
-
-        lower_prob_range = np.arange(neg + 1)
-
-        lower_prob = np.sum(comb(self.n, lower_prob_range) *
-                            0.50 ** lower_prob_range * (1 - 0.50) ** (self.n - lower_prob_range))
-
-        p_val = lower_prob
-
-        if self.alternative in ('two-sided', 'greater'):
-            upper_prob_range = np.arange(pos, self.n + 1)
-            upper_prob = np.sum(comb(self.n, upper_prob_range) *
-                                0.50 ** upper_prob_range * (1 - 0.50) ** (self.n - upper_prob_range))
-
-            if self.alternative == 'two-sided':
-                p_val = lower_prob + upper_prob
-            elif self.alternative == 'greater':
-                p_val = upper_prob
-
-        return p_val
-
-    def _conf_int(self):
-        lower_bound = beta.ppf(self.alpha / 2, self.x, self.n - self.x + 1)
-        upper_bound = beta.ppf(1 - self.alpha / 2, self.x + 1, self.n - self.x)
-
-        confidence_interval = {
-            'confidence_level': 1 - self.alpha,
-            'lower_bound': lower_bound,
-            'upper_bound': upper_bound
+        self.test_summary = {
+            'p-value': self.p_value,
+            'median difference': self.sample_differences_median,
+            'differences count': self.differences_counts
         }
 
-        return confidence_interval
+    def _sign_test(self):
+        pos, neg = self.differences_counts['positive'], self.differences_counts['negative']
+
+        n = pos + neg
+
+        res = BinomialTest(n=int(n), x=int(pos), alternative=self.alternative)
+
+        return res.p_value
 
 
 class WilcoxonTest(object):

@@ -1,6 +1,6 @@
 import pytest
 
-from hypothetical.nonparametric import MannWhitney, WilcoxonTest, tie_correction, KruskalWallis
+from hypothetical.nonparametric import KruskalWallis, MannWhitney, SignTest, tie_correction, WilcoxonTest
 import pandas as pd
 import numpy as np
 import os
@@ -197,5 +197,12 @@ def test_tie_correction():
     np.testing.assert_almost_equal(tie_correct, tiecorrect(ranks[:, 5]))
 
 
-def test_sign_test():
-    pass
+class TestSignTest(object):
+    f = [4, 4, 5, 5, 3, 2, 5, 3, 1, 5, 5, 5, 4, 5, 5, 5, 5]
+    m = [2, 3, 3, 3, 3, 3, 3, 3, 2, 3, 2, 2, 5, 2, 5, 3, 1]
+
+    def test_sign_test(self):
+        pass
+
+    def test_sign_test_exceptions(self):
+        pass

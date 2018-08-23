@@ -20,7 +20,8 @@ Version 0.2.0
         - Chi-square one-sample goodness-of-fit
     - Nonparametric Tests:
         - Kruskal-Wallis
-        - Mann-Whitney U-test
+        - Mann-Whitney U-test for two independent samples
+        - Sign test for two related samples
         - Wilcoxon Rank Sum Test
     - Post-Hoc Analysis:
         - Games-Howell Test
@@ -28,8 +29,8 @@ Version 0.2.0
     - Summary Statistics:
         - Pearson correlation
         - Spearman correlation
-        - Covariance (multiple algorithms available)
-        - Variance (multiple algorithms available)
+        - Covariance (several algorithms available)
+        - Variance (several algorithms available)
         - Standard Deviation
         - Variance Condition
 
