@@ -240,7 +240,7 @@ class TestChiSquare(object):
         assert chi_test.continuity_correction
 
     def test_chisquare_no_exp(self):
-        chi_test = ChiSquareTest(self.obs, self.exp)
+        chi_test = ChiSquareTest(self.obs)
         sci_chi_test = chisquare(self.obs, self.exp)
 
         np.testing.assert_almost_equal(chi_test.chi_square, sci_chi_test.statistic)
