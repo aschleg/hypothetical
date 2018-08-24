@@ -11,6 +11,14 @@ Contingency Tables
 
     McNemarTest
 
+Other Functions
+---------------
+
+.. autosummary::
+    :toctree: generated/
+
+    table_margin
+
 References
 ----------
 Fagerland, M. W., Lydersen, S., & Laake, P. (2013).
@@ -35,9 +43,40 @@ from scipy.stats import chi2, binom
 
 
 class ChiSquareContingency(object):
+    r"""
 
-    def __init__(self):
-        pass
+    References
+    ----------
+    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+        McGraw-Hill. ISBN 07-057348-4
+
+    """
+    def __init__(self, observed, expected=None, continuity=True):
+        if not isinstance(observed, np.ndarray):
+            self.observed = np.array(observed)
+        else:
+            self.observed = observed
+
+        if expected is not None:
+            if not isinstance(expected, np.ndarray):
+                self.expected = np.array(expected)
+            else:
+                self.expected = expected
+
+            if self.observed.shape != self.expected.shape:
+                raise ValueError('observed and expected frequency contingency tables must have the same shape.')
+        else:
+            self.expected = None
+
+        self.continuity = continuity
+
+    def _chi_square(self):
+        if self.expected is not None:
+            cont_table = self.observed - self.expected
+        else:
+            cont_table = self.observed
+
+        #chi_val = np.sum(cont_table ** 2 / )
 
 
 class FisherTest(object):
@@ -236,3 +275,31 @@ class McNemarTest(object):
         }
 
         return results
+
+
+def table_margin(table):
+    r"""
+    Computes the marginal sums of a one or two-dimensional array.
+
+    """
+    if not isinstance(table, np.ndarray):
+        table = np.array(table).copy()
+
+    if table.ndim > 2:
+        raise ValueError('table must be a one or two-dimensional array.')
+
+    table_dim = table.ndim
+
+    c = np.apply_over_axes(np.sum, table, 0)
+
+    if table_dim == 2:
+        r = np.apply_over_axes(np.sum, table, 1)
+    else:
+        r = table
+
+    return r, c
+
+
+def expected_frequencies(table):
+    if not isinstance(table, np.ndarray):
+        table = np.array(table).copy()

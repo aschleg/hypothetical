@@ -231,6 +231,16 @@ class TestChiSquare(object):
         assert not chi_test.continuity_correction
         assert chi_test.degrees_of_freedom == len(self.obs) - 1
 
+    def test_chisquaretest_arr(self):
+        chi_test = ChiSquareTest(np.array(self.obs), np.array(self.exp))
+        sci_chi_test = chisquare(self.obs, self.exp)
+
+        np.testing.assert_almost_equal(chi_test.chi_square, sci_chi_test.statistic)
+        np.testing.assert_almost_equal(chi_test.p_value, sci_chi_test.pvalue)
+
+        assert not chi_test.continuity_correction
+        assert chi_test.degrees_of_freedom == len(self.obs) - 1
+
     def test_chisquaretest_continuity(self):
         chi_test = ChiSquareTest(self.obs, self.exp, continuity=True)
 

@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 import pandas as pd
 from hypothetical.summary import covar, pearson, spearman, var, std_dev, variance_condition
+from hypothetical._lib import build_summary_matrix
 from scipy.stats import spearmanr
 from numpy.core.multiarray import array
 

@@ -66,6 +66,8 @@ import numpy as np
 import pandas as pd
 from scipy.stats import rankdata
 
+from hypothetical._lib import build_summary_matrix
+
 
 def covar(x, y=None, method=None):
     r"""
@@ -170,7 +172,7 @@ def covar(x, y=None, method=None):
         http://mathworld.wolfram.com/CovarianceMatrix.html
 
     """
-    x_mat = _build_matrix(x, y)
+    x_mat = build_summary_matrix(x, y)
 
     n, m = x_mat.shape
     cov = np.empty([m, m])
@@ -269,7 +271,7 @@ def pearson(x, y=None):
         Brigham Young University: John Wiley & Sons, Inc.
 
     """
-    matrix = _build_matrix(x, y)
+    matrix = build_summary_matrix(x, y)
 
     pearson_corr = np.empty((matrix.shape[1], matrix.shape[1]))
 
@@ -348,7 +350,7 @@ def spearman(x, y=None):
         From https://en.wikipedia.org/w/index.php?title=Spearman%27s_rank_correlation_coefficient&oldid=787350680
 
     """
-    matrix = _build_matrix(x, y)
+    matrix = build_summary_matrix(x, y)
 
     rank_matrix = matrix.copy()
 
@@ -650,20 +652,3 @@ def variance_condition(x):
         raise ValueError('array must be 1D or 2D')
 
     return kap_cond
-
-
-def _build_matrix(x, y=None):
-    if isinstance(x, pd.DataFrame):
-        x = x.values
-    elif not isinstance(x, np.ndarray):
-        x = np.array(x)
-
-    if y is not None:
-        if isinstance(y, pd.DataFrame):
-            y = y.values
-        elif not isinstance(y, np.ndarray):
-            y = np.array(y)
-
-        x = np.column_stack([x, y])
-
-    return x

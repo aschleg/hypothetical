@@ -82,3 +82,8 @@ def test_build_design_matrix():
 
     assert isinstance(des_mat, np.ndarray)
     assert des_mat_group_df.shape == dat.shape
+
+
+def test_build_matrix():
+    arr1 = [4, 4, 5, 5, 3, 2, 5]
+    arr2 = [2, 3, 3, 3, 3, 3, 3]

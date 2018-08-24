@@ -55,6 +55,7 @@ Python library for conducting hypothesis and other group comparison tests.
 ### Helpful Functions
 
 * Tie Correction for ranked variables
+* Contigency table marginal sums
 
 ## Goal
 

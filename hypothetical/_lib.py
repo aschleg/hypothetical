@@ -24,3 +24,20 @@ def build_des_mat(*args, group=None):
         c = c.values
 
     return c
+
+
+def build_summary_matrix(x, y=None):
+    if isinstance(x, pd.DataFrame):
+        x = x.values
+    elif not isinstance(x, np.ndarray):
+        x = np.array(x)
+
+    if y is not None:
+        if isinstance(y, pd.DataFrame):
+            y = y.values
+        elif not isinstance(y, np.ndarray):
+            y = np.array(y)
+
+        x = np.column_stack([x, y])
+
+    return x
