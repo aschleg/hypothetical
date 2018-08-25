@@ -9,6 +9,7 @@ Contingency Tables
 .. autosummary::
     :toctree: generated/
 
+    ChiSquareContingency
     McNemarTest
 
 Other Functions
@@ -18,6 +19,7 @@ Other Functions
     :toctree: generated/
 
     table_margin
+    expected_frequencies
 
 References
 ----------
@@ -37,6 +39,7 @@ Wikipedia contributors. (2018, May 20). Fisher's exact test. In Wikipedia, The F
 
 """
 
+from functools import reduce
 import numpy as np
 from scipy.special import comb
 from scipy.stats import chi2, binom
@@ -66,17 +69,34 @@ class ChiSquareContingency(object):
             if self.observed.shape != self.expected.shape:
                 raise ValueError('observed and expected frequency contingency tables must have the same shape.')
         else:
-            self.expected = None
+            self.expected = expected_frequencies(self.observed)
 
         self.continuity = continuity
+        self.degrees_freedom = (self.observed.shape[0] - 1) * (self.observed.shape[1] - 1)
+
+        self.chi_square = self._chi_square()
+        self.p_value = self._p_value()
+        self.test_summary = {
+            'chi-square': self.chi_square,
+            'p-value': self.p_value,
+            'degrees of freedom': self.degrees_freedom,
+            'continuity': self.continuity
+        }
 
     def _chi_square(self):
-        if self.expected is not None:
-            cont_table = self.observed - self.expected
-        else:
-            cont_table = self.observed
+        cont_table = np.absolute(self.observed - self.expected)
 
-        #chi_val = np.sum(cont_table ** 2 / )
+        if self.degrees_freedom == 1:
+            chi_val = np.sum((cont_table - (0.5 * self.continuity)) ** 2 / self.expected)
+        else:
+            chi_val = np.sum(cont_table ** 2 / self.expected)
+
+        return chi_val
+
+    def _p_value(self):
+        pval = chi2.sf(self.chi_square, self.degrees_freedom)
+
+        return pval
 
 
 class FisherTest(object):
@@ -277,7 +297,7 @@ class McNemarTest(object):
         return results
 
 
-def table_margin(table):
+def table_margins(table):
     r"""
     Computes the marginal sums of a one or two-dimensional array.
 
@@ -300,6 +320,15 @@ def table_margin(table):
     return r, c
 
 
-def expected_frequencies(table):
-    if not isinstance(table, np.ndarray):
-        table = np.array(table).copy()
+def expected_frequencies(observed):
+    if not isinstance(observed, np.ndarray):
+        observed = np.array(observed).copy()
+
+    if observed.ndim > 2:
+        raise ValueError('table dimension cannot be greater than two.')
+
+    margins = table_margins(observed)
+
+    exp_freq = reduce(np.multiply, margins) / np.sum(observed)
+
+    return exp_freq

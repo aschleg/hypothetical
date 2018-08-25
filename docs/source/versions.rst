@@ -10,7 +10,10 @@ Version 0.2.0
   in an effort to create a cohesive library structure that can be utilized as the library grows.
 - Below is a list of functions that have been added in the new release:
     - Contingency Tables and Related Tests:
+        - Chi-square contingency table test of independence
         - Fisher's Exact Test
+        - Contingency table marginal sums
+        - Contingency table expected frequencies
     - Critical Value Tables and Lookup Functions:
         - Chi-Square Critical Values
         - U-Statistic Critical Values
@@ -21,6 +24,7 @@ Version 0.2.0
     - Nonparametric Tests:
         - Kruskal-Wallis
         - Mann-Whitney U-test for two independent samples
+        - Mood's Median Test
         - Sign test for two related samples
         - Wilcoxon Rank Sum Test
     - Post-Hoc Analysis:

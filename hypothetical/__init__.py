@@ -1,1 +1,1 @@
-__all__ = ['aov', 'critical', 'hypothesis', 'nonparametric', 'posthoc', 'summary']
+__all__ = ['aov', 'contingency', 'critical', 'hypothesis', 'nonparametric', 'posthoc', 'summary']

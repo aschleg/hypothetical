@@ -11,6 +11,7 @@ Nonparametric Inference Methods
 
     KruskalWallis
     MannWhitney
+    MedianTest
     SignTest
     WilcoxonTest
 
@@ -52,6 +53,7 @@ from scipy.special import comb
 from hypothetical._lib import build_des_mat
 from hypothetical.summary import var
 from hypothetical.hypothesis import BinomialTest
+from hypothetical.contingency import ChiSquareContingency
 
 
 class KruskalWallis(object):
@@ -813,51 +815,56 @@ class MedianTest(object):
         Retrieved 12:23, August 19, 2018, from https://en.wikipedia.org/w/index.php?title=Median_test&oldid=787822318
 
     """
-    def __init__(self, *args, ties='below', continuity=False):
-        self.observation_vectors = args
+    def __init__(self, *args, ties='below', continuity=True):
+        self.observation_vectors = list([*args])
         self.combined_array = np.hstack(self.observation_vectors)
-        self.sample_median = np.median(self.combined_array)
+        self.grand_median = np.median(self.combined_array)
 
         self.n = self.combined_array.shape[0]
-        self.degrees_of_freedom = len(*args) - 1
+        self.degrees_of_freedom = len(args) - 1
 
         if ties not in ('below', 'above', 'ignore'):
             raise ValueError("ties parameter must be one of 'below' (default), 'above', or 'ignore'")
 
         self.ties = ties
         self.continuity = continuity
-
-    #     self.chi_square = self._chi_square()
-    #     self.p_value = self._p_value()
-    #     self.test_summary = {
-    #         'chi-square': self.chi_square,
-    #         'p-value': self.p_value
-    #     }
-    #
-    # def _chi_square(self):
-    #     a, c = self.x[self.x > self.sample_median], self.x[self.x < self.sample_median]
-    #     b, d = self.y[self.y > self.sample_median], self.y[self.y < self.sample_median]
-    #
-    #     x2 = (self.n * np.absolute(a * d - b * c) - self.n / 2) ** 2 / ((a + b) * (c + d) * (a + c) * (b + d))
-    #
-    #     return x2
-    #
-    # def _p_value(self):
-    #     pval = chi2.cdf(self.chi_square, self.degrees_of_freedom)
-    #
-    #     return pval
+        self.contingency_table = self._cont_table()
+        self.test_statistic, self.p_value = self._chi_test()
+        self.test_summary = {
+            'test_statistic': self.test_statistic,
+            'p-value': self.p_value,
+            'contingency_table': self.contingency_table
+        }
 
     def _cont_table(self):
         above = []
         below = []
 
         for vec in self.observation_vectors:
-            above.append(vec[vec > self.sample_median])
-            below.append(vec[vec < self.sample_median])
+            vec_arr = np.array(vec)
+            
+            if self.ties == 'below':
+                above.append(len(vec_arr[vec_arr > self.grand_median]))
+                below.append(len(vec_arr[vec_arr <= self.grand_median]))
+            
+            elif self.ties == 'above':
+                above.append(len(vec_arr[vec_arr >= self.grand_median]))
+                below.append(len(vec_arr[vec_arr < self.grand_median]))
+            
+            else:
+                vec_arr = vec_arr[vec_arr != self.grand_median]
+                
+                above.append(len(vec_arr[vec_arr > self.grand_median]))
+                below.append(len(vec_arr[vec_arr < self.grand_median]))
 
         cont_table = np.vstack((above, below))
 
         return cont_table
+
+    def _chi_test(self):
+        c = ChiSquareContingency(self.contingency_table, continuity=self.continuity)
+
+        return c.chi_square, c.p_value
 
 
 class SignTest(object):

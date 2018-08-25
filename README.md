@@ -17,6 +17,7 @@ Python library for conducting hypothesis and other group comparison tests.
 
 ### Contigency Tables and Related Tests
 
+* Chi-square test of independence
 * Fisher's Exact Test
 * McNemar's Test of paired nominal data
 
@@ -44,6 +45,7 @@ Python library for conducting hypothesis and other group comparison tests.
 ### Nonparametric Methods
 
 * Mann-Whitney (two sample nonparametric variant of t-test)
+* Mood's Median test
 * Wilcoxon Rank Sum Test (one sample nonparametric variant of paired and one-sample t-test)
 * Kruskal-Wallis (nonparametric equivalent of one-way ANOVA)
 
@@ -55,7 +57,8 @@ Python library for conducting hypothesis and other group comparison tests.
 ### Helpful Functions
 
 * Tie Correction for ranked variables
-* Contigency table marginal sums
+* Contingency table marginal sums
+* Contingency table expected frequencies
 
 ## Goal
 

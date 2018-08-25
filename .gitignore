@@ -6,7 +6,6 @@ build/
 dist/
 *.egg-info
 notebooks/
-tests/R/
 *.xml
 *.iml
 *.pyc
