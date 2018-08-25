@@ -10,9 +10,11 @@ Nonparametric Methods of Inference
 .. autosummary::
     :toctree: generated/
 
-    MannWhitney
-    WilcoxonTest
     KruskalWallis
+    MannWhitney
+    MedianTest
+    SignTest
+    WilcoxonTest
 
 Other Related Functions
 =======================

@@ -816,7 +816,7 @@ class MedianTest(object):
 
     """
     def __init__(self, *args, ties='below', continuity=True):
-        self.observation_vectors = list([*args])
+        self.observation_vectors = list([args])
         self.combined_array = np.hstack(self.observation_vectors)
         self.grand_median = np.median(self.combined_array)
 

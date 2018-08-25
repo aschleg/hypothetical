@@ -8,7 +8,7 @@ setup(
     author='Aaron Schlegel',
     author_email='aaron@aaronschlegel.com',
     description=('Hypothesis testing and other testing methods.'),
-    packages=find_packages(exclude=['docs', 'notebooks', 'tests*']),
+    packages=find_packages(exclude=['docs', 'notebooks', 'tests*', '*.egg-info', 'data']),
     include_package_data=True,
     long_description=open('README.md').read(),
     install_requires=['numpy>=1.13.0', 'numpy_indexed>=0.3.5', 'pandas>=0.22.0', 'scipy>=1.1.0'],
