@@ -15,11 +15,12 @@ Python library for conducting hypothesis and other group comparison tests.
 * One-way Analysis of Variance (ANOVA)
 * One-way Multivariate Analysis of Variance (MANOVA)
 
-### Contigency Tables and Related Tests
+### Contingency Tables and Related Tests
 
 * Chi-square test of independence
 * Fisher's Exact Test
 * McNemar's Test of paired nominal data
+* Cochran's Q test
 
 ### Correlation and Covariance
 

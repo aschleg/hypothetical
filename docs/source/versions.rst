@@ -12,6 +12,7 @@ Version 0.2.0
     - Contingency Tables and Related Tests:
         - Chi-square contingency table test of independence
         - Fisher's Exact Test
+        - Cochran's Q test
         - Contingency table marginal sums
         - Contingency table expected frequencies
     - Critical Value Tables and Lookup Functions:
