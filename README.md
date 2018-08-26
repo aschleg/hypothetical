@@ -22,13 +22,15 @@ Python library for conducting hypothesis and other group comparison tests.
 * McNemar's Test of paired nominal data
 * Cochran's Q test
 
-### Correlation and Covariance
+### Correlation, Covariance and Variance
 
 * Pearson Correlation
 * Spearman Correlation
 * Covariance
   - Several algorithms for computing the covariance and covariance matrix of 
     sample data are available
+* Variance
+  - Several algorithms are also available for computing variance.
 
 ### Critical Value Tables and Lookup Functions
 

@@ -33,6 +33,10 @@ Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
 Weisstein, Eric W. "Fisher's Exact Test." From MathWorld--A Wolfram Web Resource.
     http://mathworld.wolfram.com/FishersExactTest.html
 
+Wikipedia contributors. (2017, August 8). Cochran's Q test. In Wikipedia, The Free Encyclopedia.
+    Retrieved 15:05, August 26, 2018,
+    from https://en.wikipedia.org/w/index.php?title=Cochran%27s_Q_test&oldid=794571272
+
 Wikipedia contributors. (2018, May 20). Fisher's exact test. In Wikipedia, The Free Encyclopedia.
     Retrieved 12:46, August 14, 2018,
     from https://en.wikipedia.org/w/index.php?title=Fisher%27s_exact_test&oldid=842100719
@@ -83,6 +87,10 @@ class CochranQ(object):
     Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
         McGraw-Hill. ISBN 07-057348-4
 
+    Wikipedia contributors. (2017, August 8). Cochran's Q test. In Wikipedia, The Free Encyclopedia.
+        Retrieved 15:05, August 26, 2018,
+        from https://en.wikipedia.org/w/index.php?title=Cochran%27s_Q_test&oldid=794571272
+
     """
     def __init__(self, *args):
         self.design_matrix = build_des_mat(*args, group=None)
@@ -110,7 +118,7 @@ class CochranQ(object):
         return summary_table
 
     def _q_test(self, *args):
-        li2 = np.sum(np.sum(np.vstack([*args]), axis=0) ** 2)
+        li2 = np.sum(np.sum(np.vstack([args]), axis=0) ** 2)
 
         q = (self.degrees_freedom *
              (self.k * np.sum(self.sample_summary_table['1s'] ** 2) - np.sum(self.sample_summary_table['1s']) ** 2)) / \
