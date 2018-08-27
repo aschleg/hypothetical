@@ -221,7 +221,20 @@ class AnovaOneWay(object):
         self.f_statistic = self._fvalue()
         self.p_value = self._pvalue()
         self.analysis_type = 'One-Way ANOVA'
-        self.test_summary = self._generate_result_summary()
+        self.test_summary = {
+            'Analysis Performed': self.analysis_type,
+            'F-statistic': self.f_statistic,
+            'p-value': self.p_value,
+            'Group DoF': self.group_degrees_of_freedom,
+            'Residual DoF': self.residual_degrees_of_freedom,
+            'Group Sum of Squares': self.group_sum_squares,
+            'Group Mean Squares': self.group_mean_squares,
+            'Residual Sum of Squares': self.residual_sum_squares,
+            'Residual Mean Squares': self.residual_mean_squares,
+            'Group Means': self.group_stats['Group Means'],
+            'Group Obs Number': self.group_stats['Group Observations'],
+            'Group Variance': self.group_stats['Group Variance']
+        }
 
     def _sse(self):
         r"""
@@ -408,33 +421,6 @@ class AnovaOneWay(object):
                       self.residual_degrees_of_freedom)
 
         return p
-
-    def _generate_result_summary(self):
-        r"""
-        Returns a summary of the fitted analysis of variance model as a dictionary.
-
-        Returns
-        -------
-        anova_results : dict
-            A summary of the fitted ANOVA model.
-
-        """
-        anova_results = {
-            'Analysis Performed': self.analysis_type,
-            'F-statistic': self.f_statistic,
-            'p-value': self.p_value,
-            'Group DoF': self.group_degrees_of_freedom,
-            'Residual DoF': self.residual_degrees_of_freedom,
-            'Group Sum of Squares': self.group_sum_squares,
-            'Group Mean Squares': self.group_mean_squares,
-            'Residual Sum of Squares': self.residual_sum_squares,
-            'Residual Mean Squares': self.residual_mean_squares,
-            'Group Means': self.group_stats['Group Means'],
-            'Group Obs Number': self.group_stats['Group Observations'],
-            'Group Variance': self.group_stats['Group Variance']
-        }
-
-        return anova_results
 
     def _group_statistics(self):
         r"""

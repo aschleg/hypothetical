@@ -36,6 +36,10 @@ Mann–Whitney U test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
 Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
     McGraw-Hill. ISBN 07-057348-4
 
+Wikipedia contributors. (2018, August 20). Friedman test. In Wikipedia, The Free Encyclopedia.
+    Retrieved 12:56, August 27, 2018,
+    from https://en.wikipedia.org/w/index.php?title=Friedman_test&oldid=855731754
+
 Wikipedia contributors. (2018, May 21). Kruskal–Wallis one-way analysis of variance.
     In Wikipedia, The Free Encyclopedia. From
     https://en.wikipedia.org/w/index.php?title=Kruskal%E2%80%93Wallis_one-way_analysis_of_variance&oldid=842351945
@@ -54,6 +58,29 @@ from hypothetical._lib import build_des_mat
 from hypothetical.summary import var
 from hypothetical.hypothesis import BinomialTest
 from hypothetical.contingency import ChiSquareContingency
+
+
+class FriedmanTest(object):
+    r"""
+
+    References
+    ----------
+    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+        McGraw-Hill. ISBN 07-057348-4
+
+    Wikipedia contributors. (2018, August 20). Friedman test. In Wikipedia, The Free Encyclopedia.
+        Retrieved 12:56, August 27, 2018,
+        from https://en.wikipedia.org/w/index.php?title=Friedman_test&oldid=855731754
+
+    """
+    def __init__(self, *args, group=None):
+        self.design_matrix = build_des_mat(*args, group=group)
+
+    def _xr2_test(self):
+        pass
+
+    def _p_value(self):
+        pass
 
 
 class KruskalWallis(object):
@@ -805,6 +832,16 @@ class MedianTest(object):
 
     Examples
     --------
+    >>> g1 = [10, 14, 14, 18, 20, 22, 24, 25, 31, 31, 32, 39, 43, 43, 48, 49]
+    >>> g2 = [28, 30, 31, 33, 34, 35, 36, 40, 44, 55, 57, 61, 91, 92, 99]
+    >>> g3 = [0, 3, 9, 22, 23, 25, 25, 33, 34, 34, 40, 45, 46, 48, 62, 67, 84]
+    >>> m = MedianTest(g1, g2, g3)
+    >>> m.test_summary
+    {'contingency_table': array([[ 5, 10,  7],
+                                [11,  5, 10]]),
+     'grand median': 34.0,
+     'p-value': 0.12609082774093244,
+     'test_statistic': 4.141505553270259}
 
     References
     ----------
@@ -816,12 +853,12 @@ class MedianTest(object):
 
     """
     def __init__(self, *args, ties='below', continuity=True):
-        self.observation_vectors = list([args])
+        self.observation_vectors = list([*args])
         self.combined_array = np.hstack(self.observation_vectors)
         self.grand_median = np.median(self.combined_array)
 
         self.n = self.combined_array.shape[0]
-        self.degrees_of_freedom = len(args) - 1
+        self.degrees_of_freedom = len(self.observation_vectors) - 1
 
         if ties not in ('below', 'above', 'ignore'):
             raise ValueError("ties parameter must be one of 'below' (default), 'above', or 'ignore'")
@@ -833,6 +870,7 @@ class MedianTest(object):
         self.test_summary = {
             'test_statistic': self.test_statistic,
             'p-value': self.p_value,
+            'grand median': self.grand_median,
             'contingency_table': self.contingency_table
         }
 

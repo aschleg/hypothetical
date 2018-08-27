@@ -326,7 +326,15 @@ class TukeysTest(object):
         self.mse = self._mse()
         self.hsd = self._hsd()
         self.group_comparison = self._group_comparison()
-        self.test_summary = self._generate_results_summary()
+        self.test_summary = {
+            'test description': self.test_description,
+            'HSD': self.hsd,
+            'MSE': self.mse,
+            'Studentized Range q-value': self.tukey_q_value,
+            'degrees of freedom': self.dof,
+            'group comparisons': self.group_comparison.to_dict(),
+            'alpha': self.alpha
+        }
 
     def _mse(self):
         r"""
@@ -465,24 +473,3 @@ class TukeysTest(object):
         del groups[1]
 
         return groups
-
-    def _generate_results_summary(self):
-        r"""
-        Generates a dictionary of computed test results.
-
-        Returns
-        -------
-        test_results : dict
-            Dictionary containing results of Tukey's HSD test.
-        """
-        test_results = {
-            'test description': self.test_description,
-            'HSD': self.hsd,
-            'MSE': self.mse,
-            'Studentized Range q-value': self.tukey_q_value,
-            'degrees of freedom': self.dof,
-            'group comparisons': self.group_comparison.to_dict(),
-            'alpha': self.alpha
-        }
-
-        return test_results

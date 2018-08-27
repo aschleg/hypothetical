@@ -1,6 +1,6 @@
 import pytest
 
-from hypothetical.nonparametric import KruskalWallis, MannWhitney, SignTest, tie_correction, WilcoxonTest
+from hypothetical.nonparametric import KruskalWallis, MannWhitney, SignTest, tie_correction, WilcoxonTest, MedianTest
 import pandas as pd
 import numpy as np
 import os
@@ -206,3 +206,49 @@ class TestSignTest(object):
 
     def test_sign_test_exceptions(self):
         pass
+
+
+class TestMedianTest(object):
+    g1 = [10, 14, 14, 18, 20, 22, 24, 25, 31, 31, 32, 39, 43, 43, 48, 49]
+    g2 = [28, 30, 31, 33, 34, 35, 36, 40, 44, 55, 57, 61, 91, 92, 99]
+    g3 = [0, 3, 9, 22, 23, 25, 25, 33, 34, 34, 40, 45, 46, 48, 62, 67, 84]
+
+    def test_mediantest(self):
+        m = MedianTest(self.g1, self.g2, self.g3)
+
+        np.testing.assert_almost_equal(m.test_statistic, 4.141505553270259)
+        np.testing.assert_almost_equal(m.p_value, 0.12609082774093244)
+        np.testing.assert_almost_equal(m.grand_median, 34.0)
+        np.testing.assert_array_almost_equal(m.contingency_table, np.array([[5, 10,  7], [11,  5, 10]]))
+
+    def test_median_ties_above(self):
+        m = MedianTest(self.g1, self.g2, self.g3, ties='above')
+
+        np.testing.assert_almost_equal(m.test_statistic, 5.5017084398976985)
+        np.testing.assert_almost_equal(m.p_value, 0.06387327606955327)
+        np.testing.assert_array_almost_equal(m.contingency_table, np.array([[5, 11,  9], [11,  4,  8]]))
+
+    def test_median_ties_ignore(self):
+        m = MedianTest(self.g1, self.g2, self.g3, ties='ignore')
+
+        np.testing.assert_almost_equal(m.test_statistic, 4.868277103331452)
+        np.testing.assert_almost_equal(m.p_value, 0.08767324049352121)
+        np.testing.assert_array_almost_equal(m.contingency_table, np.array([[5, 10,  7], [11,  4,  8]]))
+
+    def test_median_continuity(self):
+        m = MedianTest(self.g1, self.g2)
+
+        np.testing.assert_almost_equal(m.test_statistic, 2.5996137152777785)
+        np.testing.assert_almost_equal(m.p_value, 0.10688976489998428)
+        np.testing.assert_almost_equal(m.contingency_table, np.array([[5, 10], [11,  5]]))
+
+    def test_median_no_continuity(self):
+        m = MedianTest(self.g1, self.g2, continuity=False)
+
+        np.testing.assert_almost_equal(m.test_statistic, 3.888454861111112)
+        np.testing.assert_almost_equal(m.p_value, 0.04861913422927604)
+        np.testing.assert_almost_equal(m.contingency_table, np.array([[5, 10], [11,  5]]))
+
+    def test_median_exceptions(self):
+        with pytest.raises(ValueError):
+            MedianTest(self.g1, self.g2, ties='na')
