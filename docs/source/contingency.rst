@@ -10,6 +10,7 @@ Contingency Tables
     :toctree: generated/
 
     ChiSquareContingency
+    CochranQ
     McNemarTest
     table_margins
     expected_frequencies

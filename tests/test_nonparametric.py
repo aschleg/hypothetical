@@ -10,7 +10,7 @@ from scipy.stats import rankdata, tiecorrect
 @pytest.fixture
 def test_data():
     datapath = os.path.dirname(os.path.abspath(__file__))
-    salaries = pd.read_csv(os.path.join(datapath, '../data/Salaries.csv'))
+    salaries = pd.read_csv(os.path.join(datapath, 'data/Salaries.csv'))
 
     return salaries
 
@@ -72,7 +72,7 @@ def multivariate_test_data():
 @pytest.fixture
 def plants_test_data():
     datapath = os.path.dirname(os.path.abspath(__file__))
-    plants = pd.read_csv(os.path.join(datapath, '../data/PlantGrowth.csv'))
+    plants = pd.read_csv(os.path.join(datapath, 'data/PlantGrowth.csv'))
 
     return plants
 

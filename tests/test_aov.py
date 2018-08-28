@@ -8,7 +8,7 @@ import os
 @pytest.fixture
 def test_data():
     datapath = os.path.dirname(os.path.abspath(__file__))
-    plants = pd.read_csv(os.path.join(datapath, '../data/PlantGrowth.csv'))
+    plants = pd.read_csv(os.path.join(datapath, 'data/PlantGrowth.csv'))
 
     return plants
 

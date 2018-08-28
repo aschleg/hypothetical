@@ -10,6 +10,7 @@ Contingency Tables
     :toctree: generated/
 
     ChiSquareContingency
+    CochranQ
     McNemarTest
 
 Other Functions
@@ -59,9 +60,17 @@ class CochranQ(object):
 
     Parameters
     ----------
+    sample1, sample2, ... : array-like
 
     Attributes
     ----------
+    design_matrix : array-like
+    sample_summary_table : array-like
+    k : int
+    degrees_freedom : int
+    q_statistic : float
+    p_value : float
+    test_summary : dict
 
     Examples
     --------
@@ -138,12 +147,25 @@ class ChiSquareContingency(object):
 
     Parameters
     ----------
+    observed : array-like
+    expected : array-like, optional
+    continuity : bool, optional
 
     Attributes
     ----------
+    observed : array-like
+    expected : array-like
+    continuity : bool
+    degrees_freedom : int
+    chi_square : float
+    p_value : float
+    association_measures : dict
+    test_summary : dict
 
     Raises
     ------
+    ValueError
+        If the observed and expected arrays are not of the same length or shape (if an expected array is passed).
 
     Examples
     --------
@@ -155,6 +177,10 @@ class ChiSquareContingency(object):
     ----------
     Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
         McGraw-Hill. ISBN 07-057348-4
+
+    Wikipedia contributors. (2018, August 15). Contingency table. In Wikipedia, The Free Encyclopedia.
+        Retrieved 12:08, August 28, 2018,
+        from https://en.wikipedia.org/w/index.php?title=Contingency_table&oldid=854973657
 
     """
     def __init__(self, observed, expected=None, continuity=True):
@@ -179,9 +205,11 @@ class ChiSquareContingency(object):
 
         self.chi_square = self._chi_square()
         self.p_value = self._p_value()
+        self.association_measures = self._assoc_measure()
         self.test_summary = {
             'chi-square': self.chi_square,
             'p-value': self.p_value,
+            'association measures': self.association_measures,
             'degrees of freedom': self.degrees_freedom,
             'continuity': self.continuity
         }
@@ -200,6 +228,30 @@ class ChiSquareContingency(object):
         pval = chi2.sf(self.chi_square, self.degrees_freedom)
 
         return pval
+
+    def _assoc_measure(self):
+        n = np.sum(self.observed)
+
+        filled_diag = self.observed.copy()
+        np.fill_diagonal(filled_diag, 1)
+
+        phi_sign = np.prod(np.diagonal(self.observed)) - np.prod(filled_diag)
+
+        phi_coeff = np.sqrt(self.chi_square / n)
+        if phi_sign > 0:
+            phi_coeff = -phi_coeff
+
+        c = np.sqrt(self.chi_square / (n + self.chi_square))
+
+        v = np.sqrt(self.chi_square / (n * (np.minimum(self.observed.shape[0], self.observed.shape[1]) - 1)))
+
+        association_measures = {
+            'phi-coefficient': phi_coeff,
+            'C': c,
+            "Cramer's V": v
+        }
+
+        return association_measures
 
 
 class FisherTest(object):
