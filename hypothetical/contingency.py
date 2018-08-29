@@ -175,7 +175,7 @@ class ChiSquareContingency(object):
         phi_sign = np.prod(np.diagonal(self.observed)) - np.prod(filled_diag)
 
         phi_coeff = np.sqrt(self.chi_square / n)
-        if phi_sign < 0:
+        if phi_sign < 0 and phi_coeff > 0:
             phi_coeff = -phi_coeff
 
         c = np.sqrt(self.chi_square / (n + self.chi_square))
