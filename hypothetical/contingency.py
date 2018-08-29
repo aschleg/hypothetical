@@ -165,10 +165,34 @@ class ChiSquareContingency(object):
     Raises
     ------
     ValueError
-        If the observed and expected arrays are not of the same length or shape (if an expected array is passed).
+        If the observed and expected arrays are not of the same shape (if an expected array is passed).
 
     Examples
     --------
+    >>> observed = [[23, 40, 16, 2], [11, 75, 107, 14], [1, 31, 60, 10]]
+    >>> expected = [[7.3, 30.3, 38.0, 5.4], [18.6, 77.5, 97.1, 13.8], [9.1, 38.2, 47.9, 6.8]]
+    >>> c = ChiSquareContingency(observed, expected)
+    >>> c.test_summary
+    {'association measures': {'C': 0.38790213046235816,
+     'Cramers V': 0.2975893000268341,
+     'phi-coefficient': 0.4208548241150648},
+     'chi-square': 69.07632536255964,
+     'continuity': True,
+     'degrees of freedom': 6,
+     'p-value': 6.323684774702373e-13}
+    >>> c2 = ChiSquareContingency(observed)
+    >>> c2.test_summary
+    {'association measures': {'C': 0.3886475108354606,
+     'Cramers V': 0.29826276547053077,
+     'phi-coefficient': 0.4218072480793303},
+     'chi-square': 69.3893282675805,
+     'continuity': True,
+     'degrees of freedom': 6,
+     'p-value': 5.455268702303084e-13}
+    >>> c2.expected
+    array([[ 7.26923077, 30.32307692, 38.00769231,  5.4       ],
+           [18.57692308, 77.49230769, 97.13076923, 13.8       ],
+           [ 9.15384615, 38.18461538, 47.86153846,  6.8       ]])
 
     Notes
     -----
@@ -248,7 +272,7 @@ class ChiSquareContingency(object):
         association_measures = {
             'phi-coefficient': phi_coeff,
             'C': c,
-            "Cramer's V": v
+            'Cramers V': v
         }
 
         return association_measures
