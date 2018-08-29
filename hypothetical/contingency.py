@@ -322,7 +322,11 @@ class FisherTest(object):
         self.n = np.sum(self.table)
         self.p_value = self._p_value()
         self.odds_ratio = self._odds_ratio()
-        self.test_summary = self._generate_test_summary()
+        self.test_summary = {
+            'p-value': self.p_value,
+            'odds ratio': self.odds_ratio,
+            'contigency table': self.table
+        }
 
     def _p_value(self):
         a, b, c, d = self.table[0, 0], self.table[0, 1], self.table[1, 0], self.table[1, 1]
@@ -338,16 +342,6 @@ class FisherTest(object):
             oddsratio = np.inf
 
         return oddsratio
-
-    def _generate_test_summary(self):
-
-        results = {
-            'p-value': self.p_value,
-            'odds ratio': self.odds_ratio,
-            'contigency table': self.table
-        }
-
-        return results
 
 
 class McNemarTest(object):

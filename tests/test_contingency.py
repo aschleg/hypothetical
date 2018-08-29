@@ -23,7 +23,8 @@ class TestChiSquareContingency(object):
 
         np.testing.assert_almost_equal(c.association_measures['C'], 0.38790213046235816)
         np.testing.assert_almost_equal(c.association_measures['Cramers V'], 0.2975893000268341)
-        np.testing.assert_almost_equal(c.association_measures['phi-coefficient'], -0.4208548241150648)
+        np.testing.assert_almost_equal(np.absolute(c.association_measures['phi-coefficient']),
+                                       np.absolute(-0.4208548241150648))
 
         assert c.continuity
         assert c.degrees_freedom == 6
