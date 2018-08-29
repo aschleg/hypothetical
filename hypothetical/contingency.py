@@ -54,93 +54,6 @@ from scipy.stats import chi2, binom
 from hypothetical._lib import build_des_mat
 
 
-class CochranQ(object):
-    r"""
-    Performs Cochran's Q test
-
-    Parameters
-    ----------
-    sample1, sample2, ... : array-like
-
-    Attributes
-    ----------
-    design_matrix : array-like
-    sample_summary_table : array-like
-    k : int
-    degrees_freedom : int
-    q_statistic : float
-    p_value : float
-    test_summary : dict
-
-    Examples
-    --------
-    >>> r1 = [0,1,0,0,1,1,1,0,1,0,1,1,1,1,1,1,1,1]
-    >>> r2 = [0,1,1,0,0,1,1,1,0,0,1,1,1,1,1,1,1,1]
-    >>> r3 = [0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,0,0]
-    >>> cq = CochranQ(r1, r2, r3)
-    >>> cq.test_summary
-    {'degrees of freedom': 2,
-     'number of samples': 3,
-     'p-value': 0.00024036947641951404,
-     'q-statistic': 16.666666666666668,
-     'sample summary table':    sample  1s  sample_size    0s
-     0       0  13         18.0   5.0
-     1       1  13         18.0   5.0
-     2       2   3         18.0  15.0}
-
-    Notes
-    -----
-
-    References
-    ----------
-    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
-        McGraw-Hill. ISBN 07-057348-4
-
-    Wikipedia contributors. (2017, August 8). Cochran's Q test. In Wikipedia, The Free Encyclopedia.
-        Retrieved 15:05, August 26, 2018,
-        from https://en.wikipedia.org/w/index.php?title=Cochran%27s_Q_test&oldid=794571272
-
-    """
-    def __init__(self, *args):
-        self.design_matrix = build_des_mat(*args, group=None)
-        self.sample_summary_table = self._summary_table()
-        self.k = self.sample_summary_table.shape[0]
-        self.degrees_freedom = self.k - 1
-        self.q_statistic = self._q_test(*args)
-        self.p_value = self._p_value()
-        self.test_summary = {
-            'q-statistic': self.q_statistic,
-            'p-value': self.p_value,
-            'number of samples': self.k,
-            'degrees of freedom': self.degrees_freedom,
-            'sample summary table': self.sample_summary_table
-        }
-
-    def _summary_table(self):
-        sample_counts = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], np.sum)
-        sample_size = self.design_matrix.shape[0] / len(np.unique(self.design_matrix[:, 0]))
-
-        summary_table = pd.DataFrame(sample_counts, columns=['sample', '1s'])
-        summary_table['sample_size'] = sample_size
-        summary_table['0s'] = summary_table['sample_size'] - summary_table['1s']
-
-        return summary_table
-
-    def _q_test(self, *args):
-        li2 = np.sum(np.sum(np.vstack([args]), axis=0) ** 2)
-
-        q = (self.degrees_freedom *
-             (self.k * np.sum(self.sample_summary_table['1s'] ** 2) - np.sum(self.sample_summary_table['1s']) ** 2)) / \
-            (self.k * np.sum(self.sample_summary_table['1s']) - li2)
-
-        return q
-
-    def _p_value(self):
-        pval = chi2.sf(self.q_statistic, self.degrees_freedom)
-
-        return pval
-
-
 class ChiSquareContingency(object):
     r"""
     Performs the Chi-square test of independence of variables in an r x c table.
@@ -262,7 +175,7 @@ class ChiSquareContingency(object):
         phi_sign = np.prod(np.diagonal(self.observed)) - np.prod(filled_diag)
 
         phi_coeff = np.sqrt(self.chi_square / n)
-        if phi_sign > 0:
+        if phi_sign < 0:
             phi_coeff = -phi_coeff
 
         c = np.sqrt(self.chi_square / (n + self.chi_square))
@@ -276,6 +189,93 @@ class ChiSquareContingency(object):
         }
 
         return association_measures
+
+
+class CochranQ(object):
+    r"""
+    Performs Cochran's Q test
+
+    Parameters
+    ----------
+    sample1, sample2, ... : array-like
+
+    Attributes
+    ----------
+    design_matrix : array-like
+    sample_summary_table : array-like
+    k : int
+    degrees_freedom : int
+    q_statistic : float
+    p_value : float
+    test_summary : dict
+
+    Examples
+    --------
+    >>> r1 = [0,1,0,0,1,1,1,0,1,0,1,1,1,1,1,1,1,1]
+    >>> r2 = [0,1,1,0,0,1,1,1,0,0,1,1,1,1,1,1,1,1]
+    >>> r3 = [0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,0,0]
+    >>> cq = CochranQ(r1, r2, r3)
+    >>> cq.test_summary
+    {'degrees of freedom': 2,
+     'number of samples': 3,
+     'p-value': 0.00024036947641951404,
+     'q-statistic': 16.666666666666668,
+     'sample summary table':    sample  1s  sample_size    0s
+     0       0  13         18.0   5.0
+     1       1  13         18.0   5.0
+     2       2   3         18.0  15.0}
+
+    Notes
+    -----
+
+    References
+    ----------
+    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+        McGraw-Hill. ISBN 07-057348-4
+
+    Wikipedia contributors. (2017, August 8). Cochran's Q test. In Wikipedia, The Free Encyclopedia.
+        Retrieved 15:05, August 26, 2018,
+        from https://en.wikipedia.org/w/index.php?title=Cochran%27s_Q_test&oldid=794571272
+
+    """
+    def __init__(self, *args):
+        self.design_matrix = build_des_mat(*args, group=None)
+        self.sample_summary_table = self._summary_table()
+        self.k = self.sample_summary_table.shape[0]
+        self.degrees_freedom = self.k - 1
+        self.q_statistic = self._q_test(*args)
+        self.p_value = self._p_value()
+        self.test_summary = {
+            'q-statistic': self.q_statistic,
+            'p-value': self.p_value,
+            'number of samples': self.k,
+            'degrees of freedom': self.degrees_freedom,
+            'sample summary table': self.sample_summary_table
+        }
+
+    def _summary_table(self):
+        sample_counts = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], np.sum)
+        sample_size = self.design_matrix.shape[0] / len(np.unique(self.design_matrix[:, 0]))
+
+        summary_table = pd.DataFrame(sample_counts, columns=['sample', '1s'])
+        summary_table['sample_size'] = sample_size
+        summary_table['0s'] = summary_table['sample_size'] - summary_table['1s']
+
+        return summary_table
+
+    def _q_test(self, *args):
+        li2 = np.sum(np.sum(np.vstack([args]), axis=0) ** 2)
+
+        q = (self.degrees_freedom *
+             (self.k * np.sum(self.sample_summary_table['1s'] ** 2) - np.sum(self.sample_summary_table['1s']) ** 2)) / \
+            (self.k * np.sum(self.sample_summary_table['1s']) - li2)
+
+        return q
+
+    def _p_value(self):
+        pval = chi2.sf(self.q_statistic, self.degrees_freedom)
+
+        return pval
 
 
 class FisherTest(object):
