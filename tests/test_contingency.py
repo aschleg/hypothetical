@@ -5,12 +5,6 @@ import numpy as np
 from hypothetical.contingency import ChiSquareContingency, CochranQ, FisherTest, McNemarTest
 
 
-@pytest.fixture
-def sample_data():
-
-    return np.array([[59, 6], [16, 80]])
-
-
 class TestChiSquareContingency(object):
     observed = np.array([[23, 40, 16, 2], [11, 75, 107, 14], [1, 31, 60, 10]])
     expected = np.array([[7.3, 30.3, 38.0, 5.4], [18.6, 77.5, 97.1, 13.8], [9.1, 38.2, 47.9, 6.8]])
@@ -80,6 +74,41 @@ class TestCochranQ(object):
 
 
 class TestMcNemarTest(object):
+    sample_data = np.array([[59, 6], [16, 80]])
+
+    def test_mcnemartest(self):
+        m = McNemarTest(self.sample_data)
+
+        np.testing.assert_almost_equal(m.exact_p_value, 0.052478790283203125)
+        np.testing.assert_almost_equal(m.mid_p_value, 0.034689664840698256)
+        np.testing.assert_almost_equal(m.mcnemar_p_value, 0.03300625766123255)
+        np.testing.assert_almost_equal(m.z_asymptotic_statistic, 2.1320071635561044)
+        np.testing.assert_almost_equal(m.mcnemar_x2_statistic, 4.545454545454546)
+
+        assert m.n == np.sum(self.sample_data)
+        assert not m.continuity
+
+        sample_data_list = [[59, 6], [16, 80]]
+
+        m2 = McNemarTest(sample_data_list)
+
+        np.testing.assert_almost_equal(m.exact_p_value, m2.exact_p_value)
+        np.testing.assert_almost_equal(m.mid_p_value, m2.mid_p_value)
+        np.testing.assert_almost_equal(m.mcnemar_p_value, m2.mcnemar_p_value)
+        np.testing.assert_almost_equal(m.z_asymptotic_statistic, m2.z_asymptotic_statistic)
+        np.testing.assert_almost_equal(m.mcnemar_x2_statistic, m2.mcnemar_x2_statistic)
+
+    def test_mcnemartest_no_continuity(self):
+        m = McNemarTest(self.sample_data, continuity=True)
+
+        np.testing.assert_almost_equal(m.exact_p_value, 0.052478790283203125)
+        np.testing.assert_almost_equal(m.mid_p_value, 0.034689664840698256)
+        np.testing.assert_almost_equal(m.mcnemar_p_value, 0.055008833629265896)
+        np.testing.assert_almost_equal(m.z_asymptotic_statistic, 1.9188064472004938)
+        np.testing.assert_almost_equal(m.mcnemar_x2_statistic, 3.6818181818181817)
+
+        assert m.n == np.sum(self.sample_data)
+        assert m.continuity
 
     def test_mcnemartest_exceptions(self):
 
@@ -89,5 +118,10 @@ class TestMcNemarTest(object):
         with pytest.raises(ValueError):
             McNemarTest(np.array([[-1, 10], [10, 20]]))
 
-        with pytest.raises(ValueError):
-            McNemarTest(table=sample_data(), alternative='na')
+
+def test_table_margins():
+    pass
+
+
+def test_expected_frequencies():
+    pass

@@ -28,6 +28,8 @@ Fagerland, M. W., Lydersen, S., & Laake, P. (2013).
     The McNemar test for binary matched-pairs data: Mid-p and asymptotic are better than exact conditional.
     Retrieved April 14, 2018, from http://www.biomedcentral.com/1471-2288/13/91
 
+Gibbons, J. D., & Chakraborti, S. (2010). Nonparametric statistical inference. London: Chapman & Hall.
+
 Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
     McGraw-Hill. ISBN 07-057348-4
 
@@ -112,6 +114,8 @@ class ChiSquareContingency(object):
 
     References
     ----------
+    Gibbons, J. D., & Chakraborti, S. (2010). Nonparametric statistical inference. London: Chapman & Hall.
+
     Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
         McGraw-Hill. ISBN 07-057348-4
 
@@ -352,12 +356,10 @@ class McNemarTest(object):
     ----------
     table : array-like
     continuity : bool, False
-    alternative : str, {'two-sided', 'greater', 'less'}
 
     Attributes
     ----------
     table : array-like
-    alternative : str
     continuity : bool
     n : int
     mcnemar_x2_statistic : float
@@ -372,12 +374,32 @@ class McNemarTest(object):
 
     Examples
     --------
+    >>> m = McNemarTest([[59, 6], [16, 80]])
+    >>> m.test_summary
+    {'Asymptotic z-statistic': 2.1320071635561044,
+     'Exact p-value': 0.052478790283203125,
+     'McNemar p-value': 0.03300625766123255,
+     'McNemar x2-statistic': 4.545454545454546,
+     'Mid p-value': 0.034689664840698256,
+     'N': 161,
+     'continuity': False}
+    >>> m2 = McNemarTest([[59, 6], [16, 80]], continuity=True)
+    >>> m2.test_summary
+    {'Asymptotic z-statistic': 1.9188064472004938,
+     'Exact p-value': 0.052478790283203125,
+     'McNemar p-value': 0.055008833629265896,
+     'McNemar x2-statistic': 3.6818181818181817,
+     'Mid p-value': 0.034689664840698256,
+     'N': 161,
+     'continuity': True}
 
     References
     ----------
     Fagerland, M. W., Lydersen, S., & Laake, P. (2013).
         The McNemar test for binary matched-pairs data: Mid-p and asymptotic are better than exact conditional.
         Retrieved April 14, 2018, from http://www.biomedcentral.com/1471-2288/13/91
+
+    Gibbons, J. D., & Chakraborti, S. (2010). Nonparametric statistical inference. London: Chapman & Hall.
 
     Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
         McGraw-Hill. ISBN 07-057348-4
@@ -387,7 +409,7 @@ class McNemarTest(object):
         from https://en.wikipedia.org/w/index.php?title=McNemar%27s_test&oldid=838855782
 
     """
-    def __init__(self, table, continuity=False, alternative='two-sided'):
+    def __init__(self, table, continuity=False):
         if not isinstance(table, np.ndarray):
             self.table = np.array(table)
         else:
@@ -399,19 +421,23 @@ class McNemarTest(object):
         if (self.table < 0).any():
             raise ValueError('All values in table should be non-negative.')
 
-        if alternative not in ('two-sided', 'greater', 'less'):
-            raise ValueError("alternative must be one of 'two-sided' (default), 'greater', or 'lesser'.")
-
         self.n = np.sum(self.table)
         self.continuity = continuity
-        self.alternative = alternative
 
         self.mcnemar_x2_statistic = self._mcnemar_test_stat()
         self.z_asymptotic_statistic = self._asymptotic_test()
         self.mcnemar_p_value = self._mcnemar_p_value()
         self.exact_p_value = self._exact_p_value()
         self.mid_p_value = self._mid_p_value()
-        self.test_summary = self._generate_test_summary()
+        self.test_summary = {
+            'N': self.n,
+            'continuity': self.continuity,
+            'McNemar x2-statistic': self.mcnemar_x2_statistic,
+            'Asymptotic z-statistic': self.z_asymptotic_statistic,
+            'McNemar p-value': self.mcnemar_p_value,
+            'Exact p-value': self.exact_p_value,
+            'Mid p-value': self.mid_p_value
+        }
 
     def _mcnemar_test_stat(self):
 
@@ -443,31 +469,13 @@ class McNemarTest(object):
 
         p_value = 1 - np.sum(comb(n, i_n) * 0.5 ** i_n * (1 - 0.5) ** (n - i_n))
 
-        if self.alternative == 'two-sided':
-            p_value *= 2
-
-        return p_value
+        return p_value * 2
 
     def _mid_p_value(self):
         n = self.table[1, 0] + self.table[0, 1]
         mid_p = self.exact_p_value - binom.pmf(self.table[0, 1], n, 0.5)
 
         return mid_p
-
-    def _generate_test_summary(self):
-
-        results = {
-            'N': self.n,
-            'continuity': self.continuity,
-            'alternative': self.alternative,
-            'McNemar x2-statistic': self.mcnemar_x2_statistic,
-            'Asymptotic z-statistic': self.z_asymptotic_statistic,
-            'McNemar p-value': self.mcnemar_p_value,
-            'Exact p-value': self.exact_p_value,
-            'Mid p-value': self.mid_p_value
-        }
-
-        return results
 
 
 def table_margins(table):

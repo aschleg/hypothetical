@@ -29,6 +29,8 @@ Fagerland, M. W., Lydersen, S., & Laake, P. (2013).
 
 Fox J. and Weisberg, S. (2011) An R Companion to Applied Regression, Second Edition Sage.
 
+Gibbons, J. D., & Chakraborti, S. (2010). Nonparametric statistical inference. London: Chapman & Hall.
+
 Mann–Whitney U test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
     From https://en.wikipedia.org/w/index.php?title=Mann%E2%80%93Whitney_U_test&oldid=786593885
 

@@ -65,6 +65,8 @@ class FriedmanTest(object):
 
     References
     ----------
+    Gibbons, J. D., & Chakraborti, S. (2010). Nonparametric statistical inference. London: Chapman & Hall.
+
     Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
         McGraw-Hill. ISBN 07-057348-4
 
@@ -76,11 +78,40 @@ class FriedmanTest(object):
     def __init__(self, *args, group=None):
         self.design_matrix = build_des_mat(*args, group=group)
 
+        if group is not None:
+            self.group = group
+        else:
+            self.group = self.design_matrix[:, 0]
+
+        self.k = len(np.unique(self.group))
+        self.n = self.design_matrix.shape[0] / self.k
+
+        self.xr2 = self._xr2_test()
+        self.p_value = self._p_value()
+        self.test_summary = {
+            'xr2 statistic': self.xr2,
+            'p-value': self.p_value
+        }
+
     def _xr2_test(self):
-        pass
+
+        ranks = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], self._rank)
+        rank_means = np.mean(np.array([i for _, i in ranks]), axis=1)
+        rank_sums = np.sum(np.array([i for _, i in ranks]), axis=1)
+
+        #xr2 = ((12. * self.n) / (self.k * (self.k + 1.))) * np.sum((rank_means - (self.k + 1.) / 2.) ** 2.)
+        xr2 = (12. / (self.n * self.k * (self.k + 1.))) * np.sum(rank_sums) ** 2. - (3. * self.n * (self.k + 1.))
+
+        return xr2
 
     def _p_value(self):
-        pass
+        pval = chi2.sf(self.xr2, self.k - 1)
+
+        return pval
+
+    @staticmethod
+    def _rank(a):
+        return rankdata(a, 'average')
 
 
 class KruskalWallis(object):
@@ -246,7 +277,14 @@ class KruskalWallis(object):
         self.t_value = self._t_value()
         self.least_significant_difference = self._lsd()
         self.test_description = 'Kruskal-Wallis rank sum test'
-        self.test_summary = self._generate_result_summary()
+        self.test_summary = {'test description': self.test_description,
+                             'critical chisq value': self.H,
+                             'p-value': self.p_value,
+                             'least significant difference': self.least_significant_difference,
+                             't-value': self.t_value,
+                             'alpha': self.alpha,
+                             'degrees of freedom': self.dof
+        }
 
     def _h_statistic(self):
         r"""
@@ -380,27 +418,6 @@ class KruskalWallis(object):
         lsd = self.t_value * np.sqrt(self._mse() * 2 / (self.n / self.k))
 
         return lsd
-
-    def _generate_result_summary(self):
-        r"""
-        Returns a summary of the Kruskal-Wallis test as a dictionary.
-
-        Returns
-        -------
-        test_results : dict
-            Dictionary containing the fitted Kruskal-Wallis :math:`H`-test results.
-
-        """
-        test_results = {'test description': self.test_description,
-                        'critical chisq value': self.H,
-                        'p-value': self.p_value,
-                        'least significant difference': self.least_significant_difference,
-                        't-value': self.t_value,
-                        'alpha': self.alpha,
-                        'degrees of freedom': self.dof
-        }
-
-        return test_results
 
     def _rank(self):
 
@@ -845,6 +862,8 @@ class MedianTest(object):
 
     References
     ----------
+    Gibbons, J. D., & Chakraborti, S. (2010). Nonparametric statistical inference. London: Chapman & Hall.
+
     Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
         McGraw-Hill. ISBN 07-057348-4
 
