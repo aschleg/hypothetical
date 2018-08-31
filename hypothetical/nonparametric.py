@@ -933,14 +933,12 @@ class SignTest(object):
     x : array-like
     y : array-like, optional
     alternative : str, {'two-sided', 'greater', 'less'}
-    alpha : float
 
     Attributes
     ----------
     x : array-like
     y : array-like
     alternative : str, {'two-sided', 'greater', 'less'}
-    alpha : float
     n : int
     sample_differences : array-like
     sample_differences_median : float
@@ -963,7 +961,7 @@ class SignTest(object):
         Retrieved 14:52, August 23, 2018, from https://en.wikipedia.org/w/index.php?title=Sign_test&oldid=851943717
 
     """
-    def __init__(self, x, y=None, alternative='two-sided', alpha=0.05):
+    def __init__(self, x, y=None, alternative='two-sided'):
         if not isinstance(x, np.ndarray):
             self.x = np.array(x)
         else:
@@ -992,7 +990,6 @@ class SignTest(object):
 
         self.alternative = alternative
         self.n = self.x.shape[0]
-        self.alpha = alpha
         self.sample_differences = self.x - self.y
         self.sample_differences_median = np.median(self.sample_differences)
         self.sample_sign_differences = np.sign(self.sample_differences)

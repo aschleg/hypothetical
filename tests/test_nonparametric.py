@@ -201,11 +201,49 @@ class TestSignTest(object):
     f = [4, 4, 5, 5, 3, 2, 5, 3, 1, 5, 5, 5, 4, 5, 5, 5, 5]
     m = [2, 3, 3, 3, 3, 3, 3, 3, 2, 3, 2, 2, 5, 2, 5, 3, 1]
 
+    fm = [[4, 4, 5, 5, 3, 2, 5, 3, 1, 5, 5, 5, 4, 5, 5, 5, 5],
+          [2, 3, 3, 3, 3, 3, 3, 3, 2, 3, 2, 2, 5, 2, 5, 3, 1]]
+
+    fmm = [[4, 4, 5, 5, 3, 2, 5, 3, 1, 5, 5, 5, 4, 5, 5, 5, 5],
+           [2, 3, 3, 3, 3, 3, 3, 3, 2, 3, 2, 2, 5, 2, 5, 3, 1],
+           [2, 3, 3, 3, 3, 3, 3, 3, 2, 3, 2, 2, 5, 2, 5, 3, 1]]
+
     def test_sign_test(self):
-        pass
+        s = SignTest(self.f, self.m)
+
+        np.testing.assert_almost_equal(s.p_value, 0.057373046875)
+        assert s.differences_counts['positive'] == 11
+        assert s.differences_counts['negative'] == 3
+        assert s.differences_counts['ties'] == 3
+        assert s.sample_differences_median == 2
+        assert s.alternative == 'two-sided'
+
+        s2 = SignTest(np.array(self.f), np.array(self.m))
+
+        np.testing.assert_almost_equal(s.p_value, s2.p_value)
+
+    def test_sign_test_less(self):
+        s = SignTest(self.f, self.m, alternative='less')
+
+        np.testing.assert_almost_equal(s.p_value, 0.9935302734375)
+
+    def test_sign_test_greater(self):
+        s = SignTest(self.f, self.m, alternative='greater')
+
+        np.testing.assert_almost_equal(s.p_value, 0.0286865234375)
 
     def test_sign_test_exceptions(self):
-        pass
+        with pytest.raises(ValueError):
+            SignTest(self.f[0:5], self.m)
+
+        with pytest.raises(ValueError):
+            SignTest(self.fmm)
+
+        with pytest.raises(ValueError):
+            SignTest(self.f)
+
+        with pytest.raises(ValueError):
+            SignTest(self.f, self.m, alternative='na')
 
 
 class TestMedianTest(object):

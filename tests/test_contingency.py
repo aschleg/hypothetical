@@ -2,7 +2,8 @@
 
 import pytest
 import numpy as np
-from hypothetical.contingency import ChiSquareContingency, CochranQ, FisherTest, McNemarTest
+from hypothetical.contingency import ChiSquareContingency, CochranQ, FisherTest, McNemarTest, \
+    table_margins, expected_frequencies
 
 
 class TestChiSquareContingency(object):
@@ -22,6 +23,13 @@ class TestChiSquareContingency(object):
 
         assert c.continuity
         assert c.degrees_freedom == 6
+
+        observed2 = [[23, 40, 16, 2], [11, 75, 107, 14], [1, 31, 60, 10]]
+        expected2 = [[7.3, 30.3, 38.0, 5.4], [18.6, 77.5, 97.1, 13.8], [9.1, 38.2, 47.9, 6.8]]
+
+        c2 = ChiSquareContingency(observed2, expected2)
+
+        np.testing.assert_almost_equal(c.chi_square, c2.chi_square)
 
     def test_chi_square_contingency_no_continuity(self):
         obs = np.array([[23, 40], [11, 75]])
@@ -120,8 +128,33 @@ class TestMcNemarTest(object):
 
 
 def test_table_margins():
-    pass
+    cont_table = [[10, 10, 20], [20, 20, 10]]
+
+    t = table_margins(cont_table)
+
+    assert t[0][0][0] == 40
+
+    cont_table2 = np.array([[[10, 10, 20], [20, 20, 10]]])
+
+    with pytest.raises(ValueError):
+        table_margins(cont_table2)
+
+    cont_table3 = np.array([10, 10, 20])
+
+    t2 = table_margins(cont_table3)
+
+    assert all(t2[0] == cont_table3)
 
 
 def test_expected_frequencies():
-    pass
+    cont_table = [[10, 10, 20], [20, 20, 10]]
+
+    e = expected_frequencies(cont_table)
+
+    np.testing.assert_array_almost_equal(e, np.array([[13.33333333, 13.33333333, 13.33333333],
+                                                      [16.66666667, 16.66666667, 16.66666667]]))
+
+    cont_table2 = np.array([[[10, 10, 20], [20, 20, 10]]])
+
+    with pytest.raises(ValueError):
+        expected_frequencies(cont_table2)
