@@ -833,13 +833,9 @@ class MedianTest(object):
 
     Parameters
     ----------
-    group: array-like, optional
-        One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
-        membership of the dependent variable(s). Must be the same length as the observation vector(s).
-    group_sample1, group_sample2, ... : array-like
-        Corresponding observation vectors of the group samples. Must be the same length
-        as the group parameter. If the group parameter is None, each observation vector
-        will be treated as a group sample vector.
+    sample1, sample2, ... : array-like
+        One-dimensional array-like objects (numpy array, list, pandas DataFrame or pandas Series) containing the
+        observed sample data. Each sample may be of different lengths.
 
     Attributes
     ----------
@@ -951,6 +947,13 @@ class SignTest(object):
 
     Examples
     --------
+    >>> f = [4, 4, 5, 5, 3, 2, 5, 3, 1, 5, 5, 5, 4, 5, 5, 5, 5]
+    >>> m = [2, 3, 3, 3, 3, 3, 3, 3, 2, 3, 2, 2, 5, 2, 5, 3, 1]
+    >>> s = SignTest(f, m)
+    >>> s.test_summary
+    {'differences count': {'negative': 3, 'positive': 11, 'ties': 3},
+     'median difference': 2.0,
+     'p-value': 0.0286865234375}
 
     References
     ----------

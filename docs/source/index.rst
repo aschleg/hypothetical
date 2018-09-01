@@ -12,3 +12,4 @@ Contents
 
    routine_reference.rst
    bibliography.rst
+   versions.rst

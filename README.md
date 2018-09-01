@@ -47,10 +47,11 @@ Python library for conducting hypothesis and other group comparison tests.
 
 ### Nonparametric Methods
 
+* Kruskal-Wallis (nonparametric equivalent of one-way ANOVA)
 * Mann-Whitney (two sample nonparametric variant of t-test)
 * Mood's Median test
+* Sign test of consistent differences between observation pairs
 * Wilcoxon Rank Sum Test (one sample nonparametric variant of paired and one-sample t-test)
-* Kruskal-Wallis (nonparametric equivalent of one-way ANOVA)
 
 ### Post-Hoc Analysis
 
@@ -65,14 +66,24 @@ Python library for conducting hypothesis and other group comparison tests.
 
 ## Goal
 
-## Motivation
+The goal of the `hypothetical` library is to help bridge the gap in statistics and hypothesis testing 
+capabilities of Python closer to that of R. Python has absolutely come a long way with several popular and 
+amazing libraries that contain a myriad of statistics functions and methods, such as [`numpy`](http://www.numpy.org/), 
+[`pandas`](https://pandas.pydata.org/), and [`scipy`](https://www.scipy.org/); however, it is my humble opinion that 
+there is still more that can be done to make Python an even better language for data and statistics computation. Thus, 
+it is my hope with the `hypothetical` library to build on top of the wonderful Python packages listed earlier and 
+create an easy-to-use, feature complete, statistics library. At the end of the day, if the library helps a user 
+learn more about statistics or get the information they need in an easy way, then I consider that all the success 
+I need!
 
 ## Requirements
 
 * Python 3.5+
-* `pandas >= 0.22.0`
-* `numpy >= 1.13.0`
-* `numpy_indexed >= 0.3.5`
+* `numpy>=1.13.0`
+* `numpy_indexed>=0.3.5`
+* `pandas>=0.22.0`
+* `scipy>=1.1.0`
+* `statsmodels>=0.9.0`
 
 ## Installation
 

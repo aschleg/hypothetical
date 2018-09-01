@@ -73,12 +73,7 @@ class TestCochranQ(object):
 
         np.testing.assert_almost_equal(c.q_statistic, 16.666666666666668)
         np.testing.assert_almost_equal(c.p_value, 0.00024036947641951404)
-        np.testing.assert_array_almost_equal(np.array(c.sample_summary_table), np.array([[0., 13., 18.,  5.],
-                                                                                         [1., 13., 18.,  5.],
-                                                                                         [2.,  3., 18., 15.]]))
-
         assert c.degrees_freedom == 2
-        assert c.k == 3
 
 
 class TestMcNemarTest(object):

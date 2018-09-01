@@ -63,19 +63,34 @@ class ChiSquareContingency(object):
     Parameters
     ----------
     observed : array-like
+        One-dimensional array-like object (list, numpy array, pandas DataFrame or pandas Series) containing
+        the observed sample values.
     expected : array-like, optional
+        One-dimensional array-like object (list, numpy array, pandas DataFrame or pandas Series) containing
+        the observed sample values. If not passed, the expected frequencies are calculated using the
+        :code:`expected_frequencies` function.
     continuity : bool, optional
+        If True and degrees of freedom is equal to 1, Yates's continuity correction is applied.
 
     Attributes
     ----------
     observed : array-like
+        The passed observation vector
     expected : array-like
+        The passed expected frequencies vector.
     continuity : bool
+        If True and degrees of freedom is equal to 1, Yates's continuity correction is applied.
     degrees_freedom : int
+        Degrees of freedom, calculated as :math:`dof = (k - 1)(r - 1)` where :math:`k` is the number of columns
+        and :math:`r` is the number of rows in the contingency table.
     chi_square : float
+        The calculated chi-square value.
     p_value : float
+        The associated p-value.
     association_measures : dict
+        A dictionary containing the phi-coefficient, C, and Cramer's V association measures.
     test_summary : dict
+        A dictionary containing the relevant test results.
 
     Raises
     ------
@@ -111,6 +126,45 @@ class ChiSquareContingency(object):
 
     Notes
     -----
+    The chi-square test is often used to assess the significance (if any) of the differences among :math:`k` different
+    groups. The null hypothesis of the test, :math:`H_0` is typically that there is no significant difference between
+    two or more groups.
+
+    The chi-square test statistic, denoted :math:`\chi^2`, is defined as the following:
+
+    .. math::
+
+        \chi^2 = \sum^r_{i=1} \sum^k_{j=1} \frac{(O_{ij} - E_{ij})^2}{E_{ij}}
+
+    Where :math:`O_{ij}` is the ith observed frequency in the jth group and :math:`E_{ij}` is the corresponding
+    expected frequency. The degrees of freedom is calculated as :math:`dof = (k - 1)(r - 1)` where :math:`k` is
+    the number of columns and :math:`r` is the number of rows in the contingency table. In the case of a 2x2
+    contingency table, Yates's continuity correction may be applied to reduce the error in approximation of using
+    the chi-square distribution to calculate the test statistics. The continuity correction changes the
+    computation of :math:`\chi^2` to the following:
+
+    .. math::
+
+        \chi^2 = \sum^r_{i=1} \sum^k_{j=1} \frac{(|O_{ij} - E_{ij}| - 0.5)^2}{E_{ij}}
+
+    In addition to the test statistics, several measures of association are also provided. The first is the
+    phi coefficient, defined as:
+
+    .. math::
+
+        \phi = \pm \sqrt{\frac{\chi^2}{N}}
+
+    The contingency coefficient, denoted as :math:`C`, is defined as:
+
+    .. math::
+
+        C = \sqrt{\frac{\chi^2}{N + \chi^2}}
+
+    Lastly, Cramer's V is defined as:
+
+    .. math::
+
+        V = \sqrt{\frac{\chi^2}{N(k-1}}
 
     References
     ----------
@@ -122,6 +176,10 @@ class ChiSquareContingency(object):
     Wikipedia contributors. (2018, August 15). Contingency table. In Wikipedia, The Free Encyclopedia.
         Retrieved 12:08, August 28, 2018,
         from https://en.wikipedia.org/w/index.php?title=Contingency_table&oldid=854973657
+
+    Wikipedia contributors. (2017, October 20). Yates's correction for continuity. In Wikipedia, The Free Encyclopedia.
+        Retrieved 12:23, September 1, 2018,
+        from https://en.wikipedia.org/w/index.php?title=Yates%27s_correction_for_continuity&oldid=806197753
 
     """
     def __init__(self, observed, expected=None, continuity=True):
@@ -156,6 +214,15 @@ class ChiSquareContingency(object):
         }
 
     def _chi_square(self):
+        r"""
+        Computes the chi-square test statistic of the contingency table.
+
+        Returns
+        -------
+        chi_val : float
+            The computed chi-square test statistic.
+
+        """
         cont_table = np.absolute(self.observed - self.expected)
 
         if self.degrees_freedom == 1:
@@ -166,11 +233,30 @@ class ChiSquareContingency(object):
         return chi_val
 
     def _p_value(self):
+        r"""
+        Calculates the p-value given the chi-square test statistic and the degrees of freedom.
+
+        Returns
+        -------
+        pval : float
+            The computed p-value.
+
+        """
         pval = chi2.sf(self.chi_square, self.degrees_freedom)
 
         return pval
 
     def _assoc_measure(self):
+        r"""
+        Computes several contingency table association measures.
+
+        Returns
+        -------
+        assocation_measures : dict
+            A dictionary containing the calculated association measures, including the phi coefficient, C, and
+            Cramer's V.
+
+        """
         n = np.sum(self.observed)
 
         filled_diag = self.observed.copy()
@@ -202,16 +288,19 @@ class CochranQ(object):
     Parameters
     ----------
     sample1, sample2, ... : array-like
+        One-dimensional array-like objects (numpy array, list, pandas DataFrame or pandas Series) containing the
+        observed sample data. Each sample must be of the same length.
 
     Attributes
     ----------
-    design_matrix : array-like
-    sample_summary_table : array-like
-    k : int
     degrees_freedom : int
+        Degrees of freedom is calculated as the number of samples minus 1.
     q_statistic : float
+        The calculated Q test statistic.
     p_value : float
+        The p-value of the test statistic.
     test_summary : dict
+        Dictionary containing the relevant test results.
 
     Examples
     --------
@@ -221,16 +310,26 @@ class CochranQ(object):
     >>> cq = CochranQ(r1, r2, r3)
     >>> cq.test_summary
     {'degrees of freedom': 2,
-     'number of samples': 3,
      'p-value': 0.00024036947641951404,
-     'q-statistic': 16.666666666666668,
-     'sample summary table':    sample  1s  sample_size    0s
-     0       0  13         18.0   5.0
-     1       1  13         18.0   5.0
-     2       2   3         18.0  15.0}
+     'q-statistic': 16.666666666666668}
 
     Notes
     -----
+    Cochran's Q test is an extension of McNemar's test for two-way randomized block design experiments in which the
+    response variable is binary (can only take one of two possible outcomes).
+
+    Cochran's Q test is performed by arranging the group sample observation vectors into a two-way table consisting
+    of :math:`n` rows and :math:`k` columns, where the binary responses are tallied as 1s ("successes") and 0s
+    ("failures"). The :math:`Q` test statistic can then be calculated per the following definition:
+
+    .. math::
+
+        Q = \frac{(k - 1) \bigg[k \sum^k_{j=1} G_j^2 - \Big(\sum^k_{j=1} G_j \Big)^2 \bigg]}{k \sum^n_{i=1} L_i - \sum^n_{i=1} L_i^2
+
+    Where :math:`G_j` is the sum of 1s ("successess") in the jth sample and :math:`L_i` is the sum of 1s ("successes")
+    in the ith row.
+
+    The distribution of :math:`Q` is approximated by the chi-square distribution with :math:`df = k - 1`.
 
     References
     ----------
@@ -243,38 +342,48 @@ class CochranQ(object):
 
     """
     def __init__(self, *args):
-        self.design_matrix = build_des_mat(*args, group=None)
-        self.sample_summary_table = self._summary_table()
-        self.k = self.sample_summary_table.shape[0]
-        self.degrees_freedom = self.k - 1
-        self.q_statistic = self._q_test(*args)
+        self.q_statistic, self.degrees_freedom = self._q_test(*args)
         self.p_value = self._p_value()
         self.test_summary = {
             'q-statistic': self.q_statistic,
             'p-value': self.p_value,
-            'number of samples': self.k,
             'degrees of freedom': self.degrees_freedom,
-            'sample summary table': self.sample_summary_table
         }
 
-    def _summary_table(self):
-        sample_counts = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], np.sum)
-        sample_size = self.design_matrix.shape[0] / len(np.unique(self.design_matrix[:, 0]))
+    @staticmethod
+    def _q_test(*args):
+        r"""
+
+        Parameters
+        ----------
+        sample1, sample2, ... : array-like
+            One-dimensional array-like objects (numpy array, list, pandas DataFrame or pandas Series) containing the
+            observed sample data. Each sample must be of the same length.
+
+        Returns
+        -------
+        tuple
+            Tuple containing the computed Q test statistic and the degrees of freedom.
+
+        """
+        design_matrix = build_des_mat(*args, group=None)
+        sample_counts = npi.group_by(design_matrix[:, 0], design_matrix[:, 1], np.sum)
+        sample_size = design_matrix.shape[0] / len(np.unique(design_matrix[:, 0]))
 
         summary_table = pd.DataFrame(sample_counts, columns=['sample', '1s'])
         summary_table['sample_size'] = sample_size
         summary_table['0s'] = summary_table['sample_size'] - summary_table['1s']
 
-        return summary_table
-
-    def _q_test(self, *args):
         li2 = np.sum(np.sum(np.vstack([args]), axis=0) ** 2)
 
-        q = (self.degrees_freedom *
-             (self.k * np.sum(self.sample_summary_table['1s'] ** 2) - np.sum(self.sample_summary_table['1s']) ** 2)) / \
-            (self.k * np.sum(self.sample_summary_table['1s']) - li2)
+        k = summary_table.shape[0]
+        dof = k - 1
 
-        return q
+        q = (dof *
+             (k * np.sum(summary_table['1s'] ** 2) - np.sum(summary_table['1s']) ** 2)) / \
+            (k * np.sum(summary_table['1s']) - li2)
+
+        return q, dof
 
     def _p_value(self):
         pval = chi2.sf(self.q_statistic, self.degrees_freedom)
@@ -368,6 +477,9 @@ class McNemarTest(object):
     exact_p_value : float
     mid_p_value : float
     test_summary : dict
+
+    Raises
+    ------
 
     Notes
     -----
