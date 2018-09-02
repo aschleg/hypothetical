@@ -11,7 +11,7 @@ API Reference
     aov.rst
     contingency.rst
     critical.rst
+    descriptive.rst
     hypothesis.rst
     nonparametric.rst
     posthoc.rst
-    summary.rst

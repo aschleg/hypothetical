@@ -55,7 +55,7 @@ from scipy.stats import beta, chi2, norm, rankdata, t
 from scipy.special import comb
 
 from hypothetical._lib import build_des_mat
-from hypothetical.summary import var
+from hypothetical.descriptive import var
 from hypothetical.hypothesis import BinomialTest
 from hypothetical.contingency import ChiSquareContingency
 

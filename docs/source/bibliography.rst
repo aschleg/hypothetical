@@ -37,6 +37,9 @@ Mann–Whitney U test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
 Pearson correlation coefficient. (2017, July 12). In Wikipedia, The Free Encyclopedia.
     From https://en.wikipedia.org/w/index.php?title=Pearson_correlation_coefficient&oldid=790217169
 
+Press, W., Teukolsky, S., Vetterling, W., & Flannery, B. (2007). Numerical recipes (3rd ed.).
+    Cambridge: Cambridge University Press.
+
 Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
     Brigham Young University: John Wiley & Sons, Inc.
 

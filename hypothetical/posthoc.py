@@ -27,7 +27,7 @@ from hypothetical._lib import build_des_mat
 import numpy as np
 import pandas as pd
 import numpy_indexed as npi
-from hypothetical.summary import var, std_dev
+from hypothetical.descriptive import var, std_dev
 from statsmodels.stats.libqsturng import qsturng, psturng
 from itertools import combinations
 

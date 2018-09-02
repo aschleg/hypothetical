@@ -32,7 +32,7 @@ import numpy_indexed as npi
 from scipy.stats import f
 
 from hypothetical._lib import build_des_mat
-from hypothetical.summary import var
+from hypothetical.descriptive import var
 
 
 class AnovaOneWay(object):

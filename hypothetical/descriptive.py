@@ -205,6 +205,18 @@ def covar(x, y=None, method=None):
     return cov
 
 
+def kurtosis(x, axis=0):
+    if not isinstance(x, np.ndarray):
+        x = np.array(x)
+
+    k = np.apply_along_axis(_kurt, axis, x)
+
+    if k.shape == ():
+        k = float(k)
+
+    return k
+
+
 def pearson(x, y=None):
     r"""
     Computes the Pearson product-moment correlation coefficients of the given variables.
@@ -282,6 +294,10 @@ def pearson(x, y=None):
             pearson_corr[i, j] = cov_matrix[i, j] / np.sqrt(cov_matrix[i, i] * cov_matrix[j, j])
 
     return pearson_corr
+
+
+def skewness():
+    pass
 
 
 def spearman(x, y=None):
@@ -362,7 +378,34 @@ def spearman(x, y=None):
     return spearman_corr
 
 
-def var(x, method=None):
+def std_dev(x):
+    r"""
+    Calculates the standard deviation by simply taking the square
+    root of the variance.
+
+    Parameters
+    ----------
+    x : array_like
+        Numpy ndarray, pandas DataFrame or Series, list, or list of lists representing a 1D or 2D array
+        containing the variables and their respective observation vectors.
+
+    Returns
+    -------
+    sd : numpy array or float
+        The computed standard deviation.
+
+    See Also
+    --------
+    var : function for computing the variance of an observation array.
+
+    """
+    v = var(x)
+    sd = np.sqrt(v)
+
+    return sd
+
+
+def var(x, method='corrected two pass', correction=True):
     r"""
     Front-end interface function for computing the variance of a sample
     or population.
@@ -473,6 +516,9 @@ def var(x, method=None):
         Analysis and Recommendations. The American Statistician, 37(3), 242-247.
         http://dx.doi.org/10.1080/00031305.1983.10483115
 
+    Press, W., Teukolsky, S., Vetterling, W., & Flannery, B. (2007). Numerical recipes (3rd ed.).
+        Cambridge: Cambridge University Press.
+
     """
 
     if isinstance(x, pd.DataFrame):
@@ -488,41 +534,46 @@ def var(x, method=None):
     dim = xx.ndim
     n = xx.shape[0]
 
+    if correction:
+        d = (n - 1)
+    else:
+        d = n
+
     if method is None or method == 'corrected two pass':
         if dim == 1:
             varr = (np.sum(np.power(xx - np.mean(xx), 2)) - (1 / n) *
-                    np.power(np.sum(xx - np.mean(xx)), 2)) / (n - 1)
+                    np.power(np.sum(xx - np.mean(xx)), 2)) / d
 
         else:
             varr = np.empty(xx.shape[1])
             j = 0
             for i in xx.T:
                 varr[j] = (np.sum(np.power(i - np.mean(i), 2)) - (1 / n) *
-                           np.power(np.sum(i - np.mean(i)), 2)) / (n - 1)
+                           np.power(np.sum(i - np.mean(i)), 2)) / d
 
                 j += 1
 
     elif method == 'textbook one pass':
         if dim == 1:
             varr = (np.sum(np.power(xx, 2.)) - (1. / n) *
-                    np.power(np.sum(xx), 2.)) / (n - 1)
+                    np.power(np.sum(xx), 2.)) / d
 
         else:
             varr = np.empty(xx.shape[1])
             j = 0
             for i in xx.T:
-                varr[j] = (np.sum(np.power(i, 2.)) - (1. / n) * np.power(np.sum(i), 2.)) / (n - 1)
+                varr[j] = (np.sum(np.power(i, 2.)) - (1. / n) * np.power(np.sum(i), 2.)) / d
                 j += 1
 
     elif method == 'standard two pass':
         if dim == 1:
-            varr = np.sum(np.power(xx - np.mean(xx), 2)) / (n - 1)
+            varr = np.sum(np.power(xx - np.mean(xx), 2)) / d
 
         else:
             varr = np.empty(xx.shape[1])
             j = 0
             for i in xx.T:
-                varr[j] = np.sum(np.power(i - np.mean(i), 2)) / (n - 1)
+                varr[j] = np.sum(np.power(i - np.mean(i), 2)) / d
                 j += 1
 
     elif method == 'youngs cramer':
@@ -536,7 +587,7 @@ def var(x, method=None):
                 t = t + xx[j]
                 s = s + (1. / (nn * (nn - 1)) * np.power(nn * xx[j] - t, 2))
 
-            varr = s / float(n - 1)
+            varr = s / float(d)
 
         else:
             varr = np.empty(xx.shape[1])
@@ -552,7 +603,7 @@ def var(x, method=None):
                     t = t + i[j]
                     s = s + (1. / (nn * (nn - 1))) * np.power(nn * i[j] - t, 2)
 
-                s = s / (n - 1.)
+                s = s / d
                 varr[k] = s
                 k += 1
 
@@ -561,33 +612,6 @@ def var(x, method=None):
                          "'standard two pass', 'youngs cramer', or None.")
 
     return varr
-
-
-def std_dev(x):
-    r"""
-    Calculates the standard deviation by simply taking the square
-    root of the variance.
-
-    Parameters
-    ----------
-    x : array_like
-        Numpy ndarray, pandas DataFrame or Series, list, or list of lists representing a 1D or 2D array
-        containing the variables and their respective observation vectors.
-
-    Returns
-    -------
-    sd : numpy array or float
-        The computed standard deviation.
-
-    See Also
-    --------
-    var : function for computing the variance of an observation array.
-
-    """
-    v = var(x)
-    sd = np.sqrt(v)
-
-    return sd
 
 
 def variance_condition(x):
@@ -652,3 +676,12 @@ def variance_condition(x):
         raise ValueError('array must be 1D or 2D')
 
     return kap_cond
+
+
+def _kurt(x, normal=True):
+    n = x.shape[0]
+    m = np.mean(x)
+
+    kurt = np.sum(((x - m) ** 4. / n) / np.sqrt(var(x, correction=False)) ** 4.) - (3. * normal)
+
+    return kurt

@@ -22,8 +22,9 @@ Python library for conducting hypothesis and other group comparison tests.
 * McNemar's Test of paired nominal data
 * Cochran's Q test
 
-### Correlation, Covariance and Variance
+### Descriptive Statistics
 
+* Kurtosis
 * Pearson Correlation
 * Spearman Correlation
 * Covariance
