@@ -165,3 +165,15 @@ class TestVariance:
 
         with pytest.raises(ValueError):
             var(ff)
+
+
+def test_kurtosis():
+    pass
+
+
+def test_skewness():
+    pass
+
+
+def test_mean_abs_dev():
+    pass

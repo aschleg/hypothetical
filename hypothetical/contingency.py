@@ -480,6 +480,10 @@ class McNemarTest(object):
 
     Raises
     ------
+    ValueError
+        raised if the passed table has more than 2 columns or rows.
+    ValueError
+        raised if the table contains negative values.
 
     Notes
     -----
@@ -528,7 +532,7 @@ class McNemarTest(object):
             self.table = table
 
         if self.table.shape != (2, 2):
-            raise ValueError("Fisher's Exact Test requires a 2x2 contingency table with non-negative integers.")
+            raise ValueError("McNemar's Test requires a 2x2 contingency table with non-negative integers.")
 
         if (self.table < 0).any():
             raise ValueError('All values in table should be non-negative.')
@@ -594,6 +598,25 @@ def table_margins(table):
     r"""
     Computes the marginal sums of a one or two-dimensional array.
 
+    Parameters
+    ----------
+    table : array-like
+
+    Raises
+    ------
+    ValueError
+        The given array must be either a one or two-dimensional array.
+
+    Returns
+    -------
+    r, c : tuple
+
+    Notes
+    -----
+
+    Examples
+    --------
+
     """
     if not isinstance(table, np.ndarray):
         table = np.array(table).copy()
@@ -614,6 +637,29 @@ def table_margins(table):
 
 
 def expected_frequencies(observed):
+    r"""
+    Computes the expected frequencies of a given contingency table with observed frequencies.
+
+    Parameters
+    ----------
+    observed : array-like
+
+    Raises
+    ------
+    ValueError
+        the dimension of the :code:`observed` parameter cannot be greater than two.
+
+    Returns
+    -------
+    exp_freq : array-like
+
+    Examples
+    --------
+
+    Notes
+    -----
+
+    """
     if not isinstance(observed, np.ndarray):
         observed = np.array(observed).copy()
 

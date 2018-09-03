@@ -12,6 +12,8 @@ Descriptive Statistics
 
     cov
     kurtosis
+    skewness
+    mean_absolute_deviation
     var
     std_dev
     variance_condition

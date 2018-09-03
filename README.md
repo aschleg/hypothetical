@@ -25,6 +25,8 @@ Python library for conducting hypothesis and other group comparison tests.
 ### Descriptive Statistics
 
 * Kurtosis
+* Skewness
+* Mean Absolute Deviation
 * Pearson Correlation
 * Spearman Correlation
 * Covariance

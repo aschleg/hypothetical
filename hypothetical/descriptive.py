@@ -29,6 +29,9 @@ Other Functions
 .. autosummary::
     :toctree: generated/
 
+    kurtosis
+    skewness
+    mean_absolute_deviation
     variance_condition
 
 References
@@ -46,6 +49,9 @@ Chan, T., Golub, G., & LeVeque, R. (1982). Updating Formulae and a Pairwise Algo
 
 Pearson correlation coefficient. (2017, July 12). In Wikipedia, The Free Encyclopedia.
     From https://en.wikipedia.org/w/index.php?title=Pearson_correlation_coefficient&oldid=790217169
+
+Press, W., Teukolsky, S., Vetterling, W., & Flannery, B. (2007). Numerical recipes (3rd ed.).
+    Cambridge: Cambridge University Press.
 
 Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
     Brigham Young University: John Wiley & Sons, Inc.
@@ -206,6 +212,41 @@ def covar(x, y=None, method=None):
 
 
 def kurtosis(x, axis=0):
+    r"""
+    Computes the kurtosis of an array along a specified axis.
+
+    Parameters
+    ----------
+    x : array-like
+        One or two-dimensional array of data.
+    axis : int
+        Specifies which axis of the data to compute the kurtosis. The default is 0 (column-wise in a 2d-array).
+
+    Returns
+    -------
+    k : float or array-like
+        If x is one-dimensional, the kurtosis of the data is returned as a float. If x is two-dimensional, the
+        calculated kurtosis along the specified axis is returned as a numpy array of floats.
+
+    Examples
+    --------
+    >>> kurtosis([5, 2, 4, 5, 6, 2, 3])
+    -1.4515532544378704
+    >>> kurtosis([[5, 2, 4, 5, 6, 2, 3], [4, 6, 4, 3, 2, 6, 7]], axis=1)
+    array([-1.45155325, -1.32230624])
+
+    Notes
+    -----
+
+    References
+    ----------
+    Press, W., Teukolsky, S., Vetterling, W., & Flannery, B. (2007). Numerical recipes (3rd ed.).
+        Cambridge: Cambridge University Press.
+
+    Wikipedia contributors. (2018, August 28). Kurtosis. In Wikipedia, The Free Encyclopedia.
+        Retrieved 12:19, September 3, 2018, from https://en.wikipedia.org/w/index.php?title=Kurtosis&oldid=856893890
+
+    """
     if not isinstance(x, np.ndarray):
         x = np.array(x)
 
@@ -215,6 +256,54 @@ def kurtosis(x, axis=0):
         k = float(k)
 
     return k
+
+
+def mean_absolute_deviation(x, axis=0, mean=False):
+    r"""
+    Calculates the mean absolute deviation of a data array along a specified axis.
+
+    Parameters
+    ----------
+    x : array-like
+        One or two-dimensional array of data.
+    axis : int
+        Specifies which axis of the data to compute the mean absolute deviation. The default is 0
+        (column-wise in a 2d-array).
+    mean : bool
+        If False (default), the sample median is used to compute the mean absolute deviation. If True, the sample
+        mean is used.
+
+    Returns
+    -------
+    m : float or array-like
+        If x is one-dimensional, the mean absolute deviation of the data is returned as a float. If x is
+        two-dimensional, the calculated mean absolute deviation along the specified axis is returned as a numpy
+        array of floats.
+
+    Examples
+    --------
+
+    Notes
+    -----
+
+    References
+    ----------
+    Press, W., Teukolsky, S., Vetterling, W., & Flannery, B. (2007). Numerical recipes (3rd ed.).
+        Cambridge: Cambridge University Press.
+
+    """
+    if not isinstance(x, np.ndarray):
+        x = np.array(x)
+
+    if mean:
+        m = np.apply_along_axis(_mad, axis, x)
+    else:
+        m = np.apply_along_axis(_med, axis, x)
+
+    if m.shape == ():
+        m = float(m)
+
+    return m
 
 
 def pearson(x, y=None):
@@ -296,8 +385,42 @@ def pearson(x, y=None):
     return pearson_corr
 
 
-def skewness():
-    pass
+def skewness(x, axis=0):
+    r"""
+
+    Parameters
+    ----------
+    x : array-like
+    axis : int
+
+    Returns
+    -------
+    s : float or array-like
+
+    Examples
+    --------
+
+    Notes
+    -----
+
+    References
+    ----------
+    Press, W., Teukolsky, S., Vetterling, W., & Flannery, B. (2007). Numerical recipes (3rd ed.).
+        Cambridge: Cambridge University Press.
+
+    Wikipedia contributors. (2018, August 13). Skewness. In Wikipedia, The Free Encyclopedia.
+        Retrieved 12:18, September 3, 2018, from https://en.wikipedia.org/w/index.php?title=Skewness&oldid=854777849
+
+    """
+    if not isinstance(x, np.ndarray):
+        x = np.array(x)
+
+    s = np.apply_along_axis(_skew, axis, x)
+
+    if s.shape == ():
+        s = float(s)
+
+    return s
 
 
 def spearman(x, y=None):
@@ -413,13 +536,14 @@ def var(x, method='corrected two pass', correction=True):
     Parameters
     ----------
     x : array_like
-        Accepts a numpy array, nested list, dictionary, or
-        pandas DataFrame. The private function _create_array
-        is called to create a copy of x as a numpy array.
+        One or two-dimensional array of data points. Accepts a numpy array, list, pandas DataFrame, or pandas Series.
     method : {'corrected_two_pass', 'textbook_one_pass', 'standard_two_pass', 'youngs_cramer'}, optional.
         Selects algorithm used to calculate variance. Default method is :code:`corrected_two_pass` which
         is generally more computationally stable than other algorithms (with the exception of youngs-cramer,
         perhaps).
+    correction : bool
+        If True (default), Bessel's correction, :math:`n - 1` is used in computing the variance rather than
+        :math:`n`.
 
     Returns
     -------
@@ -685,3 +809,30 @@ def _kurt(x, normal=True):
     kurt = np.sum(((x - m) ** 4. / n) / np.sqrt(var(x, correction=False)) ** 4.) - (3. * normal)
 
     return kurt
+
+
+def _skew(x):
+    n = x.shape[0]
+    m = np.mean(x)
+
+    skew = np.sum(((x - m) ** 3. / n) / np.sqrt(var(x, correction=False)) ** 3.)
+
+    return skew
+
+
+def _mad(x):
+    n = x.shape[0]
+    m = np.mean(x)
+
+    mad = (1. / n) * np.sum(np.absolute(x - m))
+
+    return mad
+
+
+def _med(x):
+    n = x.shape[0]
+    m = np.median(x)
+
+    med = (1. / n) * np.sum(np.absolute(x - m))
+
+    return med
