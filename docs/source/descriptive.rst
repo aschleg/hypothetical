@@ -10,8 +10,10 @@ Descriptive Statistics
 .. autosummary::
     :toctree: generated/
 
+    add_noise
     cov
     kurtosis
+    SimulateCorrelationMatrix
     skewness
     mean_absolute_deviation
     var

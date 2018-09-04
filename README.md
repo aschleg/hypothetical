@@ -34,6 +34,8 @@ Python library for conducting hypothesis and other group comparison tests.
     sample data are available
 * Variance
   - Several algorithms are also available for computing variance.
+* Simulation of Correlation Matrices
+  - Multiple simulation algorithms are available for generating correlation matrices.
 
 ### Critical Value Tables and Lookup Functions
 
@@ -63,6 +65,7 @@ Python library for conducting hypothesis and other group comparison tests.
 
 ### Helpful Functions
 
+* Add noise to a correlation or other matrix
 * Tie Correction for ranked variables
 * Contingency table marginal sums
 * Contingency table expected frequencies

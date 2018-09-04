@@ -1020,6 +1020,12 @@ class SignTest(object):
         return res.p_value
 
 
+class VanDerWaerden(object):
+
+    def __init__(self):
+        pass
+
+
 class WilcoxonTest(object):
     r"""
     Performs Wilcoxon Rank Sum tests for matched pairs and independent samples.
