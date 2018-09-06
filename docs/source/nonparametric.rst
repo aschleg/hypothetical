@@ -10,6 +10,7 @@ Nonparametric Methods of Inference
 .. autosummary::
     :toctree: generated/
 
+    FriedmanTest
     KruskalWallis
     MannWhitney
     MedianTest

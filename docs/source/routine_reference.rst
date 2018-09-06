@@ -14,4 +14,5 @@ API Reference
     descriptive.rst
     hypothesis.rst
     nonparametric.rst
+    normality.rst
     posthoc.rst

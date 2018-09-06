@@ -1,11 +1,11 @@
 
 
 import pytest
-from hypothetical.hypothesis import BinomialTest, ChiSquareTest, tTest
+from hypothetical.hypothesis import BinomialTest, tTest
 import pandas as pd
 import numpy as np
 import os
-from scipy.stats import t, chisquare
+from scipy.stats import t
 
 
 @pytest.fixture
@@ -24,23 +24,9 @@ def test_multiclass_data():
     return insectsprays
 
 
-@pytest.fixture
-def sample1():
+class TestBinomial(object):
     x = 682
     n = 925
-
-    return x, n
-
-@pytest.fixture
-def chi_square_obs_exp():
-    obs = [29, 19, 18, 25, 17, 10, 15, 11]
-    exp = [18, 18, 18, 18, 18, 18, 18, 18]
-
-    return obs, exp
-
-
-class TestBinomial(object):
-    x, n = sample1()
 
     def test_binomial_twosided(self):
         binomial_test = BinomialTest(n=self.n, x=self.x)
@@ -216,51 +202,6 @@ class TestBinomial(object):
 
         with pytest.raises(ValueError):
             BinomialTest(x=self.x, n=self.n, alternative='na')
-
-
-class TestChiSquare(object):
-    obs, exp = chi_square_obs_exp()
-
-    def test_chisquaretest(self):
-        chi_test = ChiSquareTest(self.obs, self.exp)
-        sci_chi_test = chisquare(self.obs, self.exp)
-
-        np.testing.assert_almost_equal(chi_test.chi_square, sci_chi_test.statistic)
-        np.testing.assert_almost_equal(chi_test.p_value, sci_chi_test.pvalue)
-
-        assert not chi_test.continuity_correction
-        assert chi_test.degrees_of_freedom == len(self.obs) - 1
-
-    def test_chisquaretest_arr(self):
-        chi_test = ChiSquareTest(np.array(self.obs), np.array(self.exp))
-        sci_chi_test = chisquare(self.obs, self.exp)
-
-        np.testing.assert_almost_equal(chi_test.chi_square, sci_chi_test.statistic)
-        np.testing.assert_almost_equal(chi_test.p_value, sci_chi_test.pvalue)
-
-        assert not chi_test.continuity_correction
-        assert chi_test.degrees_of_freedom == len(self.obs) - 1
-
-    def test_chisquaretest_continuity(self):
-        chi_test = ChiSquareTest(self.obs, self.exp, continuity=True)
-
-        np.testing.assert_almost_equal(chi_test.chi_square, 14.333333333333334)
-        np.testing.assert_almost_equal(chi_test.p_value, 0.045560535300404756)
-
-        assert chi_test.continuity_correction
-
-    def test_chisquare_no_exp(self):
-        chi_test = ChiSquareTest(self.obs)
-        sci_chi_test = chisquare(self.obs, self.exp)
-
-        np.testing.assert_almost_equal(chi_test.chi_square, sci_chi_test.statistic)
-        np.testing.assert_almost_equal(chi_test.p_value, sci_chi_test.pvalue)
-
-    def test_chisquare_exceptions(self):
-        obs, exp = chi_square_obs_exp()
-
-        with pytest.raises(ValueError):
-            ChiSquareTest(obs, exp[:5])
 
 
 class Test_tTest(object):

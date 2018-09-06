@@ -11,5 +11,4 @@ Hypothesis Tests
     :toctree: generated/
 
     BinomialTest
-    ChiSquareTest
     tTest

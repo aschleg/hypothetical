@@ -9,6 +9,7 @@ Nonparametric Inference Methods
 .. autosummary::
     :toctree: generated/
 
+    FriedmanTest
     KruskalWallis
     MannWhitney
     MedianTest
@@ -51,8 +52,7 @@ Wikipedia contributors. (2017, June 27). Median test. In Wikipedia, The Free Enc
 
 import numpy as np
 import numpy_indexed as npi
-from scipy.stats import beta, chi2, norm, rankdata, t
-from scipy.special import comb
+from scipy.stats import beta, chi2, norm, rankdata, t, find_repeats
 
 from hypothetical._lib import build_des_mat
 from hypothetical.descriptive import var
@@ -75,16 +75,10 @@ class FriedmanTest(object):
         from https://en.wikipedia.org/w/index.php?title=Friedman_test&oldid=855731754
 
     """
-    def __init__(self, *args, group=None):
-        self.design_matrix = build_des_mat(*args, group=group)
+    def __init__(self, *args):
+        self.design_matrix = np.vstack(args).T
 
-        if group is not None:
-            self.group = group
-        else:
-            self.group = self.design_matrix[:, 0]
-
-        self.k = len(np.unique(self.group))
-        self.n = self.design_matrix.shape[0] / self.k
+        self.n, self.k = self.design_matrix.shape
 
         self.xr2 = self._xr2_test()
         self.p_value = self._p_value()
@@ -95,12 +89,25 @@ class FriedmanTest(object):
 
     def _xr2_test(self):
 
-        ranks = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], self._rank)
-        rank_means = np.mean(np.array([i for _, i in ranks]), axis=1)
-        rank_sums = np.sum(np.array([i for _, i in ranks]), axis=1)
+        ranks = []
+        for i in range(self.n):
+            ranks.append(rankdata(self.design_matrix[i]))
 
-        #xr2 = ((12. * self.n) / (self.k * (self.k + 1.))) * np.sum((rank_means - (self.k + 1.) / 2.) ** 2.)
-        xr2 = (12. / (self.n * self.k * (self.k + 1.))) * np.sum(rank_sums) ** 2. - (3. * self.n * (self.k + 1.))
+        ranks = np.vstack(ranks)
+
+        ties = []
+
+        for i in range(self.n):
+            repeat_count = list(find_repeats(self.design_matrix[i])[1])
+            if repeat_count:
+                ties.append(repeat_count)
+
+        correction = 1 - np.sum(np.array(ties) ** 3 - np.array(ties)) / (self.n * (self.k ** 3 - self.k))
+
+        xr2 = (12. / (self.n * self.k * (self.k + 1.))) * np.sum(np.sum(ranks, axis=0) ** 2.) \
+              - (3. * self.n * (self.k + 1.))
+
+        xr2 /= correction
 
         return xr2
 
@@ -108,10 +115,6 @@ class FriedmanTest(object):
         pval = chi2.sf(self.xr2, self.k - 1)
 
         return pval
-
-    @staticmethod
-    def _rank(a):
-        return rankdata(a, 'average')
 
 
 class KruskalWallis(object):
@@ -597,7 +600,16 @@ class MannWhitney(object):
         self.z_value = self._z()
         self.p_value = self._p_val()
         self.effect_size = self._eff_size()
-        self.test_summary = self._generate_result_summary()
+        self.test_summary = {
+            'continuity': self.continuity,
+            'U': self.u_statistic,
+            'mu meanrank': self.meanrank,
+            'sigma': self.sigma,
+            'z-value': self.z_value,
+            'effect size': self.effect_size,
+            'p-value': self.p_value,
+            'test description': 'Mann-Whitney U test'
+        }
 
     def _u(self):
         r"""
@@ -793,29 +805,6 @@ class MannWhitney(object):
         es = np.abs(self.z_value) / np.sqrt(self.n)
 
         return es
-
-    def _generate_result_summary(self):
-        r"""
-        Method for returning the relevant statistics and information from a fitted Mann-Whitney U-test.
-
-        Returns
-        -------
-        mw_results : dict
-            Dictionary containing the fitted Mann-Whitney test results.
-
-        """
-        mw_results = {
-            'continuity': self.continuity,
-            'U': self.u_statistic,
-            'mu meanrank': self.meanrank,
-            'sigma': self.sigma,
-            'z-value': self.z_value,
-            'effect size': self.effect_size,
-            'p-value': self.p_value,
-            'test description': 'Mann-Whitney U test'
-        }
-
-        return mw_results
 
     def _rank(self):
         ranks = np.concatenate((self.y1, self.y2))

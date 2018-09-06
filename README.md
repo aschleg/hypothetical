@@ -46,17 +46,21 @@ Python library for conducting hypothesis and other group comparison tests.
 ### Hypothesis Testing
 
 * Binomial Test
-* Chi-square one-sample goodness-of-fit
 * t-test
   - paired, one and two sample testing
 
 ### Nonparametric Methods
 
+* Friedman's test for repeated measures
 * Kruskal-Wallis (nonparametric equivalent of one-way ANOVA)
 * Mann-Whitney (two sample nonparametric variant of t-test)
 * Mood's Median test
 * Sign test of consistent differences between observation pairs
 * Wilcoxon Rank Sum Test (one sample nonparametric variant of paired and one-sample t-test)
+
+### Normality and Goodness-of-Fit Tests
+
+* Chi-square one-sample goodness-of-fit
 
 ### Post-Hoc Analysis
 
