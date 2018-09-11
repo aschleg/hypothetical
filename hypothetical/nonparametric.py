@@ -50,14 +50,17 @@ Wikipedia contributors. (2017, June 27). Median test. In Wikipedia, The Free Enc
 
 """
 
+from itertools import groupby
 import numpy as np
 import numpy_indexed as npi
 from scipy.stats import beta, chi2, norm, rankdata, t, find_repeats
+from scipy.special import comb
 
 from hypothetical._lib import build_des_mat
 from hypothetical.descriptive import var
 from hypothetical.hypothesis import BinomialTest
 from hypothetical.contingency import ChiSquareContingency
+from hypothetical.critical import r_critical_value
 
 
 class FriedmanTest(object):
@@ -909,6 +912,51 @@ class MedianTest(object):
         return c.chi_square, c.p_value
 
 
+class RunsTest(object):
+
+    def __init__(self, x, continuity=True):
+        if not isinstance(x, np.ndarray):
+            self.x = np.array(x)
+        else:
+            self.x = x
+
+        if len(np.unique(self.x)) > 2:
+            raise ValueError('runs test is defined only for runs of binary responses.')
+
+        self.runs, self.r = count_runs(self.x)
+        self.runs_test = self._runs_test()
+
+    def _runs_test(self):
+        n1, n2 = find_repeats(self.x).counts
+        k = 2
+
+        if self.r % 2 == 0:
+            r_range = np.arange(2, self.r + 1)
+            p = 1 / comb(n1 + n2, n1) * np.sum(2 * comb(n1 - 1, r_range / 2 - 1) * comb(n2 - 1, r_range / 2 - 1))
+        else:
+            p = 1 / comb(n1 + n2, n1) * np.sum(comb(n1 - 1, k - 1) * comb(n2 - 1, k - 2) +
+                                               comb(n1 - 1, k - 2) * comb(n2 - 1, k - 1))
+
+        if n1 < 20 or n2 < 20:
+            r_crit_1, r_crit_2 = r_critical_value(n1, n2)
+
+            if r_crit_1 < self.r < r_crit_2:
+                test_result = 'accept H0'
+
+            else:
+                test_result = 'reject H0'
+
+            return p, r_crit_1, r_crit_2, test_result
+
+        else:
+            mean = (2 * n1 * n2) / (n1 + n2) + 1
+            sd = np.sqrt((2 * n1 * n2 * (2 * n1 * n2 - n1 - n2)) / ((n1 + n2) ** 2 * (n1 + n2 - 1)))
+            z = (self.r - mean) / sd
+            p_val = norm.sf(z)
+
+            return p, mean, sd, z, p_val
+
+
 class SignTest(object):
     r"""
     Computes the nonparametric sign test of differences between paired observations.
@@ -1011,7 +1059,13 @@ class SignTest(object):
 
 class VanDerWaerden(object):
 
-    def __init__(self):
+    def __init__(self, *args, post_hoc=True):
+        pass
+
+
+class WaldWolfowitz(object):
+
+    def __init__(self, x, y, continuity=True):
         pass
 
 
@@ -1129,7 +1183,13 @@ class WilcoxonTest(object):
         self.z = self._zvalue()
         self.p = self._pvalue()
         self.effect_size = self._eff_size()
-        self.test_summary = self._generate_result_summary()
+        self.test_summary = {
+            'V': self.V,
+            'z-value': self.z,
+            'p-value': self.p,
+            'effect size': self.effect_size,
+            'test description': self.test_description
+        }
 
         # if self.n > 10:
         #     self.z = self._zvalue()
@@ -1307,26 +1367,6 @@ class WilcoxonTest(object):
 
         return es
 
-    def _generate_result_summary(self):
-        r"""
-        Method for returning the relevant statistics and information from a fitted Mann-Whitney U-test.
-
-        Returns
-        -------
-        test_results : dict
-            Dictionary containing the fitted Mann-Whitney test results.
-
-        """
-        test_results = {
-            'V': self.V,
-            'z-value': self.z,
-            'p-value': self.p,
-            'effect size': self.effect_size,
-            'test description': self.test_description
-        }
-
-        return test_results
-
 
 def tie_correction(rank_array):
     r"""
@@ -1380,3 +1420,13 @@ def tie_correction(rank_array):
                                                            rank_array.shape[0])
 
     return corr
+
+
+def count_runs(*args):
+    data = np.hstack([*args])
+
+    runs = np.array([sum(1 for _ in r) for _, r in groupby(np.array(data))])
+
+    run_count = len(runs)
+
+    return runs, run_count

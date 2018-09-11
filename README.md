@@ -39,9 +39,10 @@ Python library for conducting hypothesis and other group comparison tests.
 
 ### Critical Value Tables and Lookup Functions
 
-* Chi-square
-* Wilcoxon Rank Sum W-statistic
+* Chi-square statistic
+* r (one-sample runs test and Wald-Wolfowitz runs test) statistic 
 * Mann-Whitney U-statistic
+* Wilcoxon Rank Sum W-statistic
 
 ### Hypothesis Testing
 
