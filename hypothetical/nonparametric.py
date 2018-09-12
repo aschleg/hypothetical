@@ -13,6 +13,7 @@ Nonparametric Inference Methods
     KruskalWallis
     MannWhitney
     MedianTest
+    RunsTest
     SignTest
     WilcoxonTest
 
@@ -23,6 +24,7 @@ Other Functions
     :toctree: generated/
 
     tie_correction
+    count_runs
 
 References
 ----------
@@ -53,6 +55,7 @@ Wikipedia contributors. (2017, June 27). Median test. In Wikipedia, The Free Enc
 from itertools import groupby
 import numpy as np
 import numpy_indexed as npi
+import pandas as pd
 from scipy.stats import beta, chi2, norm, rankdata, t, find_repeats
 from scipy.special import comb
 
@@ -921,40 +924,54 @@ class RunsTest(object):
             self.x = x
 
         if len(np.unique(self.x)) > 2:
-            raise ValueError('runs test is defined only for runs of binary responses.')
+            raise ValueError('runs test is defined only for runs of binary responses, '
+                             '(True/False, 1/0, Group A/Group B, etc).')
 
+        self.continuity = continuity
         self.runs, self.r = count_runs(self.x)
-        self.runs_test = self._runs_test()
+        self.test_summary = self._runs_test()
 
     def _runs_test(self):
-        n1, n2 = find_repeats(self.x).counts
-        k = 2
+        n1, n2 = find_repeats(pd.factorize(self.x)[0]).counts
 
-        if self.r % 2 == 0:
-            r_range = np.arange(2, self.r + 1)
-            p = 1 / comb(n1 + n2, n1) * np.sum(2 * comb(n1 - 1, r_range / 2 - 1) * comb(n2 - 1, r_range / 2 - 1))
-        else:
-            p = 1 / comb(n1 + n2, n1) * np.sum(comb(n1 - 1, k - 1) * comb(n2 - 1, k - 2) +
+        r_range = np.arange(2, self.r + 1)
+        evens = r_range[r_range % 2 == 0]
+        odds = r_range[r_range % 2 != 0]
+        k = (odds - 1) / 2
+
+        p_even = 1 / comb(n1 + n2, n1) * np.sum(2 * comb(n1 - 1, evens / 2 - 1) * comb(n2 - 1, evens / 2 - 1))
+
+        p_odd = 1 / comb(n1 + n2, n1) * np.sum(comb(n1 - 1, k - 1) * comb(n2 - 1, k - 2) +
                                                comb(n1 - 1, k - 2) * comb(n2 - 1, k - 1))
 
-        if n1 < 20 or n2 < 20:
+        p = p_even + p_odd
+
+        if all(np.array([n1, n2]) < 20):
             r_crit_1, r_crit_2 = r_critical_value(n1, n2)
 
-            if r_crit_1 < self.r < r_crit_2:
-                test_result = 'accept H0'
-
-            else:
-                test_result = 'reject H0'
-
-            return p, r_crit_1, r_crit_2, test_result
+            test_summary = {
+                'probability': p,
+                'r critical value 1': r_crit_1,
+                'r critical value 2': r_crit_2,
+                'r': self.r
+            }
+            return test_summary
 
         else:
             mean = (2 * n1 * n2) / (n1 + n2) + 1
             sd = np.sqrt((2 * n1 * n2 * (2 * n1 * n2 - n1 - n2)) / ((n1 + n2) ** 2 * (n1 + n2 - 1)))
-            z = (self.r - mean) / sd
-            p_val = norm.sf(z)
+            z = (np.absolute(self.r - mean) - (0.5 * self.continuity)) / sd
+            p_val = norm.sf(z) * 2
 
-            return p, mean, sd, z, p_val
+            test_summary = {
+                'probability': p,
+                'mean of runs': mean,
+                'standard deviation of runs': sd,
+                'z-value': z,
+                'p-value': p_val
+            }
+
+            return test_summary
 
 
 class SignTest(object):
@@ -1066,7 +1083,35 @@ class VanDerWaerden(object):
 class WaldWolfowitz(object):
 
     def __init__(self, x, y, continuity=True):
-        pass
+        if not isinstance(x, np.ndarray):
+            self.x = x
+        else:
+            self.x = x
+
+        if not isinstance(y, np.ndarray):
+            self.y = y
+        else:
+            self.y = y
+
+        self.continuity = continuity
+        self.runs, self.r, self.test_summary = self._test()
+
+    def _test(self):
+        x_group = np.repeat('A', len(self.x))
+        y_group = np.repeat('B', len(self.y))
+
+        x = np.array([self.x, x_group])
+        y = np.array([self.y, y_group])
+
+        xy = np.hstack((x, y)).T
+
+        xy_groups = xy[xy[:, 0].argsort()][:, 0]
+
+        test = RunsTest(xy_groups, continuity=self.continuity)
+
+        runs, r, test_summary = test.runs, test.r, test.test_summary
+
+        return runs, r, test_summary
 
 
 class WilcoxonTest(object):
@@ -1422,10 +1467,8 @@ def tie_correction(rank_array):
     return corr
 
 
-def count_runs(*args):
-    data = np.hstack([*args])
-
-    runs = np.array([sum(1 for _ in r) for _, r in groupby(np.array(data))])
+def count_runs(x):
+    runs = np.array([sum(1 for _ in r) for _, r in groupby(np.array(x))])
 
     run_count = len(runs)
 

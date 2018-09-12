@@ -56,6 +56,7 @@ Python library for conducting hypothesis and other group comparison tests.
 * Kruskal-Wallis (nonparametric equivalent of one-way ANOVA)
 * Mann-Whitney (two sample nonparametric variant of t-test)
 * Mood's Median test
+* One-sample Runs Test
 * Sign test of consistent differences between observation pairs
 * Wilcoxon Rank Sum Test (one sample nonparametric variant of paired and one-sample t-test)
 
@@ -74,6 +75,7 @@ Python library for conducting hypothesis and other group comparison tests.
 * Tie Correction for ranked variables
 * Contingency table marginal sums
 * Contingency table expected frequencies
+* Runs and count of runs
 
 ## Goal
 

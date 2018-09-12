@@ -14,6 +14,7 @@ Nonparametric Methods of Inference
     KruskalWallis
     MannWhitney
     MedianTest
+    RunsTest
     SignTest
     WilcoxonTest
 
@@ -24,3 +25,4 @@ Other Related Functions
     :toctree: generated/
 
     tie_correction
+    count_runs
