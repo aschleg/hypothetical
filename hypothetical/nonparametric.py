@@ -15,6 +15,7 @@ Nonparametric Inference Methods
     MedianTest
     RunsTest
     SignTest
+    WaldWolfowitz
     WilcoxonTest
 
 Other Functions
@@ -937,12 +938,11 @@ class RunsTest(object):
         r_range = np.arange(2, self.r + 1)
         evens = r_range[r_range % 2 == 0]
         odds = r_range[r_range % 2 != 0]
-        k = (odds - 1) / 2
 
         p_even = 1 / comb(n1 + n2, n1) * np.sum(2 * comb(n1 - 1, evens / 2 - 1) * comb(n2 - 1, evens / 2 - 1))
 
-        p_odd = 1 / comb(n1 + n2, n1) * np.sum(comb(n1 - 1, k - 1) * comb(n2 - 1, k - 2) +
-                                               comb(n1 - 1, k - 2) * comb(n2 - 1, k - 1))
+        p_odd = 1 / comb(n1 + n2, n1) * np.sum(comb(n1 - 1, odds - 1) * comb(n2 - 1, odds - 2) +
+                                               comb(n1 - 1, odds - 2) * comb(n2 - 1, odds - 1))
 
         p = p_even + p_odd
 
@@ -951,6 +951,7 @@ class RunsTest(object):
 
             test_summary = {
                 'probability': p,
+                'p-value': p,
                 'r critical value 1': r_crit_1,
                 'r critical value 2': r_crit_2,
                 'r': self.r
@@ -1095,19 +1096,24 @@ class WaldWolfowitz(object):
 
         self.continuity = continuity
         self.runs, self.r, self.test_summary = self._test()
+        self.p_value = self.test_summary['p-value']
+        self.probability = self.test_summary['probability']
+
+        try:
+            self.z = self.test_summary['z-value']
+        except KeyError:
+            pass
 
     def _test(self):
         x_group = np.repeat('A', len(self.x))
         y_group = np.repeat('B', len(self.y))
 
-        x = np.array([self.x, x_group])
-        y = np.array([self.y, y_group])
+        x = pd.DataFrame({'val': self.x, 'group': x_group})
+        y = pd.DataFrame({'val': self.y, 'group': y_group})
 
-        xy = np.hstack((x, y)).T
+        xy = np.array(x.append(y).sort_values('val'))
 
-        xy_groups = xy[xy[:, 0].argsort()][:, 0]
-
-        test = RunsTest(xy_groups, continuity=self.continuity)
+        test = RunsTest(xy[:, 0], continuity=self.continuity)
 
         runs, r, test_summary = test.runs, test.r, test.test_summary
 

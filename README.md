@@ -58,6 +58,7 @@ Python library for conducting hypothesis and other group comparison tests.
 * Mood's Median test
 * One-sample Runs Test
 * Sign test of consistent differences between observation pairs
+* Wald-Wolfowitz Two-Sample Runs test
 * Wilcoxon Rank Sum Test (one sample nonparametric variant of paired and one-sample t-test)
 
 ### Normality and Goodness-of-Fit Tests
