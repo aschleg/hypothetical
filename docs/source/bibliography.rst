@@ -9,6 +9,9 @@ Algorithms for calculating variance. (2017, June 24). In Wikipedia, The Free Enc
 
 Andrews, D. F., and Herzberg, A. M. (1985), Data, New York: Springer-Verlag.
 
+B. W. Yap & C. H. Sim (2011) Comparisons of various types of normality tests,
+    Journal of Statistical Computation and Simulation, 81:12, 2141-2155, DOI: 10.1080/00949655.2010.520163
+
 Chan, T., Golub, G., & LeVeque, R. (1983). Algorithms for Computing the Sample Variance:
     Analysis and Recommendations. The American Statistician, 37(3), 242-247.
     http://dx.doi.org/10.1080/00031305.1983.10483115
@@ -55,6 +58,11 @@ Spearman's rank correlation coefficient. (2017, June 24). In Wikipedia, The Free
 Student's t-test. (2017, June 20). In Wikipedia, The Free Encyclopedia.
     From https://en.wikipedia.org/w/index.php?title=Student%27s_t-test&oldid=786562367
 
+Ukponmwan H. Nosakhare, Ajibade F. Bright. Evaluation of Techniques for Univariate Normality Test Using Monte
+    Carlo Simulation. American Journal of Theoretical and Applied Statistics.
+    Special Issue: Statistical Distributions and Modeling in Applied Mathematics.
+    Vol. 6, No. 5-1, 2017, pp. 51-61. doi: 10.11648/j.ajtas.s.2017060501.18
+
 Weisstein, Eric W. "Covariance Matrix." From MathWorld--A Wolfram Web Resource.
     http://mathworld.wolfram.com/CovarianceMatrix.html
 
@@ -68,6 +76,10 @@ Wikipedia contributors. (2018, July 14). Binomial proportion confidence interval
 Wikipedia contributors. (2018, May 20). Fisher's exact test. In Wikipedia, The Free Encyclopedia.
     Retrieved 12:46, August 14, 2018,
     from https://en.wikipedia.org/w/index.php?title=Fisher%27s_exact_test&oldid=842100719
+
+Wikipedia contributors. (2018, March 20). Jarque–Bera test. In Wikipedia, The Free Encyclopedia.
+    Retrieved 14:46, September 15, 2018,
+    from https://en.wikipedia.org/w/index.php?title=Jarque%E2%80%93Bera_test&oldid=831439673
 
 Wikipedia contributors. (2018, May 21). Kruskal–Wallis one-way analysis of variance.
     In Wikipedia, The Free Encyclopedia. From

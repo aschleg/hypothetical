@@ -1,5 +1,35 @@
+
+"""
+
+Implementations of goodness-of-fit tests.
+
+Goodness-of-fit
+---------------
+
+.. autosummary::
+    :toctree: generated/
+
+    ChiSquareTest
+    jarque_bera
+
+References
+----------
+B. W. Yap & C. H. Sim (2011) Comparisons of various types of normality tests,
+    Journal of Statistical Computation and Simulation, 81:12, 2141-2155, DOI: 10.1080/00949655.2010.520163
+
+Ukponmwan H. Nosakhare, Ajibade F. Bright. Evaluation of Techniques for Univariate Normality Test Using Monte
+    Carlo Simulation. American Journal of Theoretical and Applied Statistics.
+    Special Issue: Statistical Distributions and Modeling in Applied Mathematics.
+    Vol. 6, No. 5-1, 2017, pp. 51-61. doi: 10.11648/j.ajtas.s.2017060501.18
+
+Wikipedia contributors. (2018, March 20). Jarque–Bera test. In Wikipedia, The Free Encyclopedia.
+    Retrieved 14:46, September 15, 2018,
+    from https://en.wikipedia.org/w/index.php?title=Jarque%E2%80%93Bera_test&oldid=831439673
+
+"""
 import numpy as np
 from scipy.stats import chi2
+from hypothetical.descriptive import kurtosis, skewness
 
 
 class ChiSquareTest(object):
@@ -142,3 +172,50 @@ class ChiSquareTest(object):
         pval = chi2.sf(self.chi_square, self.degrees_of_freedom)
 
         return pval
+
+
+def jarque_bera(x):
+    r"""
+    Performs the Jarque-Bera goodness-of-fit test.
+
+    Parameters
+    ----------
+    x : array-like
+
+    Returns
+    -------
+    test_result : dict
+
+    Examples
+    --------
+
+    Notes
+    -----
+
+    References
+    ----------
+    B. W. Yap & C. H. Sim (2011) Comparisons of various types of normality tests,
+        Journal of Statistical Computation and Simulation, 81:12, 2141-2155, DOI: 10.1080/00949655.2010.520163
+
+    Ukponmwan H. Nosakhare, Ajibade F. Bright. Evaluation of Techniques for Univariate Normality Test Using Monte
+        Carlo Simulation. American Journal of Theoretical and Applied Statistics.
+        Special Issue: Statistical Distributions and Modeling in Applied Mathematics.
+        Vol. 6, No. 5-1, 2017, pp. 51-61. doi: 10.11648/j.ajtas.s.2017060501.18
+
+    Wikipedia contributors. (2018, March 20). Jarque–Bera test. In Wikipedia, The Free Encyclopedia.
+        Retrieved 14:46, September 15, 2018,
+        from https://en.wikipedia.org/w/index.php?title=Jarque%E2%80%93Bera_test&oldid=831439673
+
+    """
+    n = len(x)
+
+    jb = n / 6. * (skewness(x) ** 2 + kurtosis(x) ** 2 / 4)
+
+    p_value = chi2.sf(jb, 2)
+
+    test_result = {
+        'JB test statistic': jb,
+        'p-value': p_value
+    }
+
+    return test_result

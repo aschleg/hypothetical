@@ -51,6 +51,10 @@ Wikipedia contributors. (2018, May 21). Kruskal–Wallis one-way analysis of var
 Wikipedia contributors. (2017, June 27). Median test. In Wikipedia, The Free Encyclopedia.
     Retrieved 12:23, August 19, 2018, from https://en.wikipedia.org/w/index.php?title=Median_test&oldid=787822318
 
+Wikipedia contributors. (2018, August 22). Wald–Wolfowitz runs test. In Wikipedia, The Free Encyclopedia.
+        Retrieved 13:54, September 13, 2018,
+        from https://en.wikipedia.org/w/index.php?title=Wald%E2%80%93Wolfowitz_runs_test&oldid=856082551
+
 """
 
 from itertools import groupby
@@ -1082,7 +1086,31 @@ class VanDerWaerden(object):
 
 
 class WaldWolfowitz(object):
+    r"""
+    Performs the Wald-Wolfowitz Two-Sample runs test.
 
+    Attributes
+    ----------
+
+    Parameters
+    ----------
+
+    Examples
+    --------
+
+    Notes
+    -----
+
+    References
+    ----------
+    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+        McGraw-Hill. ISBN 07-057348-4
+
+    Wikipedia contributors. (2018, August 22). Wald–Wolfowitz runs test. In Wikipedia, The Free Encyclopedia.
+        Retrieved 13:54, September 13, 2018,
+        from https://en.wikipedia.org/w/index.php?title=Wald%E2%80%93Wolfowitz_runs_test&oldid=856082551
+
+    """
     def __init__(self, x, y, continuity=True):
         if not isinstance(x, np.ndarray):
             self.x = x

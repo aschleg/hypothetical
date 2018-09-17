@@ -64,6 +64,7 @@ Python library for conducting hypothesis and other group comparison tests.
 ### Normality and Goodness-of-Fit Tests
 
 * Chi-square one-sample goodness-of-fit
+* Jarque-Bera test
 
 ### Post-Hoc Analysis
 

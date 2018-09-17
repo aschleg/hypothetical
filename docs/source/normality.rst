@@ -11,3 +11,4 @@ Normality and Goodness-of-Fit Tests
     :toctree: generated/
 
     ChiSquareTest
+    jarque_bera
