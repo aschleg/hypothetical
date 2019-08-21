@@ -4,7 +4,6 @@ import pandas as pd
 from hypothetical._lib import build_des_mat
 
 
-@pytest.fixture
 def test_array():
     d = np.array([[1., 1.11, 2.569, 3.58, 0.76],
                   [1., 1.19, 2.928, 3.75, 0.821],

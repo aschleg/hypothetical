@@ -7,7 +7,6 @@ import os
 from scipy.stats import rankdata, tiecorrect
 
 
-@pytest.fixture
 def test_data():
     datapath = os.path.dirname(os.path.abspath(__file__))
     salaries = pd.read_csv(os.path.join(datapath, 'data/Salaries.csv'))
@@ -15,7 +14,6 @@ def test_data():
     return salaries
 
 
-@pytest.fixture
 def multivariate_test_data():
     d = np.array([[1., 1.11, 2.569, 3.58, 0.76],
                   [1., 1.19, 2.928, 3.75, 0.821],
@@ -69,7 +67,6 @@ def multivariate_test_data():
     return d
 
 
-@pytest.fixture
 def plants_test_data():
     datapath = os.path.dirname(os.path.abspath(__file__))
     plants = pd.read_csv(os.path.join(datapath, 'data/PlantGrowth.csv'))
@@ -77,9 +74,11 @@ def plants_test_data():
     return plants
 
 
-def test_MannWhitney(test_data):
-    sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
-    sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
+def test_MannWhitney():
+    data = test_data()
+
+    sal_a = data.loc[data['discipline'] == 'A']['salary']
+    sal_b = data.loc[data['discipline'] == 'B']['salary']
 
     mw = MannWhitney(sal_a, sal_b)
 
@@ -93,7 +92,7 @@ def test_MannWhitney(test_data):
 
     assert test_result['continuity']
 
-    mw2 = MannWhitney(group=test_data['discipline'], y1=test_data['salary'])
+    mw2 = MannWhitney(group=data['discipline'], y1=data['salary'])
 
     assert test_result == mw2.test_summary
 
@@ -115,11 +114,12 @@ def test_MannWhitney(test_data):
         MannWhitney(y1=mult_data[:, 1], group=mult_data[:, 0])
 
 
-def test_wilcox_test(test_data):
+def test_wilcox_test():
+    data = test_data()
     mult_data = multivariate_test_data()
 
-    sal_a = test_data.loc[test_data['discipline'] == 'A']['salary']
-    sal_b = test_data.loc[test_data['discipline'] == 'B']['salary']
+    sal_a = data.loc[data['discipline'] == 'A']['salary']
+    sal_b = data.loc[data['discipline'] == 'B']['salary']
 
     w = WilcoxonTest(sal_a)
 

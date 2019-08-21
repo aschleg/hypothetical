@@ -458,74 +458,130 @@ class FisherTest(object):
 
 
 class McNemarTest(object):
-    r"""
-    Computes the McNemar Test for two related samples in a 2x2 contingency table.
 
-    Parameters
-    ----------
-    table : array-like
-    continuity : bool, False
-
-    Attributes
-    ----------
-    table : array-like
-    continuity : bool
-    n : int
-    mcnemar_x2_statistic : float
-    z_asymptotic_statistic : float
-    mcnemar_p_value : float
-    exact_p_value : float
-    mid_p_value : float
-    test_summary : dict
-
-    Raises
-    ------
-    ValueError
-        raised if the passed table has more than 2 columns or rows.
-    ValueError
-        raised if the table contains negative values.
-
-    Notes
-    -----
-
-    Examples
-    --------
-    >>> m = McNemarTest([[59, 6], [16, 80]])
-    >>> m.test_summary
-    {'Asymptotic z-statistic': 2.1320071635561044,
-     'Exact p-value': 0.052478790283203125,
-     'McNemar p-value': 0.03300625766123255,
-     'McNemar x2-statistic': 4.545454545454546,
-     'Mid p-value': 0.034689664840698256,
-     'N': 161,
-     'continuity': False}
-    >>> m2 = McNemarTest([[59, 6], [16, 80]], continuity=True)
-    >>> m2.test_summary
-    {'Asymptotic z-statistic': 1.9188064472004938,
-     'Exact p-value': 0.052478790283203125,
-     'McNemar p-value': 0.055008833629265896,
-     'McNemar x2-statistic': 3.6818181818181817,
-     'Mid p-value': 0.034689664840698256,
-     'N': 161,
-     'continuity': True}
-
-    References
-    ----------
-    Fagerland, M. W., Lydersen, S., & Laake, P. (2013).
-        The McNemar test for binary matched-pairs data: Mid-p and asymptotic are better than exact conditional.
-        Retrieved April 14, 2018, from http://www.biomedcentral.com/1471-2288/13/91
-
-    Gibbons, J. D., & Chakraborti, S. (2010). Nonparametric statistical inference. London: Chapman & Hall.
-
-    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
-        McGraw-Hill. ISBN 07-057348-4
-
-    Wikipedia contributors. (2018, April 29). McNemar's test. In Wikipedia, The Free Encyclopedia.
-        Retrieved 12:24, August 15, 2018,
-        from https://en.wikipedia.org/w/index.php?title=McNemar%27s_test&oldid=838855782
-
-    """
     def __init__(self, table, continuity=False):
+        r"""
+        Computes the McNemar Test for two related samples in a 2x2 contingency table.
+
+        Parameters
+        ----------
+        table : array-like
+            Array-like object representing a 2x2 paired contingency table.
+        continuity : bool, False
+            Use continuity-corrected version of McNemar's chi-square test statistic as proposed by Edwards. Defaults to
+            False as simulations performed by Fagerland (et al.) have shown the continuity-corrected version of McNemar's
+            test to be overly conservative compared to the original McNemar test statistic.
+
+        Attributes
+        ----------
+        table : array-like
+            Array-like object representing a 2x2 paired contingency table.
+        continuity : bool
+            Apply continuity-corrected version of McNemar's chi-square statistic.
+        n : int
+            Total number of samples.
+        mcnemar_x2_statistic : float
+            The McNemar chi-square test statistic. If the parameter continuity is True, this value will be the continuity
+            corrected version of the test statistic.
+        z_asymptotic_statistic : float
+            The test statistic of the asymptotic McNemar test. If the continuity parameter is True, the continuity
+            corrected version of the asymptotic McNemar test as proposed by Edwards will be performed.
+        mcnemar_p_value : float
+            The p-value of the McNemar test statistic.
+        exact_p_value : float
+            The exact p-value of the McNemar test. The exact p-value is generally more accurate when the sample sizes
+            of the data is small.
+        mid_p_value : float
+            The mid p-value of the McNemar test.
+        test_summary : dict
+            Dictionary containing relevant returned test statistics and entered parameters.
+
+        Raises
+        ------
+        ValueError
+            raised if the passed table has more than 2 columns or rows.
+        ValueError
+            raised if the table contains negative values.
+        ValueError
+            raised when table cell n_12 and n_21 are both 0.
+
+        Notes
+        -----
+        McNemar's test is a test for paired data as in the case of 2x2 contingency tables with a dichotomous trait. The
+        McNemar test determines if the row and column marginal frequencies are equal, which is also known as marginal
+        homogeneity. For example, McNemar's test can be used when comparing postive/negative results for two tests,
+        surgery vs. non-surgery in siblings and non-siblings, and other instances. The test was developed by Quinn
+        McNemar in 1947.
+
+        Consider a 2x2 contingency table with four cells where each cell and its position is denoted :math:`n_{rc}` where
+        :math:`r = row` and :math:`c = column`. The appropriate null hypothesis states the marginal probabilities of
+        each outcome are the same.
+
+        .. math::
+
+            n_{11} + n_{12} = n_{11} + n_{21}
+            n_{12} + n_{22} = n_{21} + n_{22}
+
+        The above simplifies to :math:`n_{12} = n_{21}`. Therefore the null hypothesis can be stated more simply as:
+
+        .. math::
+
+            H_0: n_{12} = n_{21}
+
+        The null hypothesis can also be stated as the off-diagonal probabilities of the 2x2 contingency table are the same,
+        with the alternative hypothesis stating the probabilities are not equal. To test this hypothesis, the McNemar test
+        can be used, which is defined as:
+
+        .. math::
+
+            \chi^2 = \frac{(n_{12} - n_{21})^2}{n_{12} + n_{21}}
+
+        With an adequate number of samples, the McNemar test static, :math:`\chi^2` has a chi-square distribution with
+        one degree of freedom.
+
+        There also exists several variations of the original McNemar test that may have better performance in specific
+        cases.
+
+
+
+
+        Examples
+        --------
+        >>> m = McNemarTest([[59, 6], [16, 80]])
+        >>> m.test_summary
+        {'Asymptotic z-statistic': 2.1320071635561044,
+         'Exact p-value': 0.052478790283203125,
+         'McNemar p-value': 0.03300625766123255,
+         'McNemar x2-statistic': 4.545454545454546,
+         'Mid p-value': 0.034689664840698256,
+         'N': 161,
+         'continuity': False}
+        >>> m2 = McNemarTest([[59, 6], [16, 80]], continuity=True)
+        >>> m2.test_summary
+        {'Asymptotic z-statistic': 1.9188064472004938,
+         'Exact p-value': 0.052478790283203125,
+         'McNemar p-value': 0.055008833629265896,
+         'McNemar x2-statistic': 3.6818181818181817,
+         'Mid p-value': 0.034689664840698256,
+         'N': 161,
+         'continuity': True}
+
+        References
+        ----------
+        Fagerland, M. W., Lydersen, S., & Laake, P. (2013).
+            The McNemar test for binary matched-pairs data: Mid-p and asymptotic are better than exact conditional.
+            Retrieved April 14, 2018, from http://www.biomedcentral.com/1471-2288/13/91
+
+        Gibbons, J. D., & Chakraborti, S. (2010). Nonparametric statistical inference. London: Chapman & Hall.
+
+        Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+            McGraw-Hill. ISBN 07-057348-4
+
+        Wikipedia contributors. (2018, April 29). McNemar's test. In Wikipedia, The Free Encyclopedia.
+            Retrieved 12:24, August 15, 2018,
+            from https://en.wikipedia.org/w/index.php?title=McNemar%27s_test&oldid=838855782
+
+        """
         if not isinstance(table, np.ndarray):
             self.table = np.array(table)
         else:
@@ -536,6 +592,9 @@ class McNemarTest(object):
 
         if (self.table < 0).any():
             raise ValueError('All values in table should be non-negative.')
+
+        if self.table[0, 1] == 0 and self.table[1, 0] == 0:
+            raise ValueError('Entered values n_12 and n_21 cannot be zero.')
 
         self.n = np.sum(self.table)
         self.continuity = continuity

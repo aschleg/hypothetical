@@ -5,7 +5,6 @@ import pandas as pd
 import os
 
 
-@pytest.fixture
 def test_data():
     datapath = os.path.dirname(os.path.abspath(__file__))
     plants = pd.read_csv(os.path.join(datapath, 'data/PlantGrowth.csv'))
@@ -13,7 +12,6 @@ def test_data():
     return plants
 
 
-@pytest.fixture
 def multivariate_test_data():
     d = np.array([[1., 1.11, 2.569, 3.58, 0.76],
                   [1., 1.19, 2.928, 3.75, 0.821],
@@ -117,6 +115,7 @@ def test_AnovaOneWay():
 
 def test_ManovaOneWay():
     dat = multivariate_test_data()
+
     dat_shape = dat.shape
     manov = ManovaOneWay(dat[:, 1], dat[:, 2], dat[:, 3], dat[:, 4], group=dat[:, 0])
 

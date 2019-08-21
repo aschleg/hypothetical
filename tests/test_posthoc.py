@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 
 
-@pytest.fixture
 def test_data():
     datapath = os.path.dirname(os.path.abspath(__file__))
     data = pd.read_csv(os.path.join(datapath, 'data/InsectSprays.csv'))
