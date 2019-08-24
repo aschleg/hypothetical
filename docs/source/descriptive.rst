@@ -10,7 +10,6 @@ Descriptive Statistics
 .. autosummary::
     :toctree: generated/
 
-    add_noise
     cov
     kurtosis
     SimulateCorrelationMatrix

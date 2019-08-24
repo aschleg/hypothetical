@@ -243,8 +243,16 @@ def kurtosis(x, axis=0):
     ----------
     x : array-like
         One or two-dimensional array of data.
-    axis : int
-        Specifies which axis of the data to compute the kurtosis. The default is 0 (column-wise in a 2d-array).
+    axis : int {0, 1}
+        Specifies which axis of the data to compute the kurtosis. The default is 0 (column-wise in a 2d-array). Cannot
+        be greater than 1.
+
+    Raises
+    ------
+    ValueError
+        Raised if :code:`x` array is not a one or two-dimensional array.
+    ValueError
+        Raised if the :code:`axis` parameter is greater than 1.
 
     Returns
     -------
@@ -261,6 +269,19 @@ def kurtosis(x, axis=0):
 
     Notes
     -----
+    Kurtosis, also known as the fourth moment, is non-dimensionl and measures the comparative 'flatness' or 'peak'
+    of a given distribution to a normal distribution. Leptokurtic distributions have a positive kurtosis while
+    platykurtic distributions have a negative kurtosis value. Though less commmon, distributions with a zero
+    kurtosis value are called mesokurtic.
+
+    Kurtosis is typically defined as:
+
+    .. math::
+
+        Kurt(x_0, \cdots, x_{n-1}) = \large{\frac{1}{n} \sum^{n-1}_{j=0} \large[\frac{x_j - \bar{x}}{\sigma}
+        \large]^4 \large} - 3
+
+    The :math:`-3` term is applied so a normal distribution will have a 0 kurtosis value (mesokurtic).
 
     References
     ----------
@@ -271,8 +292,14 @@ def kurtosis(x, axis=0):
         Retrieved 12:19, September 3, 2018, from https://en.wikipedia.org/w/index.php?title=Kurtosis&oldid=856893890
 
     """
+    if axis > 1:
+        raise ValueError('axis must be 0 (row-wise) or 1 (column-wise)')
+
     if not isinstance(x, np.ndarray):
         x = np.array(x)
+
+    if x.ndim > 2:
+        raise ValueError('array cannot have more than two dimensions')
 
     k = np.apply_along_axis(_kurt, axis, x)
 
@@ -290,12 +317,21 @@ def mean_absolute_deviation(x, axis=0, mean=False):
     ----------
     x : array-like
         One or two-dimensional array of data.
-    axis : int
+    axis : {0, 1} int
         Specifies which axis of the data to compute the mean absolute deviation. The default is 0
         (column-wise in a 2d-array).
     mean : bool
         If False (default), the sample median is used to compute the mean absolute deviation. If True, the sample
         mean is used.
+
+    Raises
+    ------
+    ValueError
+        Raised if :code:`x` array is not a one or two-dimensional array.
+    ValueError
+        Raised if the :code:`axis` parameter is greater than 1.
+    TypeError
+        Raised if the :code:`mean` parameter is not boolean.
 
     Returns
     -------
@@ -316,8 +352,17 @@ def mean_absolute_deviation(x, axis=0, mean=False):
         Cambridge: Cambridge University Press.
 
     """
+    if axis > 1:
+        raise ValueError('axis parameter must be 0 (row-wise) or 1 (column-wise)')
+
+    if not isinstance(mean, bool):
+        raise TypeError('mean parameter must be True or False.')
+
     if not isinstance(x, np.ndarray):
         x = np.array(x)
+
+    if x.ndim > 2:
+        raise ValueError('array cannot have more than two dimensions')
 
     if mean:
         m = np.apply_along_axis(_mad, axis, x)
@@ -522,21 +567,47 @@ class SimulateCorrelationMatrix(object):
 
 def skewness(x, axis=0):
     r"""
+    Calculates the skewness of a given array.
 
     Parameters
     ----------
     x : array-like
-    axis : int
+        One or two-dimensional array of data.
+    axis : int {0, 1}
+        Specifies which axis of the data to compute the skewness. The default is 0 (column-wise in a 2d-array). Cannot
+        be greater than 1.
+
+    Raises
+    ------
+    ValueError
+        Raised if :code:`x` array is not a one or two-dimensional array.
+    ValueError
+        Raised if the :code:`axis` parameter is greater than 1.
 
     Returns
     -------
     s : float or array-like
+        If the given array is one-dimensional, a float value is returned. If two dimensional, an array is returned
+        with the calculated skewness across the given axis.
 
     Examples
     --------
+    >>> skewness([5, 2, 4, 5, 6, 2, 3])
+    -0.028285981029545847
+    >>> skewness([[5, 2, 4, 5, 6, 2, 3], [4, 6, 4, 3, 2, 6, 7]], axis=1)
+    array([-0.02828598, -0.03331004])
 
     Notes
     -----
+    The skewness, also known as the third moment, measures the degree of asymmetry of the given distribution around
+    its mean. Skewness is typically defined as:
+
+    .. math::
+
+        Skew (x_0, \cdots, x_{n-1}) = \frac{1}{n} \sum^{n-1}_{j=0} \large[\frac{x_j - \bar{x}}{\sigma} \large]^3
+
+    A positive skewness signifies an asymmetric distribution with a tail extending in the positive direction of x,
+    whereas a negative skewness denotes an asymmetric distribution with the tail extending towards negative x.
 
     References
     ----------
@@ -547,8 +618,14 @@ def skewness(x, axis=0):
         Retrieved 12:18, September 3, 2018, from https://en.wikipedia.org/w/index.php?title=Skewness&oldid=854777849
 
     """
+    if axis > 1:
+        raise ValueError('axis must be 0 (row-wise) or 1 (column-wise)')
+
     if not isinstance(x, np.ndarray):
         x = np.array(x)
+
+    if x.ndim > 2:
+        raise ValueError('array cannot have more than two dimensions')
 
     s = np.apply_along_axis(_skew, axis, x)
 

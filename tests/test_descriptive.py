@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import pandas as pd
-from hypothetical.descriptive import covar, pearson, spearman, var, std_dev, variance_condition
+from hypothetical.descriptive import covar, pearson, spearman, var, std_dev, variance_condition, kurtosis, skewness
 from hypothetical._lib import build_summary_matrix
 from scipy.stats import spearmanr
 from numpy.core.multiarray import array
@@ -172,7 +172,14 @@ def test_kurtosis():
 
 
 def test_skewness():
-    pass
+    s1 = skewness([5, 2, 4, 5, 6, 2, 3])
+    s2 = skewness([[5, 2, 4, 5, 6, 2, 3], [4, 6, 4, 3, 2, 6, 7]], axis=1)
+
+    np.testing.assert_almost_equal(s1, -0.028285981029545847)
+    np.testing.assert_allclose(s2, array([-0.02828598, -0.03331004]))
+
+    with pytest.raises(ValueError):
+        skewness([5, 2, 4, 5, 6, 2, 3], axis=2)
 
 
 def test_mean_abs_dev():
