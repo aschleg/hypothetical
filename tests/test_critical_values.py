@@ -57,3 +57,23 @@ def test_w_critical_value():
         c.w_critical_value(20, 0.02, 'two-tail')
     with pytest.raises(ValueError):
         c.w_critical_value(25, 0.05, 'three-tail')
+
+
+def test_r_critical_value():
+
+    n1, n2 = 4, 20
+
+    r_crit1, r_rcrit2 = c.r_critical_value(n1, n2)
+
+    np.testing.assert_allclose([r_crit1, r_rcrit2], [4, np.nan])
+
+    n1, n2 = 7, 15
+
+    r_crit1, r_rcrit2 = c.r_critical_value(n1, n2)
+
+    np.testing.assert_allclose([r_crit1, r_rcrit2], [6, 15])
+
+    with pytest.raises(ValueError):
+        c.r_critical_value(10, 25)
+    with pytest.raises(ValueError):
+        c.r_critical_value(25, 15)

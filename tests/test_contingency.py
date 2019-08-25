@@ -2,7 +2,7 @@
 
 import pytest
 import numpy as np
-from hypothetical.contingency import ChiSquareContingency, CochranQ, FisherTest, McNemarTest, \
+from hypothetical.contingency import ChiSquareContingency, CochranQ, McNemarTest, \
     table_margins, expected_frequencies
 
 
@@ -120,6 +120,12 @@ class TestMcNemarTest(object):
 
         with pytest.raises(ValueError):
             McNemarTest(np.array([[-1, 10], [10, 20]]))
+
+        with pytest.raises(ValueError):
+            McNemarTest(np.array([[0, 0], [0, 0]]))
+
+        with pytest.raises(ValueError):
+            McNemarTest(np.zeros((2, 2, 2)))
 
 
 def test_table_margins():

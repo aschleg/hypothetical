@@ -89,7 +89,7 @@ def chi_square_critical_value(alpha, dof):
 
 
 def r_critical_value(n1, n2):
-    if not all(array([n1, n2]) < 20):
+    if not all(array([n1, n2]) <= 20):
         raise ValueError('critical values of the r-statistic are only defined for samples of size 20 or less.')
 
     r1_crit = r_critical_value_table['r1'][(n1, n2)]

@@ -1,7 +1,8 @@
 import pytest
 import numpy as np
 import pandas as pd
-from hypothetical.descriptive import covar, pearson, spearman, var, std_dev, variance_condition, kurtosis, skewness
+from hypothetical.descriptive import covar, pearson, spearman, var, std_dev, variance_condition, \
+    kurtosis, skewness, mean_absolute_deviation
 from hypothetical._lib import build_summary_matrix
 from scipy.stats import spearmanr
 from numpy.core.multiarray import array
@@ -168,7 +169,10 @@ class TestVariance:
 
 
 def test_kurtosis():
-    pass
+    with pytest.raises(ValueError):
+        kurtosis([5, 2, 4, 5, 6, 2, 3], axis=2)
+    with pytest.raises(ValueError):
+        skewness(np.zeros((4, 4, 4)))
 
 
 def test_skewness():
@@ -180,7 +184,17 @@ def test_skewness():
 
     with pytest.raises(ValueError):
         skewness([5, 2, 4, 5, 6, 2, 3], axis=2)
+    with pytest.raises(ValueError):
+        skewness(np.zeros((4, 4, 4)))
 
 
 def test_mean_abs_dev():
-    pass
+
+    with pytest.raises(ValueError):
+        mean_absolute_deviation([2, 2, 3, 4, 5, 5, 6], axis=2)
+
+    with pytest.raises(TypeError):
+        mean_absolute_deviation([2, 2, 3, 4, 5, 5, 6], mean='true')
+
+    with pytest.raises(ValueError):
+        mean_absolute_deviation(np.zeros((4, 4, 4)))

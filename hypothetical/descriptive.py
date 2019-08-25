@@ -343,8 +343,10 @@ def mean_absolute_deviation(x, axis=0, mean=False):
     Examples
     --------
 
+
     Notes
     -----
+
 
     References
     ----------
@@ -715,8 +717,7 @@ def spearman(x, y=None):
 
 def std_dev(x):
     r"""
-    Calculates the standard deviation by simply taking the square
-    root of the variance.
+    Calculates the standard deviation by taking the square root of the variance.
 
     Parameters
     ----------
@@ -728,6 +729,28 @@ def std_dev(x):
     -------
     sd : numpy array or float
         The computed standard deviation.
+
+    Examples
+    --------
+    >>> s = std_dev([2, 5])
+    2.12132034
+    >>> s2 = std_dev([[5, 2], [2, 5]])
+    array([2.12132034, 2.12132034])
+
+    Notes
+    -----
+    The standard deviation is defined as the square root of the variance. For example, the corrected two pass
+    algorithm for computing variance is defined as:
+
+    .. math::
+
+        S = \sum^N_{i=1} (x_i - \bar{x})^2 - \frac{1}{N} \left( \sum^N_{i=1} (x_i - \bar{x}) \right)^2
+
+    Thus, the standard deviation would be defined as:
+
+    .. math::
+
+        \sigma = \sqrt{S}
 
     See Also
     --------
