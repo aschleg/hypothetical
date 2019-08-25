@@ -172,8 +172,14 @@ def test_kurtosis():
     with pytest.raises(ValueError):
         kurtosis([5, 2, 4, 5, 6, 2, 3], axis=2)
     with pytest.raises(ValueError):
-        skewness(np.zeros((4, 4, 4)))
+        kurtosis(np.zeros((4, 4, 4)))
 
+    k1 = kurtosis([5, 2, 4, 5, 6, 2, 3])
+    k2 = kurtosis([[5, 2, 4, 5, 6, 2, 3], [4, 6, 4, 3, 2, 6, 7]], axis=1)
+
+    np.testing.assert_almost_equal(k1, -1.4515532544378704)
+    np.testing.assert_allclose(k2, array([-1.45155325, -1.32230624]))
+    
 
 def test_skewness():
     s1 = skewness([5, 2, 4, 5, 6, 2, 3])
