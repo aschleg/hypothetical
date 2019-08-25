@@ -10,7 +10,7 @@ Descriptive Statistics
 .. autosummary::
     :toctree: generated/
 
-    cov
+    covar
     kurtosis
     SimulateCorrelationMatrix
     skewness

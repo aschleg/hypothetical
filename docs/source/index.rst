@@ -7,7 +7,7 @@ Welcome to hypothetical's documentation!
 Contents
 ========
 
-:toctree:
+.. toctree::
    :maxdepth: 1
 
    routine_reference.rst

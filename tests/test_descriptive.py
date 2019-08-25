@@ -179,7 +179,7 @@ def test_kurtosis():
 
     np.testing.assert_almost_equal(k1, -1.4515532544378704)
     np.testing.assert_allclose(k2, array([-1.45155325, -1.32230624]))
-    
+
 
 def test_skewness():
     s1 = skewness([5, 2, 4, 5, 6, 2, 3])

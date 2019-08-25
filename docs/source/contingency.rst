@@ -4,7 +4,7 @@
 .. currentmodule:: hypothetical.contingency
 
 Contingency Tables
-=================
+==================
 
 .. autosummary::
     :toctree: generated/
