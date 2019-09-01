@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 from hypothetical.descriptive import covar, pearson, spearman, var, std_dev, variance_condition, \
     kurtosis, skewness, mean_absolute_deviation
-from hypothetical._lib import build_summary_matrix
 from scipy.stats import spearmanr
 from numpy.core.multiarray import array
 
@@ -99,7 +98,7 @@ class TestCorrelationCovariance(object):
                                    spearmanr(self.d[:, 1:])[0])
 
 
-class TestVariance:
+class TestVariance(object):
 
     f = pd.DataFrame({0: [1, -1, 2, 2], 1: [-1, 2, 1, -1], 2: [2, 1, 3, 2], 3: [2, -1, 2, 1]})
     h = [[16, 4, 8, 4], [4, 10, 8, 4], [8, 8, 12, 10], [4, 4, 10, 12]]
@@ -168,39 +167,55 @@ class TestVariance:
             var(ff)
 
 
-def test_kurtosis():
-    with pytest.raises(ValueError):
-        kurtosis([5, 2, 4, 5, 6, 2, 3], axis=2)
-    with pytest.raises(ValueError):
-        kurtosis(np.zeros((4, 4, 4)))
+class TestKurtosis(object):
 
-    k1 = kurtosis([5, 2, 4, 5, 6, 2, 3])
-    k2 = kurtosis([[5, 2, 4, 5, 6, 2, 3], [4, 6, 4, 3, 2, 6, 7]], axis=1)
+    s1 = [5, 2, 4, 5, 6, 2, 3]
+    s2 = [4, 6, 4, 3, 2, 6, 7]
 
-    np.testing.assert_almost_equal(k1, -1.4515532544378704)
-    np.testing.assert_allclose(k2, array([-1.45155325, -1.32230624]))
+    def test_exceptions(self):
+        with pytest.raises(ValueError):
+            kurtosis(self.s1, axis=2)
+        with pytest.raises(ValueError):
+            kurtosis(np.zeros((4, 4, 4)))
 
+    def test_kurtosis(self):
+        k1 = kurtosis(self.s1)
+        k2 = kurtosis([self.s1, self.s2], axis=1)
 
-def test_skewness():
-    s1 = skewness([5, 2, 4, 5, 6, 2, 3])
-    s2 = skewness([[5, 2, 4, 5, 6, 2, 3], [4, 6, 4, 3, 2, 6, 7]], axis=1)
-
-    np.testing.assert_almost_equal(s1, -0.028285981029545847)
-    np.testing.assert_allclose(s2, array([-0.02828598, -0.03331004]))
-
-    with pytest.raises(ValueError):
-        skewness([5, 2, 4, 5, 6, 2, 3], axis=2)
-    with pytest.raises(ValueError):
-        skewness(np.zeros((4, 4, 4)))
+        np.testing.assert_almost_equal(k1, -1.4515532544378704)
+        np.testing.assert_allclose(k2, array([-1.45155325, -1.32230624]))
 
 
-def test_mean_abs_dev():
+class TestSkewness(object):
 
-    with pytest.raises(ValueError):
-        mean_absolute_deviation([2, 2, 3, 4, 5, 5, 6], axis=2)
+    s1 = [5, 2, 4, 5, 6, 2, 3]
+    s2 = [4, 6, 4, 3, 2, 6, 7]
 
-    with pytest.raises(TypeError):
-        mean_absolute_deviation([2, 2, 3, 4, 5, 5, 6], mean='true')
+    def test_exceptions(self):
+        with pytest.raises(ValueError):
+            skewness(self.s1, axis=2)
+        with pytest.raises(ValueError):
+            skewness(np.zeros((4, 4, 4)))
 
-    with pytest.raises(ValueError):
-        mean_absolute_deviation(np.zeros((4, 4, 4)))
+    def test_skewness(self):
+        s1 = skewness(self.s1)
+        s2 = skewness([self.s1, self.s2], axis=1)
+
+        np.testing.assert_almost_equal(s1, -0.028285981029545847)
+        np.testing.assert_allclose(s2, array([-0.02828598, -0.03331004]))
+
+
+class TestMeanAbsoluteDeviation(object):
+
+    s1 = [2, 2, 3, 4, 5, 5, 6]
+
+    def test_exceptions(self):
+        with pytest.raises(ValueError):
+            mean_absolute_deviation(self.s1, axis=2)
+        with pytest.raises(TypeError):
+            mean_absolute_deviation(self.s1, mean='true')
+        with pytest.raises(ValueError):
+            mean_absolute_deviation(np.zeros((4, 4, 4)))
+
+    def test_mean_deviation(self):
+        pass

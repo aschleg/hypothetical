@@ -128,6 +128,24 @@ class TestMcNemarTest(object):
             McNemarTest(np.zeros((2, 2, 2)))
 
 
+class TestTableMargins(object):
+    cont_table = [[10, 10, 20], [20, 20, 10]]
+    cont_table3 = np.array([10, 10, 20])
+
+    def test_table_margins(self):
+        t = table_margins(self.cont_table)
+        t2 = table_margins(self.cont_table3)
+
+        assert t[0][0][0] == 40
+        assert all(t2[0] == self.cont_table3)
+
+    def test_exceptions(self):
+        cont_table2 = np.array([[[10, 10, 20], [20, 20, 10]]])
+
+        with pytest.raises(ValueError):
+            table_margins(cont_table2)
+
+
 def test_table_margins():
     cont_table = [[10, 10, 20], [20, 20, 10]]
 

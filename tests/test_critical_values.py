@@ -3,77 +3,80 @@ from hypothetical import critical as c
 import numpy as np
 
 
-def test_chi_square_critical_value():
+class TestChiSquareCritical(object):
     dof, alpha = 10, 0.05
 
-    critical_value = c.chi_square_critical_value(alpha, dof)
-    critical_value2 = c.chi_square_critical_value(str(alpha), str(dof))
-    critical_value3 = c.chi_square_critical_value(str(alpha), float(dof))
+    def test_critical_values(self):
+        critical_value = c.chi_square_critical_value(self.alpha, self.dof)
+        critical_value2 = c.chi_square_critical_value(str(self.alpha), str(self.dof))
+        critical_value3 = c.chi_square_critical_value(str(self.alpha), float(self.dof))
 
-    assert critical_value == 18.307
-    assert critical_value2 == 18.307
-    assert critical_value3 == 18.307
+        assert critical_value == 18.307
+        assert critical_value2 == 18.307
+        assert critical_value3 == 18.307
 
-    with pytest.raises(ValueError):
-        c.chi_square_critical_value(31, 0.05)
-    with pytest.raises(ValueError):
-        c.chi_square_critical_value(5, 1)
-    with pytest.raises(ValueError):
-        c.chi_square_critical_value(0.05, 31)
+    def test_exceptions(self):
+        with pytest.raises(ValueError):
+            c.chi_square_critical_value(31, 0.05)
+        with pytest.raises(ValueError):
+            c.chi_square_critical_value(5, 1)
+        with pytest.raises(ValueError):
+            c.chi_square_critical_value(0.05, 31)
 
 
-def test_u_critical_value():
+class TestUCritical(object):
     alpha = 0.05
     n, m = 10, 11
 
-    critical_value = c.u_critical_value(n, m, alpha)
-    critical_value2 = c.u_critical_value(str(n), str(m), str(alpha))
+    def test_critical_values(self):
+        critical_value = c.u_critical_value(self.n, self.m, self.alpha)
+        critical_value2 = c.u_critical_value(str(self.n), str(self.m), str(self.alpha))
 
-    assert critical_value == 31
-    assert critical_value2 == 31
+        assert critical_value == 31
+        assert critical_value2 == 31
 
-    with pytest.raises(ValueError):
-        c.u_critical_value(31, 10, 0.05)
-    with pytest.raises(ValueError):
-        c.u_critical_value(10, 31, 0.05)
-    with pytest.raises(ValueError):
-        c.u_critical_value(10, 10, 0.50)
-    with pytest.raises(KeyError):
-        c.u_critical_value(10, 8, 0.05)
+    def test_exceptions(self):
+        with pytest.raises(ValueError):
+            c.u_critical_value(31, 10, 0.05)
+        with pytest.raises(ValueError):
+            c.u_critical_value(10, 31, 0.05)
+        with pytest.raises(ValueError):
+            c.u_critical_value(10, 10, 0.50)
+        with pytest.raises(KeyError):
+            c.u_critical_value(10, 8, 0.05)
 
 
-def test_w_critical_value():
+class TestWCritical(object):
     n, alpha, alternative = 15, 0.05, 'two-tail'
 
-    crit_val = c.w_critical_value(n, alpha, alternative)
-    crit_val2 = c.w_critical_value(str(n), str(alpha), alternative)
+    def test_critical_values(self):
+        crit_val = c.w_critical_value(self.n, self.alpha, self.alternative)
+        crit_val2 = c.w_critical_value(str(self.n), str(self.alpha), self.alternative)
 
-    assert crit_val == 25
-    assert crit_val2 == 25
+        assert crit_val == 25
+        assert crit_val2 == 25
 
-    with pytest.raises(ValueError):
-        c.w_critical_value(31, 0.05, 'two-tail')
-    with pytest.raises(ValueError):
-        c.w_critical_value(20, 0.02, 'two-tail')
-    with pytest.raises(ValueError):
-        c.w_critical_value(25, 0.05, 'three-tail')
+    def test_exceptions(self):
+        with pytest.raises(ValueError):
+            c.w_critical_value(31, 0.05, 'two-tail')
+        with pytest.raises(ValueError):
+            c.w_critical_value(20, 0.02, 'two-tail')
+        with pytest.raises(ValueError):
+            c.w_critical_value(25, 0.05, 'three-tail')
 
 
-def test_r_critical_value():
+class TestRCritical(object):
+    n1, n2, n3, n4 = 4, 20, 7, 15
 
-    n1, n2 = 4, 20
+    def test_critical_values(self):
+        r_crit1, r_rcrit2 = c.r_critical_value(self.n1, self.n2)
+        r_crit3, r_rcrit4 = c.r_critical_value(self.n3, self.n4)
 
-    r_crit1, r_rcrit2 = c.r_critical_value(n1, n2)
+        np.testing.assert_allclose([r_crit1, r_rcrit2], [4, np.nan])
+        np.testing.assert_allclose([r_crit3, r_rcrit4], [6, 15])
 
-    np.testing.assert_allclose([r_crit1, r_rcrit2], [4, np.nan])
-
-    n1, n2 = 7, 15
-
-    r_crit1, r_rcrit2 = c.r_critical_value(n1, n2)
-
-    np.testing.assert_allclose([r_crit1, r_rcrit2], [6, 15])
-
-    with pytest.raises(ValueError):
-        c.r_critical_value(10, 25)
-    with pytest.raises(ValueError):
-        c.r_critical_value(25, 15)
+    def test_exceptions(self):
+        with pytest.raises(ValueError):
+            c.r_critical_value(10, 25)
+        with pytest.raises(ValueError):
+            c.r_critical_value(25, 15)

@@ -74,127 +74,127 @@ def plants_test_data():
     return plants
 
 
-def test_MannWhitney():
+class TestMannWhitney(object):
+
     data = test_data()
+    mult_data = multivariate_test_data()
+
+    def test_mann_whitney(self):
+        sal_a = self.data.loc[self.data['discipline'] == 'A']['salary']
+        sal_b = self.data.loc[self.data['discipline'] == 'B']['salary']
+
+        mw = MannWhitney(sal_a, sal_b)
+
+        test_result = mw.test_summary
+
+        np.testing.assert_equal(test_result['U'], 15710.0)
+        np.testing.assert_almost_equal(test_result['p-value'], 0.0007492490583558276)
+        np.testing.assert_almost_equal(test_result['mu meanrank'], 19548.5)
+        np.testing.assert_almost_equal(test_result['sigma'], 1138.718969482228)
+        np.testing.assert_almost_equal(test_result['z-value'], 3.3708931728303027)
+
+        assert test_result['continuity']
+
+        mw2 = MannWhitney(group=self.data['discipline'],
+                          y1=self.data['salary'])
+
+        assert test_result == mw2.test_summary
+
+        mw_no_cont = MannWhitney(sal_a, sal_b, continuity=False)
+
+        no_cont_result = mw_no_cont.test_summary
+
+        np.testing.assert_equal(no_cont_result['U'], 15710.0)
+        np.testing.assert_almost_equal(no_cont_result['p-value'], 0.0007504441137706763)
+        np.testing.assert_almost_equal(no_cont_result['mu meanrank'], 19548.0)
+        np.testing.assert_almost_equal(no_cont_result['sigma'], 1138.718969482228)
+        np.testing.assert_almost_equal(no_cont_result['z-value'], 3.370454082928931)
+
+        assert no_cont_result['continuity'] is False
+
+    def test_exceptions(self):
+        with pytest.raises(ValueError):
+            MannWhitney(y1=self.mult_data[:, 1],
+                        group=self.mult_data[:, 0])
+
+
+class TestWilcoxon(object):
+
+    data = test_data()
+    mult_data = multivariate_test_data()
 
     sal_a = data.loc[data['discipline'] == 'A']['salary']
     sal_b = data.loc[data['discipline'] == 'B']['salary']
 
-    mw = MannWhitney(sal_a, sal_b)
+    def test_wilcoxon_one_sample(self):
+        w = WilcoxonTest(self.sal_a)
 
-    test_result = mw.test_summary
+        test_result = w.test_summary
 
-    np.testing.assert_equal(test_result['U'], 15710.0)
-    np.testing.assert_almost_equal(test_result['p-value'], 0.0007492490583558276)
-    np.testing.assert_almost_equal(test_result['mu meanrank'], 19548.5)
-    np.testing.assert_almost_equal(test_result['sigma'], 1138.718969482228)
-    np.testing.assert_almost_equal(test_result['z-value'], 3.3708931728303027)
+        np.testing.assert_equal(test_result['V'], 16471.0)
+        np.testing.assert_almost_equal(test_result['p-value'], np.finfo(float).eps)
+        np.testing.assert_almost_equal(test_result['z-value'], 11.667217617844829)
 
-    assert test_result['continuity']
+    def test_wilcoxon_multi_sample(self):
+        paired_w = WilcoxonTest(self.mult_data[:, 1], self.mult_data[:, 2], paired=True)
 
-    mw2 = MannWhitney(group=data['discipline'], y1=data['salary'])
+        paired_result = paired_w.test_summary
 
-    assert test_result == mw2.test_summary
+        np.testing.assert_equal(paired_result['V'], 1176.0)
+        np.testing.assert_almost_equal(paired_result['p-value'], 1.6310099937300038e-09)
+        np.testing.assert_almost_equal(paired_result['z-value'], 6.030848532388999)
 
-    mw_no_cont = MannWhitney(sal_a, sal_b, continuity=False)
+        assert paired_result['test description'] == 'Wilcoxon signed rank test'
 
-    no_cont_result = mw_no_cont.test_summary
-
-    np.testing.assert_equal(no_cont_result['U'], 15710.0)
-    np.testing.assert_almost_equal(no_cont_result['p-value'], 0.0007504441137706763)
-    np.testing.assert_almost_equal(no_cont_result['mu meanrank'], 19548.0)
-    np.testing.assert_almost_equal(no_cont_result['sigma'], 1138.718969482228)
-    np.testing.assert_almost_equal(no_cont_result['z-value'], 3.370454082928931)
-
-    assert no_cont_result['continuity'] is False
-
-    mult_data = multivariate_test_data()
-
-    with pytest.raises(ValueError):
-        MannWhitney(y1=mult_data[:, 1], group=mult_data[:, 0])
+    def test_exceptions(self):
+        with pytest.raises(ValueError):
+            WilcoxonTest(self.sal_a, self.sal_b, paired=True)
 
 
-def test_wilcox_test():
-    data = test_data()
-    mult_data = multivariate_test_data()
-
-    sal_a = data.loc[data['discipline'] == 'A']['salary']
-    sal_b = data.loc[data['discipline'] == 'B']['salary']
-
-    w = WilcoxonTest(sal_a)
-
-    test_result = w.test_summary
-
-    np.testing.assert_equal(test_result['V'], 16471.0)
-    np.testing.assert_almost_equal(test_result['p-value'], np.finfo(float).eps)
-    np.testing.assert_almost_equal(test_result['z-value'], 11.667217617844829)
-
-    with pytest.raises(ValueError):
-        WilcoxonTest(sal_a, sal_b, paired=True)
-
-    paired_w = WilcoxonTest(mult_data[:, 1], mult_data[:, 2], paired=True)
-
-    paired_result = paired_w.test_summary
-
-    np.testing.assert_equal(paired_result['V'], 1176.0)
-    np.testing.assert_almost_equal(paired_result['p-value'], 1.6310099937300038e-09)
-    np.testing.assert_almost_equal(paired_result['z-value'], 6.030848532388999)
-
-    assert paired_result['test description'] == 'Wilcoxon signed rank test'
-
-
-def test_kruskal_wallis():
+class TestKruskalWallis(object):
     data = plants_test_data()
 
-    kw = KruskalWallis(data['weight'], group=data['group'])
+    def test_kruskal_wallis(self):
+        kw = KruskalWallis(self.data['weight'], group=self.data['group'])
 
-    test_result = kw.test_summary
+        test_result = kw.test_summary
 
-    assert test_result['alpha'] == 0.05
-    assert test_result['degrees of freedom'] == 2
-    assert test_result['test description'] == 'Kruskal-Wallis rank sum test'
+        assert test_result['alpha'] == 0.05
+        assert test_result['degrees of freedom'] == 2
+        assert test_result['test description'] == 'Kruskal-Wallis rank sum test'
 
-    np.testing.assert_almost_equal(test_result['critical chisq value'], 7.988228749443715)
-    np.testing.assert_almost_equal(test_result['least significant difference'], 7.125387208146856)
-    np.testing.assert_almost_equal(test_result['p-value'], 0.018423755731471925)
-    np.testing.assert_almost_equal(test_result['t-value'], 2.0518305164802833)
+        np.testing.assert_almost_equal(test_result['critical chisq value'], 7.988228749443715)
+        np.testing.assert_almost_equal(test_result['least significant difference'], 7.125387208146856)
+        np.testing.assert_almost_equal(test_result['p-value'], 0.018423755731471925)
+        np.testing.assert_almost_equal(test_result['t-value'], 2.0518305164802833)
 
-    del data['Unnamed: 0']
+        del self.data['Unnamed: 0']
 
-    ctrl = data[data['group'] == 'ctrl']['weight'].reset_index()
-    del ctrl['index']
-    ctrl.rename(columns={'weight': 'ctrl'}, inplace=True)
+        ctrl = self.data[self.data['group'] == 'ctrl']['weight'].reset_index()
+        del ctrl['index']
+        ctrl.rename(columns={'weight': 'ctrl'}, inplace=True)
 
-    trt1 = data[data['group'] == 'trt1']['weight'].reset_index()
+        trt1 = self.data[self.data['group'] == 'trt1']['weight'].reset_index()
 
-    del trt1['index']
-    trt1.rename(columns={'weight': 'trt1'}, inplace=True)
+        del trt1['index']
+        trt1.rename(columns={'weight': 'trt1'}, inplace=True)
 
-    trt2 = data[data['group'] == 'trt2']['weight'].reset_index()
+        trt2 = self.data[self.data['group'] == 'trt2']['weight'].reset_index()
 
-    del trt2['index']
-    trt2.rename(columns={'weight': 'trt2'}, inplace=True)
+        del trt2['index']
+        trt2.rename(columns={'weight': 'trt2'}, inplace=True)
 
-    kw2 = KruskalWallis(ctrl, trt1, trt2)
+        kw2 = KruskalWallis(ctrl, trt1, trt2)
 
-    test_result2 = kw2.test_summary
+        test_result2 = kw2.test_summary
 
-    assert test_result == test_result2
+        assert test_result == test_result2
 
-    with pytest.raises(ValueError):
-        KruskalWallis(data['weight'], data['weight'], group=data['group'])
-
-
-def test_tie_correction():
-    mult_data = multivariate_test_data()
-
-    ranks = rankdata(mult_data[:, 1], 'average')
-
-    ranks = np.column_stack([mult_data, ranks])
-
-    tie_correct = tie_correction(ranks[:, 5])
-
-    np.testing.assert_almost_equal(tie_correct, tiecorrect(ranks[:, 5]))
+    def test_exceptions(self):
+        with pytest.raises(ValueError):
+            KruskalWallis(self.data['weight'],
+                          self.data['weight'],
+                          group=self.data['group'])
 
 
 class TestSignTest(object):
@@ -290,3 +290,15 @@ class TestMedianTest(object):
     def test_median_exceptions(self):
         with pytest.raises(ValueError):
             MedianTest(self.g1, self.g2, ties='na')
+
+
+def test_tie_correction():
+    mult_data = multivariate_test_data()
+
+    ranks = rankdata(mult_data[:, 1], 'average')
+
+    ranks = np.column_stack([mult_data, ranks])
+
+    tie_correct = tie_correction(ranks[:, 5])
+
+    np.testing.assert_almost_equal(tie_correct, tiecorrect(ranks[:, 5]))

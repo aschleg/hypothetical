@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from scipy.stats import chisquare
 
-from hypothetical.normality import ChiSquareTest
+from hypothetical.normality import ChiSquareTest, JarqueBera
 
 
 class TestChiSquare(object):
@@ -46,3 +46,12 @@ class TestChiSquare(object):
     def test_chisquare_exceptions(self):
         with pytest.raises(ValueError):
             ChiSquareTest(self.obs, self.exp[:5])
+
+
+class TestJarqueBera(object):
+
+    def test_jarquebera(self):
+        pass
+
+    def test_jarquebera_exceptions(self):
+        pass
