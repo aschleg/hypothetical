@@ -10,7 +10,7 @@ Goodness-of-fit
     :toctree: generated/
 
     ChiSquareTest
-    jarque_bera
+    JarqueBera
 
 References
 ----------
@@ -78,9 +78,9 @@ class ChiSquareTest(object):
     Notes
     -----
     The chi-squared test, often called the :math:`\chi^2` test, is also known as Pearson's chi-squared test. The
-    chi-square test is a one-sample goodnes-of-fit test that evaluates whether a significant difference exists between
+    chi-square test is a one-sample goodness-of-fit test that evaluates whether a significant difference exists between
     an observed number of frequencies from two or more groups and an expected frequency based on a null hypothesis. A
-    simple example of a chi-square test is testing wheher a six-sided die is 'fair', in that all outcomes are equally
+    simple example of a chi-square test is testing whether a six-sided die is 'fair', in that all outcomes are equally
     likely to occur.
 
     The chi-square test statistic, :math:`\chi^2` is defined as:
@@ -163,39 +163,98 @@ class ChiSquareTest(object):
         }
 
     def _chisquare_value(self):
+        r"""
+        Computes the chi-square value of the sample data
+
+        Notes
+        -----
+        The chi-square test statistic, :math:`\chi^2` is defined as:
+
+        .. math::
+
+            \chi^2 = \sum^k_{i=1} \frac{O_i - E_i)^2}{E_i}
+
+        Returns
+        -------
+        x2 : float
+            The computed chi-square value with continuity correction (if specified)
+
+        """
         x2 = np.sum((np.absolute(self.observed - self.expected) - (0.5 * self.continuity_correction)) ** 2 /
                     self.expected)
 
         return x2
 
     def _p_value(self):
+        r"""
+        Finds the p-value of the chi-square statistic.
+
+        Notes
+        -----
+        The p-value can be found by comparing the calculated :math:`\chi^2` statistic to a chi-square distribution.
+        The degrees of freedom is equal to :math:`k - 1` minus any additional reduction in the degrees of freedom, if
+        specified.
+
+        Returns
+        -------
+        p_value : float
+            The p-value of the associated chi-square value and degrees of freedom.
+
+        """
         pval = chi2.sf(self.chi_square, self.degrees_of_freedom)
 
         return pval
 
 
-def jarque_bera(x):
+class JarqueBera(object):
     r"""
     Performs the Jarque-Bera goodness-of-fit test.
 
     Parameters
     ----------
     x : array-like
+        One-dimensional array-like object (list, numpy array, pandas DataFrame or pandas Series) containing
+        the observed sample values.
 
-    Returns
-    -------
-    test_result : dict
+    Attributes
+    ----------
+    x : array-like
+        The given sample values
+    test_statistic : float
+        Computed Jarque-Bera test statistic
+    p_value : float
+        p-value of Jarque-Bera test statistic
+    test_summary : dict
+        Dictionary containing the Jarque-Bera test statistic and associated p-value.
 
     Examples
     --------
 
     Notes
     -----
+    The Jarque-Bera test is a goodness-of-fit test developed by Carlos Jarque and Anil Bera that tests whether
+    a sample of data is normally distributed using the sample's kurtosis and skewness. The Jarque-Bera test
+    statistic is defined as:
+
+    .. math::
+
+        JB = \frac{n}{6} \large( s^2 + \frac{(k-3)^2}{4} \large)
+
+    where :math:`n` is the number of samples in the data, :math:`s` is the computed sample's skewness and :math:`k` is
+    the sample's kurtosis. The Jarque-Bera test statistic has a chi-square distribution with two degrees of freedom
+    when the number of samples is adequate. The test statistic is always non-negative and the farther away from zero,
+    the stronger of an indication the sample data does not follow a normal distribution.
+
+    In the case of small samples ('small' being somewhat subjective but generally considered to be :math:`n < 30`),
+    the Jarque-Bera test and statistic is overly-sensitive and can lead to large Type 1 error rates.
 
     References
     ----------
     B. W. Yap & C. H. Sim (2011) Comparisons of various types of normality tests,
         Journal of Statistical Computation and Simulation, 81:12, 2141-2155, DOI: 10.1080/00949655.2010.520163
+
+    Jarque, C., & Bera, A. (1987). A Test for Normality of Observations and Regression Residuals.
+        International Statistical Review / Revue Internationale De Statistique, 55(2), 163-172. doi:10.2307/1403192
 
     Ukponmwan H. Nosakhare, Ajibade F. Bright. Evaluation of Techniques for Univariate Normality Test Using Monte
         Carlo Simulation. American Journal of Theoretical and Applied Statistics.
@@ -207,15 +266,67 @@ def jarque_bera(x):
         from https://en.wikipedia.org/w/index.php?title=Jarque%E2%80%93Bera_test&oldid=831439673
 
     """
-    n = len(x)
+    def __init__(self, x):
 
-    jb = n / 6. * (skewness(x) ** 2 + kurtosis(x) ** 2 / 4)
+        if not isinstance(x, np.ndarray):
+            self.x = np.array(x)
+        else:
+            self.x = x
 
-    p_value = chi2.sf(jb, 2)
+        if self.x.ndim != 1:
+            raise ValueError('sample data must be one-dimensional')
 
-    test_result = {
-        'JB test statistic': jb,
-        'p-value': p_value
-    }
+        self.test_statistic = self._jarque_bera_statistic()
+        self.p_value = self._p_value()
+        self.test_summary = {
+            'Jarque-Bera statistic': self.test_statistic,
+            'p-value': self.p_value
+        }
 
-    return test_result
+    def _jarque_bera_statistic(self):
+        r"""
+        Computes the Jarque-Bera test statistic:
+
+        Notes
+        -----
+        The Jarque-Bera test statistic is defined as:
+
+        .. math::
+
+            JB = \frac{n}{6} \large( s^2 + \frac{(k-3)^2}{4} \large)
+
+        Returns
+        -------
+        jb : float
+            The Jarque-Bera test statistic.
+
+        """
+        n = len(self.x)
+
+        jb = n / 6. * (skewness(self.x) ** 2 + kurtosis(self.x) ** 2 / 4)
+
+        return jb
+
+    def _p_value(self):
+        r"""
+        Calculates the associated p-value of the Jarque-Bera test statistic.
+
+        Notes
+        -----
+        The Jarque-Bera test statistic has a chi-square distribution with two degrees of freedom
+        when the number of samples is adequate. The test statistic is always non-negative and the farther away from
+        zero, the stronger of an indication the sample data does not follow a normal distribution.
+
+        In the case of small samples ('small' being somewhat subjective but generally considered to be :math:`n < 30`),
+        the Jarque-Bera test and statistic is overly-sensitive and can lead to large Type 1 error rates.
+
+        Returns
+        -------
+        p_value : float
+            The p-value of the Jarque-Bera test statistic.
+
+        """
+
+        p_value = chi2.sf(self.test_statistic, 2)
+
+        return p_value
