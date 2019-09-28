@@ -706,11 +706,12 @@ class McNemarTest(object):
 
 def table_margins(table):
     r"""
-    Computes the marginal sums of a one or two-dimensional array.
+    Computes the marginal sums of a given array.
 
     Parameters
     ----------
     table : array-like
+        A one or two-dimensional array-like object.
 
     Raises
     ------
@@ -720,15 +721,11 @@ def table_margins(table):
     Returns
     -------
     r, c : tuple
-
-    Notes
-    -----
+        A tuple containing the total sums of the table rows and the total sums of the table columns.
 
     Examples
     --------
-
-    References
-    ----------
+    >>> t = table_margins([[10, 10, 20], [20, 20, 10]])
 
     """
     if not isinstance(table, np.ndarray):
@@ -756,6 +753,7 @@ def expected_frequencies(observed):
     Parameters
     ----------
     observed : array-like
+        A one or two-dimensional array object.
 
     Raises
     ------
@@ -765,15 +763,31 @@ def expected_frequencies(observed):
     Returns
     -------
     exp_freq : array-like
+        Array of the expected frequencies
 
     Examples
     --------
+    >>> expected_frequencies([[10, 10, 20], [20, 20, 10]])
+    array([[13.33333333, 13.33333333, 13.33333333],
+           [16.66666667, 16.66666667, 16.66666667]])
 
     Notes
     -----
+    The expected frequency, here denoted as :math:`E_{cr}`, where :math:`c` is the column index and :math:`r` is the
+    row index. Stated more formally, the expected frequency can be defined as:
+
+    .. math::
+
+        E_{cr} = \frac{(\sum^{n_r}_{i=0} r_i)(\sum^{n_c}_{i=0} c_i)}{n}
+
+    Where :math:`n` is the total sample size and :math:`n_c, n_r` are the number of cells in row and column,
+    respectively. The expected frequency is calculated for each 'cell' in the given array.
 
     References
     ----------
+    Stover, Christopher. "Contingency Table."
+        From MathWorld--A Wolfram Web Resource, created by Eric W. Weisstein.
+        http://mathworld.wolfram.com/ContingencyTable.html
 
     """
     if not isinstance(observed, np.ndarray):

@@ -287,6 +287,11 @@ class JarqueBera(object):
         r"""
         Computes the Jarque-Bera test statistic:
 
+        Returns
+        -------
+        jb : float
+            The Jarque-Bera test statistic.
+
         Notes
         -----
         The Jarque-Bera test statistic is defined as:
@@ -294,11 +299,6 @@ class JarqueBera(object):
         .. math::
 
             JB = \frac{n}{6} \large( s^2 + \frac{(k-3)^2}{4} \large)
-
-        Returns
-        -------
-        jb : float
-            The Jarque-Bera test statistic.
 
         """
         n = len(self.x)
@@ -311,6 +311,11 @@ class JarqueBera(object):
         r"""
         Calculates the associated p-value of the Jarque-Bera test statistic.
 
+        Returns
+        -------
+        p_value : float
+            The p-value of the Jarque-Bera test statistic.
+
         Notes
         -----
         The Jarque-Bera test statistic has a chi-square distribution with two degrees of freedom
@@ -320,13 +325,7 @@ class JarqueBera(object):
         In the case of small samples ('small' being somewhat subjective but generally considered to be :math:`n < 30`),
         the Jarque-Bera test and statistic is overly-sensitive and can lead to large Type 1 error rates.
 
-        Returns
-        -------
-        p_value : float
-            The p-value of the Jarque-Bera test statistic.
-
         """
-
         p_value = chi2.sf(self.test_statistic, 2)
 
         return p_value

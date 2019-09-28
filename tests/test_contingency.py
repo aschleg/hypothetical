@@ -130,6 +130,7 @@ class TestMcNemarTest(object):
 
 class TestTableMargins(object):
     cont_table = [[10, 10, 20], [20, 20, 10]]
+    cont_table2 = np.array([[[10, 10, 20], [20, 20, 10]]])
     cont_table3 = np.array([10, 10, 20])
 
     def test_table_margins(self):
@@ -139,41 +140,16 @@ class TestTableMargins(object):
         assert t[0][0][0] == 40
         assert all(t2[0] == self.cont_table3)
 
-    def test_exceptions(self):
-        cont_table2 = np.array([[[10, 10, 20], [20, 20, 10]]])
-
+    def test_margins_exceptions(self):
         with pytest.raises(ValueError):
-            table_margins(cont_table2)
+            table_margins(self.cont_table2)
 
+    def test_expected_frequencies(self):
+        e = expected_frequencies(self.cont_table)
 
-def test_table_margins():
-    cont_table = [[10, 10, 20], [20, 20, 10]]
+        np.testing.assert_array_almost_equal(e, np.array([[13.33333333, 13.33333333, 13.33333333],
+                                                          [16.66666667, 16.66666667, 16.66666667]]))
 
-    t = table_margins(cont_table)
-
-    assert t[0][0][0] == 40
-
-    cont_table2 = np.array([[[10, 10, 20], [20, 20, 10]]])
-
-    with pytest.raises(ValueError):
-        table_margins(cont_table2)
-
-    cont_table3 = np.array([10, 10, 20])
-
-    t2 = table_margins(cont_table3)
-
-    assert all(t2[0] == cont_table3)
-
-
-def test_expected_frequencies():
-    cont_table = [[10, 10, 20], [20, 20, 10]]
-
-    e = expected_frequencies(cont_table)
-
-    np.testing.assert_array_almost_equal(e, np.array([[13.33333333, 13.33333333, 13.33333333],
-                                                      [16.66666667, 16.66666667, 16.66666667]]))
-
-    cont_table2 = np.array([[[10, 10, 20], [20, 20, 10]]])
-
-    with pytest.raises(ValueError):
-        expected_frequencies(cont_table2)
+    def test_expected_frequencies_exceptions(self):
+        with pytest.raises(ValueError):
+            expected_frequencies(self.cont_table2)

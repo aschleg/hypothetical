@@ -12,3 +12,5 @@ Contingency Tables
     ChiSquareContingency
     CochranQ
     McNemarTest
+    table_margin
+    expected_frequencies

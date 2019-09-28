@@ -61,7 +61,7 @@ from itertools import groupby
 import numpy as np
 import numpy_indexed as npi
 import pandas as pd
-from scipy.stats import beta, chi2, norm, rankdata, t, find_repeats
+from scipy.stats import chi2, norm, rankdata, t, find_repeats
 from scipy.special import comb
 
 from hypothetical._lib import build_des_mat
@@ -73,6 +73,94 @@ from hypothetical.critical import r_critical_value
 
 class FriedmanTest(object):
     r"""
+    Performs the Friedman nonparametric test for multiple matched samples on an ordinal scale.
+
+    Parameters
+    ----------
+    group_sample1, group_sample2, ... : array-like
+        Corresponding observation vectors of the group samples. Must be the same length
+        as the group parameter. If the group parameter is None, each observation vector
+        will be treated as a group sample vector.
+    group: array-like, optional
+        One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
+        membership of the dependent variable(s). Must be the same length as the observation vector.
+
+    Attributes
+    ----------
+    design_matrix : array-like
+        Numpy ndarray representing the data matrix for the analysis.
+    n : int
+        The number of samples in the design_matrix,
+    k : int
+        Number of groups in design matrix.
+    xr2 : float
+        The Friedman test statistic.
+    p-value: float
+        Associated p-value of the Friedman test statistic.
+    summary : dict
+        Dictionary containing test summary results including the :math:`xr2` and :math:`p-value`.
+
+    Examples
+    --------
+
+    Notes
+    -----
+    The Friedman test casts the given data into a matrix of :math:`n` rows (number of samples in data) and :math:`k`
+    columns (the number of sample groups). The data in each column is then ranked separately, meaning the range of
+    any row of ranks will be between :math:`1` and :math:`k` is the number of groups, or 'treatments'. The Friedman
+    test then determines whether the sample data is likely to have come from the same population.
+
+    The test statistic of the Friedman test is :math:`\chi_r^2`. The test statistic's distribution resembles a
+    chi-square distribution with degrees of freedom :math:`k - 1` when the samples and groups is sufficiently
+    large ('sufficiently' being somewhat arbitrary).
+
+    The Friedman test statistic :math:`\chi_r^2` is defined as:
+
+    .. math::
+
+         :math:`\chi_r^2` = \frac{12}{Nk(k+1)} \sum^k_{j=1} (R_j)^2 - 3N(k + 1)
+
+    where :math:`N` is the number of rows (samples), :math:`k` is the number of columns (groups/treatments) and
+    :math:`R_j` is the sum of the ranks in the :math:`j^{th} column.
+
+    The Friedman test sometimes uses :math:`Q` as a test statistic with a slightly different definition:
+
+    .. math::
+
+        Q = \frac{12n}{k(k+1)} \sum^k_{j=1} (\bar{r}_j - \frac{k+1}{2})^2
+
+    where :math:`\bar{r}_j` is the sum of the ranked data in the :math:`r^{th}` row.
+
+    .. math::
+
+        \bar{r}_j = \frac{1}{n} \sum^n_{i=1} r_{ij}
+
+    When ties exist in the data, the :math:`Q` definition of the Friedman test statistic changes to:
+
+    .. math::
+
+        Q = \frac{(k-1) \sum^k_{i=1} (R_i - \frac{n(k+1){2})^2}{A_1 - C_1}
+
+    where:
+
+    .. math::
+
+        A_1 = \sum^n_{i=1} \sum^k_{j=1} (R(X_{ij}))^2
+        C_1 = \frac{nk(k+1)^2}{4}
+
+    Another approach for correcting ties in the data is the following:
+
+    .. math::
+
+        Q_{adj} = frac{Q}{C}
+
+    Where :math:`C` is a tie correction factor defined as:
+
+    .. math::
+
+        C = 1 - \frac{\sum (t^3 - t_i)}{n(k^3 - k)}
+
+    Where :math:`t_i` is the number of tied scores in the :math:`i^{th}` set of ties.
 
     References
     ----------
@@ -86,8 +174,16 @@ class FriedmanTest(object):
         from https://en.wikipedia.org/w/index.php?title=Friedman_test&oldid=855731754
 
     """
-    def __init__(self, *args):
-        self.design_matrix = np.vstack(args).T
+    def __init__(self, *args, group):
+        if group is not None and len(args) > 1:
+            raise ValueError('Only one sample vector should be passed when including a group vector')
+
+        self.design_matrix = build_des_mat(*args, group=group)
+
+        if group is not None:
+            self.group = group
+        else:
+            self.group = self.design_matrix[:, 0]
 
         self.n, self.k = self.design_matrix.shape
 
@@ -99,7 +195,38 @@ class FriedmanTest(object):
         }
 
     def _xr2_test(self):
+        r"""
+        Computes the Friedman test statistic.
 
+        Returns
+        -------
+        xr2 : float
+            The Friedman test statistic.
+
+        Notes
+        -----
+        The Friedman test statistic :math:`\chi_r^2` is defined as:
+
+        .. math::
+
+             :math:`\chi_r^2` = \frac{12}{Nk(k+1)} \sum^k_{j=1} (R_j)^2 - 3N(k + 1)
+
+        where :math:`N` is the number of rows (samples), :math:`k` is the number of columns (groups/treatments) and
+        :math:`R_j` is the sum of the ranks in the :math:`j^{th} column.
+
+        The Friedman test sometimes uses :math:`Q` as a test statistic with a slightly different definition:
+
+        .. math::
+
+            Q = \frac{12n}{k(k+1)} \sum^k_{j=1} (\bar{r}_j - \frac{k+1}{2})^2
+
+        where :math:`\bar{r}_j` is the sum of the ranked data in the :math:`r^{th}` row.
+
+        .. math::
+
+            \bar{r}_j = \frac{1}{n} \sum^n_{i=1} r_{ij}
+
+        """
         ranks = []
         for i in range(self.n):
             ranks.append(rankdata(self.design_matrix[i]))
@@ -115,14 +242,23 @@ class FriedmanTest(object):
 
         correction = 1 - np.sum(np.array(ties) ** 3 - np.array(ties)) / (self.n * (self.k ** 3 - self.k))
 
-        xr2 = (12. / (self.n * self.k * (self.k + 1.))) * np.sum(np.sum(ranks, axis=0) ** 2.) \
-              - (3. * self.n * (self.k + 1.))
+        xr2 = (12. / (self.n * self.k * (self.k + 1.))) * np.sum(np.sum(ranks, axis=0) ** 2.) - (
+                    3. * self.n * (self.k + 1.))
 
         xr2 /= correction
 
         return xr2
 
     def _p_value(self):
+        r"""
+        Returns the p-value of the Freidman test.
+
+        Returns
+        -------
+        pval: float
+            The p-value of the Friedman test statistic given a chi-square distribution.
+
+        """
         pval = chi2.sf(self.xr2, self.k - 1)
 
         return pval
@@ -921,7 +1057,25 @@ class MedianTest(object):
 
 
 class RunsTest(object):
+    r"""
 
+    Parameters
+    ----------
+
+
+    Attributes
+    ----------
+
+    Notes
+    -----
+
+    Examples
+    --------
+
+    References
+    ----------
+
+    """
     def __init__(self, x, continuity=True):
         if not isinstance(x, np.ndarray):
             self.x = np.array(x)
