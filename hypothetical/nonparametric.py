@@ -1058,25 +1058,93 @@ class MedianTest(object):
 
 class RunsTest(object):
     r"""
+    Performs the non-parametric one-sample runs test for determining if a sample is random.
 
     Parameters
     ----------
-
+    x : array-like
+        One-dimensional array-like (Pandas Series or DataFrame, Numpy array, or list)
+        designating first sample observation values.
 
     Attributes
     ----------
+    x : array-like
+        Numpy array of given data.
+    runs : array-like
+        Count and location of runs in given data.
+    r : int
+        The number of runs in specified data.
+    test_summary : dict
+        Dictionary containing relevant computed test statistics.
 
     Notes
     -----
+    The runs test is a non-parametric test that examines the order or sequence of elements in a two-element
+    (heads/tails, plus/minus, etc.) one-dimensional array to determine if the sample is random. For example, the
+    following array of coin tosses has eight total 'runs'.
+
+    .. math::
+
+        H T H H T T H H H T H T
+
+    When testing the randomness of small samples, the critical values of the test are determined from a critical
+    value table. Small samples are typically defined as samples with each binary response not having equal to or more
+    than 20 values. For example, the above array has :math:`n_1 = H = 7` and :math:`n_2 = T = 5` and thus would be
+    designated as a small sample. Two critical value tables exist for the one-sample runs test. The first table,
+    typically denoted :math:`F_1`, gives values of which are small enough that the probability associated with
+    their occurrence under the null hypothesis :math:`H_0` is :math:`p = 0.025`. The second critical value table,
+    typically denoted :math:`F_{11}` gives values of :math:`r` which are large enough that the probability associated
+    with their occurrence under the null hypothesis is :math:`p = 0.025`. Thus, any observed value of the number of
+    runs, :math:`r` is equal to or less than the value shown in :math:`F_1` or is equal to or larger than the value
+    shown in :math:`F_{11}` is in the region of rejection. Critical values are given for :math:`\alpha = 0.05`.
+
+    When the number of samples is large enough (each binary response having equal to or more than 20 responses), the
+    sampling distribution becomes close enough to a normal distribution to use as an approximation.
+
+    The mean of the sampling distribution :math:`\mu_r` is defined as:
+
+    .. math::
+
+        \mu_r = \frac{2n_1 n_2}{n_1 + n_2} + 1
+
+    with variance of the sampling distribution :math:`\sigma^2` defined as:
+
+    .. math::
+
+        \sigma^2_r = \frac{2 n_1 n_2 (2n_1 n_2 - n_1 - n_2)}{(n_1 + n_2)^2 (n_1 + n_2 - 1)}
+
+    Thus, a z-score can be computed to test the null hypothesis :math:`H_0`:
+
+    .. math::
+
+        z = \frac{r - \mu_r}{\sigma_r} = \frac{r - \large(\frac{2n_1 n_2}{n_1 + n_2} + 1 \large)}{\sqrt{\sigma^2_r = \frac{2 n_1 n_2 (2n_1 n_2 - n_1 - n_2)}{(n_1 + n_2)^2 (n_1 + n_2 - 1)}}}
+
+    As the sample is approximately normally distributed, the critical value of the z-score can be found using the
+    cumulative normal distribution function.
 
     Examples
     --------
+    >>> s = ['m','f','m','f','m','m','m','f','f','m','f','m','f','m','f']
+    >>> r = RunsTest(s)
+    >>> r.r
+    12
+    >>> r.runs
+    array([1, 1, 1, 1, 3, 2, 1, 1, 1, 1, 1, 1])
+    >>> r.test_summary
+    {'probability': 0.7672105672105671,
+     'r critical value 1': 4,
+     'r critical value 2': 13}
 
     References
     ----------
+    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
+        McGraw-Hill. ISBN 07-057348-4
+
+    Wikipedia contributors. "Wald–Wolfowitz runs test." Wikipedia, The Free Encyclopedia.
+        Wikipedia, The Free Encyclopedia, 8 Jun. 2019. Web. 29 Sep. 2019.
 
     """
-    def __init__(self, x, continuity=True):
+    def __init__(self, x):
         if not isinstance(x, np.ndarray):
             self.x = np.array(x)
         else:
@@ -1086,11 +1154,19 @@ class RunsTest(object):
             raise ValueError('runs test is defined only for runs of binary responses, '
                              '(True/False, 1/0, Group A/Group B, etc).')
 
-        self.continuity = continuity
         self.runs, self.r = count_runs(self.x)
         self.test_summary = self._runs_test()
 
     def _runs_test(self):
+        r"""
+        Primary method for performing the one-sample runs test.
+
+        Returns
+        -------
+        dict
+            Dictionary containing relevant test statistics of the one-sample runs test.
+
+        """
         n1, n2 = find_repeats(pd.factorize(self.x)[0]).counts
 
         r_range = np.arange(2, self.r + 1)
@@ -1104,22 +1180,20 @@ class RunsTest(object):
 
         p = p_even + p_odd
 
-        if all(np.array([n1, n2]) < 20):
+        if all(np.array([n1, n2]) <= 20):
             r_crit_1, r_crit_2 = r_critical_value(n1, n2)
 
             test_summary = {
                 'probability': p,
-                'p-value': p,
                 'r critical value 1': r_crit_1,
-                'r critical value 2': r_crit_2,
-                'r': self.r
+                'r critical value 2': r_crit_2
             }
             return test_summary
 
         else:
             mean = (2 * n1 * n2) / (n1 + n2) + 1
             sd = np.sqrt((2 * n1 * n2 * (2 * n1 * n2 - n1 - n2)) / ((n1 + n2) ** 2 * (n1 + n2 - 1)))
-            z = (np.absolute(self.r - mean) - (0.5 * self.continuity)) / sd
+            z = (self.r - mean) / sd
             p_val = norm.sf(z) * 2
 
             test_summary = {

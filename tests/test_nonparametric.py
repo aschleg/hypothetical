@@ -1,6 +1,7 @@
 import pytest
 
-from hypothetical.nonparametric import KruskalWallis, MannWhitney, SignTest, tie_correction, WilcoxonTest, MedianTest
+from hypothetical.nonparametric import KruskalWallis, MannWhitney, RunsTest, SignTest, tie_correction, WilcoxonTest, \
+    MedianTest
 import pandas as pd
 import numpy as np
 import os
@@ -290,6 +291,34 @@ class TestMedianTest(object):
     def test_median_exceptions(self):
         with pytest.raises(ValueError):
             MedianTest(self.g1, self.g2, ties='na')
+
+
+class TestRunsTest(object):
+    o = ['m', 'f', 'm', 'f', 'm', 'm', 'm', 'f', 'f', 'm', 'f', 'm', 'f', 'm', 'f']
+    o2 = ['m', 'f', 'm', 'f', 'm', 'm', 'm', 'f', 'f', 'm', 'f', 'm', 'f', 'm', 'f', 'm', 'm', 'm', 'm', 'f', 'm',
+          'f', 'm', 'f', 'm', 'm', 'f', 'f', 'f', 'm', 'f', 'm', 'f', 'm', 'f', 'm', 'm', 'f', 'm', 'm', 'f', 'm',
+          'm', 'm', 'm', 'f', 'm', 'f', 'm', 'm']
+
+    def test_runs_test_small_sample(self):
+        r = RunsTest(self.o)
+
+        assert r.r == 12
+        np.testing.assert_almost_equal(r.test_summary['probability'], 0.7672105672105671)
+        np.testing.assert_almost_equal(r.test_summary['r critical value 1'], 4)
+        np.testing.assert_almost_equal(r.test_summary['r critical value 2'], 13)
+        np.testing.assert_array_equal(r.runs, [1, 1, 1, 1, 3, 2, 1, 1, 1, 1, 1, 1])
+
+    def test_runs_test_large_sample(self):
+        r = RunsTest(self.o2)
+
+        assert r.r == 35
+        np.testing.assert_almost_equal(r.test_summary['probability'], 0.7444926712311586)
+        np.testing.assert_almost_equal(r.test_summary['mean of runs'], 25.0)
+        np.testing.assert_almost_equal(r.test_summary['standard deviation of runs'], 3.356382892705923)
+        np.testing.assert_almost_equal(r.test_summary['z-value'], 2.9793978576556204)
+        np.testing.assert_almost_equal(r.test_summary['p-value'], 0.0028881550292776965)
+        np.testing.assert_array_equal(r.runs, [1, 1, 1, 1, 3, 2, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 2, 3, 1, 1,
+                                               1, 1, 1, 1, 2, 1, 2, 1, 4, 1, 1, 1, 2])
 
 
 def test_tie_correction():
