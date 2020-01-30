@@ -1,7 +1,7 @@
 import pytest
 
-from hypothetical.nonparametric import KruskalWallis, MannWhitney, RunsTest, SignTest, tie_correction, WilcoxonTest, \
-    MedianTest
+from hypothetical.nonparametric import FriedmanTest, KruskalWallis, MannWhitney, RunsTest, SignTest, tie_correction, \
+    WilcoxonTest, MedianTest
 import pandas as pd
 import numpy as np
 import os
@@ -73,6 +73,12 @@ def plants_test_data():
     plants = pd.read_csv(os.path.join(datapath, 'data/PlantGrowth.csv'))
 
     return plants
+
+
+class TestFriedmanTest(object):
+
+    def test_friedman_test(self):
+        pass
 
 
 class TestMannWhitney(object):

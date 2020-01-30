@@ -4,9 +4,27 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/i1i1blt9ny3tyi6a?svg=true)](https://ci.appveyor.com/project/aschleg/hypy)
 [![Coverage Status](https://coveralls.io/repos/github/aschleg/hypothetical/badge.svg?branch=master)](https://coveralls.io/github/aschleg/hypothetical?branch=master)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/3ceba919fdb34d45af43c044a761ddb8)](https://www.codacy.com/app/aschleg/hypothetical?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=aschleg/hypothetical&amp;utm_campaign=Badge_Grade)
+[![Dependencies](https://img.shields.io/librariesio/github/aschleg/hypothetical.svg?label=dependencies)](https://libraries.io/github/aschleg/hypothetical)
 ![Python versions](https://img.shields.io/badge/python-3.5%2C%203.6%2C%203.7-blue.svg)
 
 Python library for conducting hypothesis and other group comparison tests.
+
+## Installation
+
+The best way to install `hypothetical` is through `pip`.
+
+```bash
+pip install hypothetical
+```
+
+For those interested, the most recent development version of the library can also be installed by cloning or 
+downloading the repo.
+
+~~~ bash
+git clone git@github.com:aschleg/hypothetical.git
+cd hypothetical
+python setup.py install
+~~~
 
 ## Available Methods
 
@@ -99,8 +117,6 @@ I need!
 * `pandas>=0.22.0`
 * `scipy>=1.1.0`
 * `statsmodels>=0.9.0`
-
-## Installation
 
 ## License
 
