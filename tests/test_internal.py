@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import pandas as pd
-from hypothetical._lib import build_des_mat
+from hypothetical._lib import _build_des_mat
 
 
 def test_array():
@@ -61,14 +61,14 @@ def test_build_design_matrix():
     dat = test_array()
     dat_df = pd.DataFrame(dat)
 
-    des_mat = build_des_mat(dat[:, 1], dat[:, 2], dat[:, 3], dat[:, 4], group=dat[:, 0])
-    des_mat_df = build_des_mat(dat_df[1], dat_df[2], dat_df[3], dat_df[4], group=dat_df[0])
+    des_mat = _build_des_mat(dat[:, 1], dat[:, 2], dat[:, 3], dat[:, 4], group=dat[:, 0])
+    des_mat_df = _build_des_mat(dat_df[1], dat_df[2], dat_df[3], dat_df[4], group=dat_df[0])
 
-    des_mat_no_group = build_des_mat(dat[:, 1], dat[:, 2], dat[:, 3], dat[:, 4])
+    des_mat_no_group = _build_des_mat(dat[:, 1], dat[:, 2], dat[:, 3], dat[:, 4])
 
-    des_mat_group_df = build_des_mat(dat[:, 1], dat[:, 2], dat[:, 3], dat[:, 4], group=pd.DataFrame(dat[:, 0]))
+    des_mat_group_df = _build_des_mat(dat[:, 1], dat[:, 2], dat[:, 3], dat[:, 4], group=pd.DataFrame(dat[:, 0]))
 
-    des_mat_group_df = build_des_mat(dat[:, 1], dat[:, 2], dat[:, 3], dat[:, 4], group=pd.DataFrame(dat[:, 0]))
+    des_mat_group_df = _build_des_mat(dat[:, 1], dat[:, 2], dat[:, 3], dat[:, 4], group=pd.DataFrame(dat[:, 0]))
 
     assert isinstance(des_mat, np.ndarray)
     assert des_mat.shape == dat.shape

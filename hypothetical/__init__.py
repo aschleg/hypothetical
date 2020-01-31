@@ -1,1 +1,8 @@
-__all__ = ['aov', 'contingency', 'critical', 'hypothesis', 'nonparametric', 'posthoc', 'descriptive.py']
+from hypothetical import aov, \
+    contingency, \
+    critical, \
+    descriptive, \
+    hypothesis, \
+    nonparametric, \
+    normality, \
+    posthoc

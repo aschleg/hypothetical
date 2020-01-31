@@ -53,7 +53,7 @@ import pandas as pd
 from scipy.special import comb
 from scipy.stats import chi2, binom
 
-from hypothetical._lib import build_des_mat
+from hypothetical._lib import _build_des_mat
 
 
 class ChiSquareContingency(object):
@@ -366,7 +366,7 @@ class CochranQ(object):
             Tuple containing the computed Q test statistic and the degrees of freedom.
 
         """
-        design_matrix = build_des_mat(*args, group=None)
+        design_matrix = _build_des_mat(*args, group=None)
         sample_counts = npi.group_by(design_matrix[:, 0], design_matrix[:, 1], np.sum)
         sample_size = design_matrix.shape[0] / len(np.unique(design_matrix[:, 0]))
 

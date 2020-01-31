@@ -76,7 +76,7 @@ from itertools import repeat
 from scipy.stats import rankdata
 from scipy.linalg import toeplitz
 
-from hypothetical._lib import build_summary_matrix
+from hypothetical._lib import _build_summary_matrix
 
 
 def add_noise(cor, epsilon=None, M=None):
@@ -202,7 +202,7 @@ def covar(x, y=None, method=None):
         http://mathworld.wolfram.com/CovarianceMatrix.html
 
     """
-    x_mat = build_summary_matrix(x, y)
+    x_mat = _build_summary_matrix(x, y)
 
     n, m = x_mat.shape
     cov = np.empty([m, m])
@@ -443,7 +443,7 @@ def pearson(x, y=None):
         Brigham Young University: John Wiley & Sons, Inc.
 
     """
-    matrix = build_summary_matrix(x, y)
+    matrix = _build_summary_matrix(x, y)
 
     pearson_corr = np.empty((matrix.shape[1], matrix.shape[1]))
 
@@ -703,7 +703,7 @@ def spearman(x, y=None):
         From https://en.wikipedia.org/w/index.php?title=Spearman%27s_rank_correlation_coefficient&oldid=787350680
 
     """
-    matrix = build_summary_matrix(x, y)
+    matrix = _build_summary_matrix(x, y)
 
     rank_matrix = matrix.copy()
 

@@ -31,7 +31,7 @@ import numpy as np
 import numpy_indexed as npi
 from scipy.stats import f
 
-from hypothetical._lib import build_des_mat
+from hypothetical._lib import _build_des_mat
 from hypothetical.descriptive import var
 
 
@@ -199,7 +199,7 @@ class AnovaOneWay(object):
     """
     def __init__(self, *args, group=None):
 
-        self.design_matrix = build_des_mat(*args, group=group)
+        self.design_matrix = _build_des_mat(*args, group=group)
 
         if group is not None:
             self.group = group
@@ -645,7 +645,7 @@ class ManovaOneWay(object):
     """
     def __init__(self, *args, group):
 
-        self.design_matrix = build_des_mat(*args, group=group)
+        self.design_matrix = _build_des_mat(*args, group=group)
 
         if group is not None:
             self.group = group

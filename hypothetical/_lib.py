@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 
-def build_des_mat(*args, group=None):
+def _build_des_mat(*args, group=None):
     arg_list = []
 
     for arg in args:
@@ -26,7 +26,7 @@ def build_des_mat(*args, group=None):
     return c
 
 
-def build_summary_matrix(x, y=None):
+def _build_summary_matrix(x, y=None):
     if isinstance(x, pd.DataFrame):
         x = x.values
     elif not isinstance(x, np.ndarray):

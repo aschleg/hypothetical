@@ -16,17 +16,6 @@ Critical Value Lookup Functions
     u_critical_value
     w_critical_value
 
-Critical Value Tables
----------------------
-
-.. autosummary::
-    :toctree: generated/
-
-    chi_square_critical_value_table
-    r_critical_value_table
-    u_critical_value_table
-    w_critical_value_table
-
 """
 
 from numpy import nan, array
@@ -83,7 +72,7 @@ def chi_square_critical_value(alpha, dof):
         raise ValueError('chi-square critical value table only provides critical values for alpha levels ' + \
                          '0.995, 0.99, 0.975, 0.95, 0.90, 0.10, 0.05, 0.025, 0.01, and 0.005.')
 
-    chi_crit = chi_square_critical_value_table[alpha][dof]
+    chi_crit = _chi_square_critical_value_table[alpha][dof]
 
     return chi_crit
 
@@ -92,8 +81,8 @@ def r_critical_value(n1, n2):
     if not all(array([n1, n2]) <= 20):
         raise ValueError('critical values of the r-statistic are only defined for samples of size 20 or less.')
 
-    r1_crit = r_critical_value_table['r1'][(n1, n2)]
-    r2_crit = r_critical_value_table['r2'][(n1, n2)]
+    r1_crit = _r_critical_value_table['r1'][(n1, n2)]
+    r2_crit = _r_critical_value_table['r2'][(n1, n2)]
 
     return r1_crit, r2_crit
 
@@ -154,7 +143,7 @@ def u_critical_value(n, m, alpha):
         raise ValueError('U critical values are only defined for alpha-levels 0.10, 0.05, 0.025, and 0.01.')
 
     try:
-        u_crit = u_critical_value_table[alpha][(n, m)]
+        u_crit = _u_critical_value_table[alpha][(n, m)]
     except KeyError:
         raise KeyError('critical values not defined for selected values of n and m.')
 
@@ -216,12 +205,12 @@ def w_critical_value(n, alpha, alternative):
     if alternative not in ('one-tail', 'two-tail'):
         raise ValueError("alternative must be one of 'one-tail' or 'two-tail'.")
 
-    w_crit = w_critical_value_table[alternative][alpha][n]
+    w_crit = _w_critical_value_table[alternative][alpha][n]
 
     return w_crit
 
 
-chi_square_critical_value_table = {
+_chi_square_critical_value_table = {
     0.995: {
         1: nan,
         2: 0.010,
@@ -545,7 +534,7 @@ chi_square_critical_value_table = {
 }
 
 
-r_critical_value_table = {
+_r_critical_value_table = {
     'r1': {
         (2, 1): nan,
         (2, 2): nan,
@@ -1313,7 +1302,7 @@ r_critical_value_table = {
 }
 
 
-u_critical_value_table = {
+_u_critical_value_table = {
     0.10: {
         (1, 9): 0,
         (1, 10): 0,
@@ -2070,7 +2059,7 @@ u_critical_value_table = {
 }
 
 
-w_critical_value_table = {
+_w_critical_value_table = {
     'one-tail': {
         0.01: {
             5: nan,

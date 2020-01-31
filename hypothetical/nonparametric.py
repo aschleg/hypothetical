@@ -65,7 +65,7 @@ import pandas as pd
 from scipy.stats import chi2, norm, rankdata, t, find_repeats
 from scipy.special import comb
 
-from hypothetical._lib import build_des_mat
+from hypothetical._lib import _build_des_mat
 from hypothetical.descriptive import var
 from hypothetical.hypothesis import BinomialTest
 from hypothetical.contingency import ChiSquareContingency
@@ -179,7 +179,7 @@ class FriedmanTest(object):
         if group is not None and len(args) > 1:
             raise ValueError('Only one sample vector should be passed when including a group vector')
 
-        self.design_matrix = build_des_mat(*args, group=group)
+        self.design_matrix = _build_des_mat(*args, group=group)
 
         if group is not None:
             self.group = group
@@ -410,7 +410,7 @@ class KruskalWallis(object):
         if group is not None and len(args) > 1:
             raise ValueError('Only one sample vector should be passed when including a group vector')
 
-        self.design_matrix = build_des_mat(*args, group=group)
+        self.design_matrix = _build_des_mat(*args, group=group)
 
         if group is not None:
             self.group = group

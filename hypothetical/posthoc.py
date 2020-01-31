@@ -23,7 +23,7 @@ Post-hoc (no date) Available at: http://www.unt.edu/rss/class/Jon/ISSS_SC/Module
 
 """
 
-from hypothetical._lib import build_des_mat
+from hypothetical._lib import _build_des_mat
 import numpy as np
 import pandas as pd
 import numpy_indexed as npi
@@ -115,7 +115,7 @@ class GamesHowell(object):
 
     """
     def __init__(self, *args, group, alpha=0.05):
-        self.design_matrix = build_des_mat(*args, group=group)
+        self.design_matrix = _build_des_mat(*args, group=group)
 
         if group is not None:
             self.group = group
@@ -312,7 +312,7 @@ class TukeysTest(object):
         self.alpha = alpha
         self.test_description = 'Tukey multiple comparisons of means'
 
-        self.design_matrix = build_des_mat(*args, group=group)
+        self.design_matrix = _build_des_mat(*args, group=group)
 
         if group is not None:
             self.group = group
