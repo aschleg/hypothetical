@@ -26,7 +26,6 @@ Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
 
 """
 
-
 import numpy as np
 import numpy_indexed as npi
 from scipy.stats import f

@@ -417,8 +417,8 @@ class KruskalWallis(object):
         else:
             self.group = self.design_matrix[:, 0]
 
-        self.ranked_matrix = self._rank()
-        self.group_rank_sums = self._group_rank_sums()
+        self.ranked_matrix = _rank(self.design_matrix)
+        self.group_rank_sums = _group_rank_sums(self.ranked_matrix)
         self.alpha = alpha
         self.n = self.design_matrix.shape[0]
         self.k = len(np.unique(self.design_matrix[:, 0]))
@@ -435,7 +435,7 @@ class KruskalWallis(object):
                              't-value': self.t_value,
                              'alpha': self.alpha,
                              'degrees of freedom': self.dof
-        }
+                             }
 
     def _h_statistic(self):
         r"""
@@ -1309,8 +1309,52 @@ class SignTest(object):
 
 
 class VanDerWaerden(object):
+    r"""
 
-    def __init__(self, *args, post_hoc=True):
+    Parameters
+    ----------
+
+    Attributes
+    ----------
+
+    Notes
+    -----
+
+    Examples
+    --------
+
+    References
+    ----------
+
+    """
+    def __init__(self, *args, group=None, alpha=0.05, post_hoc=True):
+        if group is not None and len(args) > 1:
+            raise ValueError('Only one sample vector should be passed when including a group vector')
+
+        self.design_matrix = _build_des_mat(*args, group=group)
+
+        if group is not None:
+            self.group = group
+        else:
+            self.group = self.design_matrix[:, 0]
+
+        self.ranked_matrix = _rank(self.design_matrix)
+        self.group_rank_sums = _group_rank_sums(self.ranked_matrix)
+        self.alpha = alpha
+        self.n = self.design_matrix.shape[0]
+        self.k = len(np.unique(self.design_matrix[:, 0]))
+        self.test_description = 'Van Der Waerden (normal scores) test'
+
+    def _group_normal_scores(self):
+        pass
+
+    def _normal_scores_average(self):
+        pass
+
+    def _normal_scores_variance(self):
+        pass
+
+    def _post_hoc(self):
         pass
 
 
@@ -1736,3 +1780,20 @@ def count_runs(x):
     run_count = len(runs)
 
     return runs, run_count
+
+
+def _rank(design_matrix):
+
+    ranks = rankdata(design_matrix[:, 1], 'average')
+
+    ranks = np.column_stack([design_matrix, ranks])
+
+    return ranks
+
+
+def _group_rank_sums(ranked_matrix):
+    rank_sums = npi.group_by(ranked_matrix[:, 0],
+                             ranked_matrix[:, 2],
+                             np.sum)
+
+    return rank_sums
