@@ -1066,6 +1066,8 @@ class RunsTest(object):
     x : array-like
         One-dimensional array-like (Pandas Series or DataFrame, Numpy array, or list)
         designating first sample observation values.
+    continuity : bool, default True
+        If True, continuity correction is applied when calculating the z-score.
 
     Attributes
     ----------
@@ -1123,6 +1125,14 @@ class RunsTest(object):
     As the sample is approximately normally distributed, the critical value of the z-score can be found using the
     cumulative normal distribution function.
 
+    If continuity correction is applied, the z-score is calculated as:
+
+    .. math::
+
+        z = \frac{|r - \mu_r| - 0.5}{\sigma_r}
+
+    Where :math:`r`, :math:`\mu_r` and :math:`\sigma_r` are defined the same as above.
+
     Examples
     --------
     >>> s = ['m','f','m','f','m','m','m','f','f','m','f','m','f','m','f']
@@ -1145,7 +1155,7 @@ class RunsTest(object):
         Wikipedia, The Free Encyclopedia, 8 Jun. 2019. Web. 29 Sep. 2019.
 
     """
-    def __init__(self, x):
+    def __init__(self, x, continuity=False):
         if not isinstance(x, np.ndarray):
             self.x = np.array(x)
         else:
@@ -1156,6 +1166,7 @@ class RunsTest(object):
                              '(True/False, 1/0, Group A/Group B, etc).')
 
         self.runs, self.r = count_runs(self.x)
+        self.continuity = continuity
         self.test_summary = self._runs_test()
 
     def _runs_test(self):
@@ -1194,7 +1205,7 @@ class RunsTest(object):
         else:
             mean = (2 * n1 * n2) / (n1 + n2) + 1
             sd = np.sqrt((2 * n1 * n2 * (2 * n1 * n2 - n1 - n2)) / ((n1 + n2) ** 2 * (n1 + n2 - 1)))
-            z = (self.r - mean) / sd
+            z = (np.abs(self.r - mean) - self.continuity * 0.5) / sd
             p_val = norm.sf(z) * 2
 
             test_summary = {
@@ -1202,7 +1213,8 @@ class RunsTest(object):
                 'mean of runs': mean,
                 'standard deviation of runs': sd,
                 'z-value': z,
-                'p-value': p_val
+                'p-value': p_val,
+                'continuity': self.continuity
             }
 
             return test_summary
@@ -1310,12 +1322,34 @@ class SignTest(object):
 
 class VanDerWaerden(object):
     r"""
+    Performs the Van Der Waerden (normal scores) test for testing if several k groups have the same distribution
+    function.
 
     Parameters
     ----------
+    group_sample1, group_sample2, ... : array-like
+        Corresponding observation vectors of the group samples. Must be the same length
+        as the group parameter. If the group parameter is None, each observation vector
+        will be treated as a group sample vector.
+    group: array-like, optional
+        One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
+        membership of the dependent variable(s). Must be the same length as the observation vector.
+    alpha : float
+        Desired alpha level for testing for significance.
+    post-hoc : bool, default True
+        If True, a post-hoc multiple comparisons test is performed.
 
     Attributes
     ----------
+    group_sample1, group_sample2, ... : array-like
+        Corresponding observation vectors of the group samples. Must be the same length
+        as the group parameter. If the group parameter is None, each observation vector
+        will be treated as a group sample vector.
+    group: array-like, optional
+        One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
+        membership of the dependent variable(s). Must be the same length as the observation vector.
+    alpha : float
+        Desired alpha level for testing for significance.
 
     Notes
     -----
@@ -1360,19 +1394,108 @@ class VanDerWaerden(object):
 
 class WaldWolfowitz(object):
     r"""
-    Performs the Wald-Wolfowitz Two-Sample runs test.
-
-    Attributes
-    ----------
+    Performs the Wald-Wolfowitz Two-Sample runs test for two independent samples.
 
     Parameters
     ----------
+    x : array-like
+        First sample observation vector.
+    y : array-like
+        Second sample observation vector.
+    continuity: bool, default True
+        If True, continuity correction is applied during the Wald-Wolfowitz test procedure.
+
+    Attributes
+    ----------
+    x : array-like
+        First sample observation vector.
+    y : array-like
+        Second sample observation vector.
+    continuity: bool
+        If True, continuity correction is applied during the Wald-Wolfowitz test procedure.
+    runs : int
+        The number of total runs in the ranked and ordered samples.
+    probability : float
+        The estimated proability of getting an observed value of :math:`r` or smaller.
+    z : float
+        The computed z-score.
+    test_summary: dict
+        Dictionary containing relevant test summary statistics.
 
     Examples
     --------
 
     Notes
     -----
+    The Wald-Wolfowitz runs test is used to test the hypothesis that two independent samples have been drawn from the
+    same population rejects the hypothesis if the two samples differ in any way. The Wald-Wolfowitz test is useful in
+    that it can be used to test if two samples differ in more than one respect, whether that be central tendency,
+    variance, skewness, kurtosis, and so on.
+
+    Before the test is performed, the two samples are ordered and ranked, keeping their group membership but as a
+    single array. Depending on the sample sizes of both samples, the test either uses a critical value table or
+    is approximated using a normal distribution.
+
+    The sampling distribution of the observed runs :math:`r` stems from when the two samples are ordered into a single
+    array, the total number of possible arrangements becomes binomial.
+
+    .. math::
+
+        \binom{n_1 + n_2}{n_1} = \binom{n_1 + n_2}{n_2}
+
+    It can then be shown that the probability of getting an observed value of the runs :math:`r` or a smaller value
+    when the value of :math:`r` is even is:
+
+    .. math::
+
+        p(r \geq r^{\prime}) = \frac{1}{\binom{n_1 + n_2}{n_1} \sum^{r^{\prime}}_{r=2} (2) \binom{n_1 - 1}{\frac{r}{2} - 1} \binom{n_2 - 1}{\frac{r}{2} - 1}
+
+    When :math:`r` is odd, the probability is defined as:
+
+    .. math::
+
+        p(r \geq r^{\prime}) = \frac{1}{\binom{n_1 + n_2}{n_1} \sum^{r^{\prime}}_{r=2} \large[ \binom{n_1 - 1}{k - 1} \binom{n_2 - 1}{k - 2} + \binom{n_1 - 1}{k - 2} \binom{n_2 - 1}{k - 1} \large]
+
+    where :math:`r = 2k - 1`
+
+    In the case of small samples, (:math:`n_1, n_2 \geq 20`), a critical value table is used to determine the
+    significance at a alpha of 0.05. For example, if the observed runs value, :math:`r` is equal to or less than the
+    corresponding value in the critical value table, the null hypothesis :math:`H_0` may be rejected at a significance
+    level of 0.05. Conversely, if the observed :math:`r` value is greater than the corresponding value in the table,
+    then the null hypothesis cannot be rejected.
+
+    When the small sample case does not apply, the sampling distribution of :math:`r` under the null hypothesis is
+    approximately normal.
+
+    The mean is defined as:
+
+    .. math::
+
+        \mu_r = \frac{2n_1 n_2}{n_1 + n_2} + 1
+
+    With standard deviation:
+
+    .. math::
+
+        \sigma_r = \sqrt{\frac{2n_1n_2(2n_1n_2 - n_1 - n_2)}{(n_1 + n_2)^2(n_1 + n_2 - 1)}}
+
+    The z-score, :math:`z = \frac{r - \mu_r}{\sigma_r}, can then be defined as:
+
+    .. math::
+
+        z = \frac{r - \large(\frac{2n_1 n_2}{n_1 + n_2} + 1 \large)}{\sqrt{\frac{2n_1n_2(2n_1n_2 - n_1 - n_2)}{(n_1 + n_2)^2(n_1 + n_2 - 1)}}}
+
+    In the case of large samples, the sampling distribution is normally distributed with zero mean and variance.
+
+    When the large sample setting applies but the total sample size :math:`N = (n_1 + n_2)` is still not quite large
+    (large unfortunately still being somewhat subjective; however, generally this implies that the sample size is not
+    large enough for the assumption of an approximately normally distributed sample to hold), a continuity correction
+    is recommended (and in some cases required). The continuity correction is performed by subtracting :math:`0.5`
+    from the absolute difference between the observed runs :math:`r` and the mean :`\mu_r` in the z-score computation.
+
+    .. math::
+
+        z = \frac{|r - \mu_r| - .5}{\sigma_r}
 
     References
     ----------
@@ -1396,9 +1519,10 @@ class WaldWolfowitz(object):
             self.y = y
 
         self.continuity = continuity
-        self.runs, self.r, self.test_summary = self._test()
+        self.r, self.test_summary = self._test()
         self.p_value = self.test_summary['p-value']
         self.probability = self.test_summary['probability']
+        self.description = 'Wald-Wolfowitz Runs Test for Two Independent Samples'
 
         try:
             self.z = self.test_summary['z-value']
@@ -1416,9 +1540,9 @@ class WaldWolfowitz(object):
 
         test = RunsTest(xy[:, 0], continuity=self.continuity)
 
-        runs, r, test_summary = test.runs, test.r, test.test_summary
+        r, test_summary = test.r, test.test_summary
 
-        return runs, r, test_summary
+        return r, test_summary
 
 
 class WilcoxonTest(object):
