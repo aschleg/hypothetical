@@ -65,7 +65,7 @@ import pandas as pd
 from scipy.stats import chi2, norm, rankdata, t, find_repeats
 from scipy.special import comb
 
-from hypothetical._lib import _build_des_mat
+from hypothetical._lib import _build_des_mat, _rank, _group_rank_sums
 from hypothetical.descriptive import var
 from hypothetical.hypothesis import BinomialTest
 from hypothetical.contingency import ChiSquareContingency
@@ -1373,20 +1373,47 @@ class VanDerWaerden(object):
             self.group = self.design_matrix[:, 0]
 
         self.ranked_matrix = _rank(self.design_matrix)
+        self.normal_score_matrix = self._normal_scores()
+        self.average_scores = self._normal_scores_average()
+        self.score_variance = self._normal_scores_variance()
+        self.test_statistic, self.critical_region = self._test_statistic()
         self.group_rank_sums = _group_rank_sums(self.ranked_matrix)
         self.alpha = alpha
         self.n = self.design_matrix.shape[0]
         self.k = len(np.unique(self.design_matrix[:, 0]))
+        self._group_obs = np.array([i[1] for i in
+                                    npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], len)])
         self.test_description = 'Van Der Waerden (normal scores) test'
+        self.test_summary = {'test_description': self.test_description,
+                             'test_statistic': self.test_statistic,
+                             'critical_region': self.critical_region
+                             }
 
-    def _group_normal_scores(self):
-        pass
+        if post_hoc:
+            pass
+
+    def _normal_scores(self):
+        aij = norm.ppf(1-self.alpha) * ((self.ranked_matrix[:, 2]) / (self.n + 1))
+        score_matrix = np.column_stack([self.ranked_matrix, aij])
+
+        return score_matrix
 
     def _normal_scores_average(self):
-        pass
+        average_scores = np.sum(self.normal_score_matrix[:, 3]) / self._group_obs
+
+        return average_scores
 
     def _normal_scores_variance(self):
-        pass
+        score_variance = np.sum(self.normal_score_matrix[:, 3] ** 2) / (1 / (self.n - 1))
+
+        return score_variance
+
+    def _test_statistic(self):
+        t1 = 1 / self.score_variance * np.sum(self._group_obs * self.average_scores ** 2)
+
+        crit_region = chi2.ppf(self.alpha, self.k - 1)
+
+        return t1, crit_region
 
     def _post_hoc(self):
         pass
@@ -1846,7 +1873,7 @@ class WilcoxonTest(object):
 
 def tie_correction(rank_array):
     r"""
-    Computes the tie correction factor used in Mann-Whitney and Kruskal-Wallis tests.
+    Computes the tie correction factor used in nonparametric statistical tests.
 
     Parameters
     ----------
@@ -1898,26 +1925,23 @@ def tie_correction(rank_array):
     return corr
 
 
-def count_runs(x):
+def count_runs(x, index=1):
+    r"""
+
+    Parameters
+    ----------
+    x : array-like
+    index : int, default 1
+
+    Returns
+    -------
+
+    Examples
+    --------
+
+    """
     runs = np.array([sum(1 for _ in r) for _, r in groupby(np.array(x))])
 
     run_count = len(runs)
 
     return runs, run_count
-
-
-def _rank(design_matrix):
-
-    ranks = rankdata(design_matrix[:, 1], 'average')
-
-    ranks = np.column_stack([design_matrix, ranks])
-
-    return ranks
-
-
-def _group_rank_sums(ranked_matrix):
-    rank_sums = npi.group_by(ranked_matrix[:, 0],
-                             ranked_matrix[:, 2],
-                             np.sum)
-
-    return rank_sums

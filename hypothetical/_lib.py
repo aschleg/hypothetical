@@ -1,5 +1,7 @@
 import numpy as np
+import numpy_indexed as npi
 import pandas as pd
+from scipy.stats import rankdata
 
 
 def _build_des_mat(*args, group=None):
@@ -41,3 +43,20 @@ def _build_summary_matrix(x, y=None):
         x = np.column_stack([x, y])
 
     return x
+
+
+def _rank(design_matrix):
+
+    ranks = rankdata(design_matrix[:, 1], 'average')
+
+    ranks = np.column_stack([design_matrix, ranks])
+
+    return ranks
+
+
+def _group_rank_sums(ranked_matrix):
+    rank_sums = npi.group_by(ranked_matrix[:, 0],
+                             ranked_matrix[:, 2],
+                             np.sum)
+
+    return rank_sums

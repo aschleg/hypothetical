@@ -6,7 +6,7 @@ setup(
     name='hypothetical',
     version='0.2.1',
     author='Aaron Schlegel',
-    author_email='aaron@aaronschlegel.com',
+    author_email='aaron@aaronschlegel.me',
     description='Hypothesis testing and other testing methods',
     packages=find_packages(exclude=['docs', 'notebooks', 'tests*', '*.egg-info', 'data']),
     include_package_data=True,
