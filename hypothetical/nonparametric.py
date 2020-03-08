@@ -64,6 +64,7 @@ import numpy_indexed as npi
 import pandas as pd
 from scipy.stats import chi2, norm, rankdata, t, find_repeats
 from scipy.special import comb
+from itertools import combinations
 
 from hypothetical._lib import _build_des_mat, _rank, _group_rank_sums
 from hypothetical.descriptive import var
@@ -1359,6 +1360,10 @@ class VanDerWaerden(object):
 
     References
     ----------
+    Conover, W. J. (1999). Practical Nonparameteric Statistics (Third ed.). Wiley.
+
+    Wikipedia contributors. "Van der Waerden test." Wikipedia, The Free Encyclopedia.
+        Wikipedia, The Free Encyclopedia, 8 Feb. 2017. Web. 8 Mar. 2020.
 
     """
     def __init__(self, *args, group=None, alpha=0.05, post_hoc=True):
@@ -1372,51 +1377,91 @@ class VanDerWaerden(object):
         else:
             self.group = self.design_matrix[:, 0]
 
-        self.ranked_matrix = _rank(self.design_matrix)
-        self.normal_score_matrix = self._normal_scores()
-        self.average_scores = self._normal_scores_average()
-        self.score_variance = self._normal_scores_variance()
-        self.test_statistic, self.critical_region = self._test_statistic()
-        self.group_rank_sums = _group_rank_sums(self.ranked_matrix)
         self.alpha = alpha
         self.n = self.design_matrix.shape[0]
         self.k = len(np.unique(self.design_matrix[:, 0]))
         self._group_obs = np.array([i[1] for i in
                                     npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], len)])
+
+        self.ranked_matrix = _rank(self.design_matrix)
+        self.normal_score_matrix = self._normal_scores()
+        self.average_scores = self._normal_scores_average()
+        self.score_variance = self._normal_scores_variance()
+        self.test_statistic, self.critical_region, self.p_value = self._test_statistic()
+        self.group_rank_sums = _group_rank_sums(self.ranked_matrix)
+        self.mean_square_error, self.least_significant_difference = self._least_significant_difference()
+
         self.test_description = 'Van Der Waerden (normal scores) test'
         self.test_summary = {'test_description': self.test_description,
                              'test_statistic': self.test_statistic,
+                             'mean_square_error': self.mean_square_error,
+                             'least_significant_difference': self.least_significant_difference,
+                             'p_value': self.p_value,
                              'critical_region': self.critical_region
                              }
 
         if post_hoc:
-            pass
+            self.multiple_comparisons = self._post_hoc()
+            self.test_summary['post_hoc'] = self.multiple_comparisons
 
     def _normal_scores(self):
-        aij = norm.ppf(1-self.alpha) * ((self.ranked_matrix[:, 2]) / (self.n + 1))
+        aij = norm.ppf(list(self.ranked_matrix[:, 2] / (self.n + 1)))
         score_matrix = np.column_stack([self.ranked_matrix, aij])
 
         return score_matrix
 
     def _normal_scores_average(self):
-        average_scores = np.sum(self.normal_score_matrix[:, 3]) / self._group_obs
+        average_scores = npi.group_by(self.normal_score_matrix[:, 0], self.normal_score_matrix[:, 3], np.mean)
 
         return average_scores
 
     def _normal_scores_variance(self):
-        score_variance = np.sum(self.normal_score_matrix[:, 3] ** 2) / (1 / (self.n - 1))
+        score_variance = np.sum(self.normal_score_matrix[:, 3] ** 2) / (self.n - 1)
 
         return score_variance
 
     def _test_statistic(self):
-        t1 = 1 / self.score_variance * np.sum(self._group_obs * self.average_scores ** 2)
+        average_scores = np.array([i for _, i in self.average_scores])
+        t1 = np.sum(self._group_obs * average_scores ** 2) / self.score_variance
 
         crit_region = chi2.ppf(self.alpha, self.k - 1)
 
-        return t1, crit_region
+        p_value = chi2.sf(t1, self.k - 1)
+
+        return t1, crit_region, p_value
+
+    def _least_significant_difference(self):
+        mse = self.score_variance * ((self.n - 1 - self.test_statistic) / (self.n - self.k))
+
+        lsd = t.ppf(1 - self.alpha / 2, 1)
+
+        return mse, lsd
 
     def _post_hoc(self):
-        pass
+        average_scores = [i for _, i in self.average_scores]
+
+        sample_sizes = 1 / np.array(list(combinations(self._group_obs, 2)))[:, 0] + \
+                       1 / np.array(list(combinations(self._group_obs, 2)))[:, 1]
+
+        average_score_differences = np.array(list(combinations(average_scores, 2)))[:, 0] - \
+                                    np.array(list(combinations(average_scores, 2)))[:, 1]
+
+        group_names = np.unique(self.design_matrix[:, 0])
+
+        groups = pd.DataFrame(np.array(list(combinations(group_names, 2))))
+
+        groups['groups'] = groups[0] + ' - ' + groups[1]
+        groups['score'] = average_scores
+        groups['average score difference'] = average_score_differences
+
+        groups['result'] = np.sqrt(self.score_variance) * \
+                           t.ppf(1 - self.alpha / 2, 1) * \
+                           np.sqrt((self.n - 1 - self.test_statistic) / (self.n - self.k)) * np.sqrt(sample_sizes)
+
+        del groups[0]
+        del groups[1]
+
+        return groups
 
 
 class WaldWolfowitz(object):
