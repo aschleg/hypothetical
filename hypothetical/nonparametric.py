@@ -1323,7 +1323,7 @@ class SignTest(object):
 
 class VanDerWaerden(object):
     r"""
-    Performs the Van Der Waerden (normal scores) test for testing if several k groups have the same distribution
+    Performs the Van Der Waerden (normal scores) test for testing if k groups have the same distribution
     function.
 
     Parameters
@@ -1335,22 +1335,25 @@ class VanDerWaerden(object):
     group: array-like, optional
         One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
         membership of the dependent variable(s). Must be the same length as the observation vector.
-    alpha : float
+    alpha : float, default 0.05
         Desired alpha level for testing for significance.
     post-hoc : bool, default True
         If True, a post-hoc multiple comparisons test is performed.
 
     Attributes
     ----------
-    group_sample1, group_sample2, ... : array-like
-        Corresponding observation vectors of the group samples. Must be the same length
-        as the group parameter. If the group parameter is None, each observation vector
-        will be treated as a group sample vector.
-    group: array-like, optional
-        One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
-        membership of the dependent variable(s). Must be the same length as the observation vector.
+    design_matrix : array-like
+        Numpy ndarray representing the data matrix for the analysis.
+    ranked_matrix : array-like
+        Numpy ndarray representing the data matrix with the ranked observations.
     alpha : float
         Desired alpha level for testing for significance.
+    n : int
+        Number of total observations.
+    k : int
+        Number of groups
+    test_summary : dict
+        Dictionary of test results.
 
     Notes
     -----
@@ -1389,13 +1392,13 @@ class VanDerWaerden(object):
         self.score_variance = self._normal_scores_variance()
         self.test_statistic, self.critical_region, self.p_value = self._test_statistic()
         self.group_rank_sums = _group_rank_sums(self.ranked_matrix)
-        self.mean_square_error, self.least_significant_difference = self._least_significant_difference()
+        # self.mean_square_error, self.minimum_significant_difference = self._min_significant_difference()
 
         self.test_description = 'Van Der Waerden (normal scores) test'
         self.test_summary = {'test_description': self.test_description,
                              'test_statistic': self.test_statistic,
                              'mean_square_error': self.mean_square_error,
-                             'least_significant_difference': self.least_significant_difference,
+                             'least_significant_difference': self.minimum_significant_difference,
                              'p_value': self.p_value,
                              'critical_region': self.critical_region
                              }
@@ -1430,12 +1433,12 @@ class VanDerWaerden(object):
 
         return t1, crit_region, p_value
 
-    def _least_significant_difference(self):
-        mse = self.score_variance * ((self.n - 1 - self.test_statistic) / (self.n - self.k))
-
-        lsd = t.ppf(1 - self.alpha / 2, 1)
-
-        return mse, lsd
+    # def _min_significant_difference(self):
+    #     mse = self.score_variance * ((self.n - 1 - self.test_statistic) / (self.n - self.k))
+    #
+    #     msd = t.ppf(1 - self.alpha / 2, self.n - self.k) * np.sqrt(2 * mse / self.k)
+    #
+    #     return mse, msd
 
     def _post_hoc(self):
         average_scores = [i for _, i in self.average_scores]
@@ -1443,8 +1446,8 @@ class VanDerWaerden(object):
         sample_sizes = 1 / np.array(list(combinations(self._group_obs, 2)))[:, 0] + \
                        1 / np.array(list(combinations(self._group_obs, 2)))[:, 1]
 
-        average_score_differences = np.array(list(combinations(average_scores, 2)))[:, 0] - \
-                                    np.array(list(combinations(average_scores, 2)))[:, 1]
+        average_score_differences = np.abs(np.array(list(combinations(average_scores, 2)))[:, 0] - \
+                                    np.array(list(combinations(average_scores, 2)))[:, 1])
 
         group_names = np.unique(self.design_matrix[:, 0])
 
@@ -1452,11 +1455,10 @@ class VanDerWaerden(object):
 
         groups['groups'] = groups[0] + ' - ' + groups[1]
         groups['score'] = average_scores
-        groups['average score difference'] = average_score_differences
 
-        groups['result'] = np.sqrt(self.score_variance) * \
-                           t.ppf(1 - self.alpha / 2, 1) * \
-                           np.sqrt((self.n - 1 - self.test_statistic) / (self.n - self.k)) * np.sqrt(sample_sizes)
+        groups['difference'] = average_score_differences > np.sqrt(self.score_variance) * \
+                               t.ppf(1 - self.alpha / 2, self.n - self.k) * \
+                               np.sqrt((self.n - 1 - self.test_statistic) / (self.n - self.k)) * np.sqrt(sample_sizes)
 
         del groups[0]
         del groups[1]

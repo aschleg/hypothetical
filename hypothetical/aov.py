@@ -445,6 +445,30 @@ class AnovaOneWay(object):
         return group_stats
 
 
+class BartlettsTest(object):
+
+    def __init__(self, *args, group):
+
+        self.design_matrix = _build_des_mat(*args, group=group)
+
+        if group is not None:
+            self.group = group
+        else:
+            self.group = self.design_matrix[:, 0]
+
+
+class LevenesTest(object):
+
+    def __init__(self, *args, group):
+
+        self.design_matrix = _build_des_mat(*args, group=group)
+
+        if group is not None:
+            self.group = group
+        else:
+            self.group = self.design_matrix[:, 0]
+
+
 class ManovaOneWay(object):
     r"""
     Performs multivariate analysis of variance, also known as MANOVA. Multivariate analysis of variance is
