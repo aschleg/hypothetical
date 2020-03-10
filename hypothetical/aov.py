@@ -263,13 +263,10 @@ class AnovaOneWay(object):
             Brigham Young University: John Wiley & Sons, Inc.
 
         """
-        group_n = self.group_stats['Group Observations']
-        group_variance = self.group_stats['Group Variance']
+        group_n = np.array([i for _, i in self.group_stats['Group Observations']])
+        group_variance = np.array([i for _, i in self.group_stats['Group Variance']])
 
-        sse = 0
-
-        for i, j in zip(group_n, group_variance):
-            sse += (i[1] - 1) * j[1]
+        sse = (group_n - 1) * group_variance
 
         return sse
 
@@ -297,14 +294,11 @@ class AnovaOneWay(object):
             Brigham Young University: John Wiley & Sons, Inc.
 
         """
-        group_n = self.group_stats['Group Observations']
-        group_means = self.group_stats['Group Means']
+        group_n = np.array([i for _, i in self.group_stats['Group Observations']])
+        group_means = np.array([i for _, i in self.group_stats['Group Means']])
         total_mean = np.mean(self.design_matrix[:, 1])
 
-        sst = 0
-
-        for i, j in zip(group_n, group_means):
-            sst += i[1] * (j[1] - total_mean) ** 2
+        sst = group_n * (group_means - total_mean) ** 2
 
         return sst
 
@@ -467,6 +461,20 @@ class LevenesTest(object):
             self.group = group
         else:
             self.group = self.design_matrix[:, 0]
+
+    def _test(self):
+        group_means = np.array([i for _, i in npi.group_by(self.design_matrix[:, 0],
+                                                           self.design_matrix[:, 1], np.mean)])
+        group_obs = np.array([i for _, i in npi.group_by(self.design_matrix[:, 0],
+                                                         self.design_matrix[:, 1], len)])
+        group_variance = np.array([i for _, i in npi.group_by(self.design_matrix[:, 0],
+                                                              self.design_matrix[:, 1], var)])
+
+        total_mean = np.mean(self.design_matrix[:, 1])
+
+        sst = group_obs * (group_means - total_mean) ** 2
+
+        sse = (group_obs - 1) * group_variance
 
 
 class ManovaOneWay(object):
