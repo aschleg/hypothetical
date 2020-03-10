@@ -1345,18 +1345,86 @@ class VanDerWaerden(object):
     design_matrix : array-like
         Numpy ndarray representing the data matrix for the analysis.
     ranked_matrix : array-like
-        Numpy ndarray representing the data matrix with the ranked observations.
+        Numpy ndarray representing the data matrix with ranked observations.
+    normal_score_matrix : array-like
+        Numpy ndarray representing the data matrix with ranked observations and computed normal test scores.
+    average_scores : list
+        List of tuples containing each group name and its respective average normal score.
+    test_statistic : float
+        The computed Van Der Waerden test statistic, denoted :math:`T_1`.
+    p_value : float
+        The p-value of the calculated :math:`T_1` test statistic.
     alpha : float
         Desired alpha level for testing for significance.
+    group : array-like
+        One-dimensional numpy array of the passed or coerced group array.
     n : int
         Number of total observations.
     k : int
         Number of groups
+    test_description: str
+        Test performed.
     test_summary : dict
         Dictionary of test results.
 
     Notes
     -----
+    The Van der Waerden test is a non-parametric test for testing the assumption that :math:`k` sample distribution
+    functions are equal. Van der Waerden's test is similar to the Kruskal-Wallis one-way analysis of variance test in
+    that it converts the data to ranks and then to standard normal distribution quantiles which are designated as the
+    'normal scores'.
+
+    The benefit of Van der Waerden's test is that it is performant compared to ANOVA (analysis of variance) when the
+    samples are normally distributed and the Kruskal-Wallis test when the samples are not normally distributed.
+
+    The null and alternative hypotheses of the Van der Waerden test can be stated generally as follows:
+
+    :math:`H_0`: All of the :math:`k` population distribution functions are equal
+    :math:`H_A`: At least one of the :math:`k` population distribution functions are not equal and tend to yield larger
+    observations to the other distribution functions.
+
+    Let :math:`n_j`, be the number of samples for each of the :math:`k` groups where :math:`j` is the j-th group.
+    :math:`N` is the number of total samples in all groups, while :math:`X_{ij}` is the i-th value of the j-th group.
+    The normal scores used in the Van der Waerden test are calculated as:
+
+    .. math::
+
+        A_{ij} = \phi^{-1} \left( \frac{R \left( X_{ij} \right)}{N + 1} \right)
+
+    where :math:`R(X_{ij})` and :math:`phi^{-1}` are the ranks of the :math:`X_{ij}` observation and the normal
+    quantile function (percent point function), respectively. The average normal scores can then be calculated as:
+
+    .. math::
+
+        \bar{A}_j = \frac{1}{n_j} \sum^{n_j}_{i=1} A_{ij} \qquad j = 1, 2, \cdots, k
+
+    The variance :math:`s^2` of the normal scores is defined as:
+
+    .. math::
+
+        s^2 = \frac{1}{N - 1} \sum^k_{i=1} \sum^{n_i}_{j=1} A^2_{ij}
+
+    The Van der Waerden test statistic, :math:`T_1` is defined as:
+
+    .. math::
+
+        T_1 = \frac{1}{s^2} \sum^k_{i=1} n_i (\bar{A}_i)^2
+
+    As the test is approximate to a chi-square distribution, the critical region for a significance level :math:`\alpha`
+    is:
+
+    .. math::
+
+        T_1 = \chi^2_{\alpha, k-1}
+
+    When the null hypothesis is rejected (p-value within the critical region) and at least one of the sample
+    distribution functions differs, a post-hoc multiple comparions test can be performed to get a better sense of
+    which populations differ from the others. Two sample populations, :math:`j_1` and :math:`j_2`, tend to be different
+    if the following is true:
+
+    .. math::
+
+        | \bar{A}_{j_1} - \bar{A}_{j_2} | > st_{1-\alpha/2} \sqrt{\frac{N-1-T_1}{N-k}} \sqrt{\frac{1}{n_{j_1}} + \frac{1}{n_{j_2}}}
 
     Examples
     --------
@@ -1390,10 +1458,8 @@ class VanDerWaerden(object):
         self.normal_score_matrix = self._normal_scores()
         self.average_scores = self._normal_scores_average()
         self.score_variance = self._normal_scores_variance()
-        self.test_statistic, self.critical_region, self.p_value = self._test_statistic()
-        self.group_rank_sums = _group_rank_sums(self.ranked_matrix)
+        self.test_statistic, self.p_value = self._test_statistic()
         # self.mean_square_error, self.minimum_significant_difference = self._min_significant_difference()
-
         self.test_description = 'Van Der Waerden (normal scores) test'
         self.test_summary = {'test_description': self.test_description,
                              'test_statistic': self.test_statistic,
@@ -1406,32 +1472,132 @@ class VanDerWaerden(object):
         if post_hoc:
             self.multiple_comparisons = self._post_hoc()
             self.test_summary['post_hoc'] = self.multiple_comparisons
+        else:
+            self.multiple_comparisons = None
 
     def _normal_scores(self):
+        r"""
+        Calculates the normal scores used in the Van der Waerden test.
+
+        Returns
+        -------
+        score_matrix : array-like
+        Numpy ndarray representing the data matrix with ranked observations and computed normal test scores.
+
+        Notes
+        -----
+        Let :math:`n_j`, be the number of samples for each of the :math:`k` groups where :math:`j` is the j-th group.
+        :math:`N` is the number of total samples in all groups, while :math:`X_{ij}` is the i-th value of the j-th
+        group. The normal scores used in the Van der Waerden test are calculated as:
+
+        .. math::
+
+            A_{ij} = \phi^{-1} \left( \frac{R \left( X_{ij} \right)}{N + 1} \right)
+
+        References
+        ----------
+        Conover, W. J. (1999). Practical Nonparameteric Statistics (Third ed.). Wiley.
+
+        Wikipedia contributors. "Van der Waerden test." Wikipedia, The Free Encyclopedia.
+            Wikipedia, The Free Encyclopedia, 8 Feb. 2017. Web. 8 Mar. 2020.
+
+        """
         aij = norm.ppf(list(self.ranked_matrix[:, 2] / (self.n + 1)))
         score_matrix = np.column_stack([self.ranked_matrix, aij])
 
         return score_matrix
 
     def _normal_scores_average(self):
+        r"""
+        Returns the average normal scores for each group.
+
+        Returns
+        -------
+        average_scores : list
+            List of tuples containing each group name and its respective average normal score.
+
+        Notes
+        -----
+        The average normal scores for each group are computed as, where :math:`A_{ij}` are the computed normal scores.
+
+        .. math::
+
+            \bar{A}_j = \frac{1}{n_j} \sum^{n_j}_{i=1} A_{ij} \qquad j = 1, 2, \cdots, k
+
+        References
+        ----------
+        Conover, W. J. (1999). Practical Nonparameteric Statistics (Third ed.). Wiley.
+
+        Wikipedia contributors. "Van der Waerden test." Wikipedia, The Free Encyclopedia.
+            Wikipedia, The Free Encyclopedia, 8 Feb. 2017. Web. 8 Mar. 2020.
+
+        """
         average_scores = npi.group_by(self.normal_score_matrix[:, 0], self.normal_score_matrix[:, 3], np.mean)
 
         return average_scores
 
     def _normal_scores_variance(self):
+        r"""
+        Calculates the variance of the normal scores.
+
+        Returns
+        -------
+        score_variance : float
+            The variance of the computed normal scores.
+
+        Notes
+        -----
+        The variance :math:`s^2` of the normal scores is defined as:
+
+        .. math::
+
+            s^2 = \frac{1}{N - 1} \sum^k_{i=1} \sum^{n_i}_{j=1} A^2_{ij}
+
+        References
+        ----------
+        Conover, W. J. (1999). Practical Nonparameteric Statistics (Third ed.). Wiley.
+
+        Wikipedia contributors. "Van der Waerden test." Wikipedia, The Free Encyclopedia.
+            Wikipedia, The Free Encyclopedia, 8 Feb. 2017. Web. 8 Mar. 2020.
+
+        """
         score_variance = np.sum(self.normal_score_matrix[:, 3] ** 2) / (self.n - 1)
 
         return score_variance
 
     def _test_statistic(self):
+        r"""
+        Returns the Van der Waerden test statistic, :math:`T_1` and the associated p-value.
+
+        Returns
+        -------
+        t1 : float
+            The Van der Waerden test statistic
+        p_value : float
+            The computed p-value
+
+        Notes
+        -----
+        The Van der Waerden test statistic, :math:`T_1` is defined as:
+
+        .. math::
+
+            T_1 = \frac{1}{s^2} \sum^k_{i=1} n_i (\bar{A}_i)^2
+
+        References
+        ----------
+        Conover, W. J. (1999). Practical Nonparameteric Statistics (Third ed.). Wiley.
+
+        Wikipedia contributors. "Van der Waerden test." Wikipedia, The Free Encyclopedia.
+            Wikipedia, The Free Encyclopedia, 8 Feb. 2017. Web. 8 Mar. 2020.
+
+        """
         average_scores = np.array([i for _, i in self.average_scores])
         t1 = np.sum(self._group_obs * average_scores ** 2) / self.score_variance
 
-        crit_region = chi2.ppf(self.alpha, self.k - 1)
-
         p_value = chi2.sf(t1, self.k - 1)
 
-        return t1, crit_region, p_value
+        return t1, p_value
 
     # def _min_significant_difference(self):
     #     mse = self.score_variance * ((self.n - 1 - self.test_statistic) / (self.n - self.k))
@@ -1441,6 +1607,33 @@ class VanDerWaerden(object):
     #     return mse, msd
 
     def _post_hoc(self):
+        r"""
+        Returns a pandas DataFrame containing the multiple comparison test results.
+
+        Returns
+        -------
+        groups : pandas DataFrame
+            pandas DataFrame containing results of the multiple comparisons test.
+
+        Notes
+        -----
+        When the null hypothesis is rejected (p-value within the critical region) and at least one of the sample
+        distribution functions differs, a post-hoc multiple comparions test can be performed to get a better sense of
+        which populations differ from the others. Two sample populations, :math:`j_1` and :math:`j_2`, tend to be different
+        if the following is true:
+
+        .. math::
+
+            | \bar{A}_{j_1} - \bar{A}_{j_2} | > st_{1-\alpha/2} \sqrt{\frac{N-1-T_1}{N-k}} \sqrt{\frac{1}{n_{j_1}} + \frac{1}{n_{j_2}}}
+
+        References
+        ----------
+        Conover, W. J. (1999). Practical Nonparameteric Statistics (Third ed.). Wiley.
+
+        Wikipedia contributors. "Van der Waerden test." Wikipedia, The Free Encyclopedia.
+            Wikipedia, The Free Encyclopedia, 8 Feb. 2017. Web. 8 Mar. 2020.
+
+        """
         average_scores = [i for _, i in self.average_scores]
 
         sample_sizes = 1 / np.array(list(combinations(self._group_obs, 2)))[:, 0] + \
