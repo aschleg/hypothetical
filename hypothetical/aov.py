@@ -266,7 +266,7 @@ class AnovaOneWay(object):
         group_n = np.array([i for _, i in self.group_stats['Group Observations']])
         group_variance = np.array([i for _, i in self.group_stats['Group Variance']])
 
-        sse = (group_n - 1) * group_variance
+        sse = np.sum((group_n - 1) * group_variance)
 
         return sse
 
@@ -298,7 +298,7 @@ class AnovaOneWay(object):
         group_means = np.array([i for _, i in self.group_stats['Group Means']])
         total_mean = np.mean(self.design_matrix[:, 1])
 
-        sst = group_n * (group_means - total_mean) ** 2
+        sst = np.sum(group_n * (group_means - total_mean) ** 2)
 
         return sst
 
