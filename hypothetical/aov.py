@@ -462,19 +462,39 @@ class LevenesTest(object):
         else:
             self.group = self.design_matrix[:, 0]
 
+        self.n = self.design_matrix.shape[0]
+        self.k = len(np.unique(self.design_matrix[:, 0]))
+        self.w, self.zij = self._test()
+
     def _test(self):
-        group_means = np.array([i for _, i in npi.group_by(self.design_matrix[:, 0],
-                                                           self.design_matrix[:, 1], np.mean)])
-        group_obs = np.array([i for _, i in npi.group_by(self.design_matrix[:, 0],
-                                                         self.design_matrix[:, 1], len)])
-        group_variance = np.array([i for _, i in npi.group_by(self.design_matrix[:, 0],
-                                                              self.design_matrix[:, 1], var)])
+        group_len = []
+        for i in self.design_matrix[:, 0]:
+            group_len.append(len(self.design_matrix[np.where(self.design_matrix[:, 0] == i)][:, 0]))
 
-        total_mean = np.mean(self.design_matrix[:, 1])
+        group_medians = []
+        for i in self.design_matrix[:, 0]:
+            group_medians.append(np.median(self.design_matrix[np.where(self.design_matrix[:, 0] == i)][:, 1]))
 
-        sst = group_obs * (group_means - total_mean) ** 2
+        group_average_mat = np.column_stack([self.design_matrix, np.array(group_medians)])
 
-        sse = (group_obs - 1) * group_variance
+        zij = np.array(group_average_mat[:, 1] - group_average_mat[:, 2])
+        zij_mat = np.column_stack([group_average_mat, zij])
+
+        zij_group_means = []
+        for i in zij_mat[:, 0]:
+            zij_group_means.append(np.mean(zij_mat[np.where(zij_mat[:, 0] == i)][:, 3]))
+
+        zij_mat = np.column_stack([zij_mat, np.array(zij_group_means)])
+
+        total_mean = np.mean(zij_mat[:, 3])
+
+        num = np.sum(np.array(group_len) * (zij_mat[:, 4] - total_mean) ** 2)
+
+        den = np.sum((zij_mat[:, 3] - zij_mat[:, 4]) ** 2)
+
+        w = (self.n - self.k) / (self.k - 1) * (num / den)
+
+        return w, zij_mat
 
 
 class ManovaOneWay(object):
