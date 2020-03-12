@@ -1463,10 +1463,9 @@ class VanDerWaerden(object):
         self.test_description = 'Van Der Waerden (normal scores) test'
         self.test_summary = {'test_description': self.test_description,
                              'test_statistic': self.test_statistic,
-                             'mean_square_error': self.mean_square_error,
-                             'least_significant_difference': self.minimum_significant_difference,
-                             'p_value': self.p_value,
-                             'critical_region': self.critical_region
+                             #'mean_square_error': self.mean_square_error,
+                             #'least_significant_difference': self.minimum_significant_difference,
+                             'p_value': self.p_value
                              }
 
         if post_hoc:

@@ -452,9 +452,31 @@ class BartlettsTest(object):
 
 
 class LevenesTest(object):
+    r"""
 
-    def __init__(self, *args, group):
+    Parameters
+    ----------
 
+    Attributes
+    ----------
+
+    Raises
+    ------
+
+    Notes
+    -----
+
+    Examples
+    --------
+
+    References
+    ----------
+
+    """
+    def __init__(self, *args, group, location='median'):
+
+        if location not in ('median', 'mean'):
+            raise ValueError('location parameter must be one of "median" (default), or "mean".')
         self.design_matrix = _build_des_mat(*args, group=group)
 
         if group is not None:
@@ -464,20 +486,31 @@ class LevenesTest(object):
 
         self.n = self.design_matrix.shape[0]
         self.k = len(np.unique(self.design_matrix[:, 0]))
-        self.w, self.zij = self._test()
+        self.location = location
+        self.test_statistic = self._levenes_test()
+        self.p_value = self._p_value()
+        self.test_description = "Levene's Test for Homogenity of Variances"
+        self.test_summary = {
+            'test_description': "Levene's Test for Homogenity of Variances",
+            'test_statistic (w)': self.test_statistic,
+            'p_value': self.p_value,
+            'location': self.location
+        }
 
-    def _test(self):
-        group_len = []
-        for i in self.design_matrix[:, 0]:
-            group_len.append(len(self.design_matrix[np.where(self.design_matrix[:, 0] == i)][:, 0]))
+    def _levenes_test(self):
+        group_obs = np.array([i for _, i in npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], len)])
 
-        group_medians = []
-        for i in self.design_matrix[:, 0]:
-            group_medians.append(np.median(self.design_matrix[np.where(self.design_matrix[:, 0] == i)][:, 1]))
+        group_locs = []
+        if self.location == 'median':
+            for i in self.design_matrix[:, 0]:
+                group_locs.append(np.median(self.design_matrix[np.where(self.design_matrix[:, 0] == i)][:, 1]))
+        elif self.location == 'mean':
+            for i in self.design_matrix[:, 0]:
+                group_locs.append(np.mean(self.design_matrix[np.where(self.design_matrix[:, 0] == i)][:, 1]))
 
-        group_average_mat = np.column_stack([self.design_matrix, np.array(group_medians)])
+        group_average_mat = np.column_stack([self.design_matrix, np.array(group_locs)])
 
-        zij = np.array(group_average_mat[:, 1] - group_average_mat[:, 2])
+        zij = np.abs(np.array(group_average_mat[:, 1] - group_average_mat[:, 2]))
         zij_mat = np.column_stack([group_average_mat, zij])
 
         zij_group_means = []
@@ -486,15 +519,24 @@ class LevenesTest(object):
 
         zij_mat = np.column_stack([zij_mat, np.array(zij_group_means)])
 
+        zij_group_means = np.array([i for _, i in npi.group_by(zij_mat[:, 0], zij_mat[:, 3], np.mean)])
+
         total_mean = np.mean(zij_mat[:, 3])
 
-        num = np.sum(np.array(group_len) * (zij_mat[:, 4] - total_mean) ** 2)
+        num = np.sum(np.array(group_obs) * (zij_group_means - total_mean) ** 2)
 
         den = np.sum((zij_mat[:, 3] - zij_mat[:, 4]) ** 2)
 
         w = (self.n - self.k) / (self.k - 1) * (num / den)
 
-        return w, zij_mat
+        return w
+
+    def _p_value(self):
+        p = 1 - f.cdf(self.test_statistic,
+                      self.k - 1,
+                      self.n - self.k)
+
+        return p
 
 
 class ManovaOneWay(object):
