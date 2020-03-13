@@ -16,6 +16,7 @@ Nonparametric Inference Methods
     MedianTest
     RunsTest
     SignTest
+    VanDerWaerden
     WaldWolfowitz
     WilcoxonTest
 
@@ -1459,11 +1460,10 @@ class VanDerWaerden(object):
         self.average_scores = self._normal_scores_average()
         self.score_variance = self._normal_scores_variance()
         self.test_statistic, self.p_value = self._test_statistic()
-        # self.mean_square_error, self.minimum_significant_difference = self._min_significant_difference()
+        #self.minimum_significant_difference = self._min_significant_difference()
         self.test_description = 'Van Der Waerden (normal scores) test'
         self.test_summary = {'test_description': self.test_description,
                              'test_statistic': self.test_statistic,
-                             #'mean_square_error': self.mean_square_error,
                              #'least_significant_difference': self.minimum_significant_difference,
                              'p_value': self.p_value
                              }
@@ -1603,7 +1603,7 @@ class VanDerWaerden(object):
     #
     #     msd = t.ppf(1 - self.alpha / 2, self.n - self.k) * np.sqrt(2 * mse / self.k)
     #
-    #     return mse, msd
+    #     return msd
 
     def _post_hoc(self):
         r"""

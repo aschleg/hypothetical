@@ -10,6 +10,8 @@ One-Way Analysis of Variance
     :toctree: generated/
 
     AnovaOneWay
+    BartlettsTest
+    LevenesTest
     ManovaOneWay
 
 References
@@ -28,7 +30,7 @@ Rencher, A. (n.d.). Methods of Multivariate Analysis (2nd ed.).
 
 import numpy as np
 import numpy_indexed as npi
-from scipy.stats import f
+from scipy.stats import f, chi2
 
 from hypothetical._lib import _build_des_mat
 from hypothetical.descriptive import var
@@ -41,13 +43,13 @@ class AnovaOneWay(object):
 
     Parameters
     ----------
-    group: array-like, optional
-        One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
-        membership of the dependent variable(s). Must be the same length as the observation vector(s).
     group_sample1, group_sample2, ... : array-like
         Corresponding observation vectors of the group samples. Must be the same length
         as the group parameter. If the group parameter is None, each observation vector
         will be treated as a group sample vector.
+    group: array-like, optional
+        One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
+        membership of the dependent variable(s). Must be the same length as the observation vector(s).
 
     Attributes
     ----------
@@ -440,7 +442,78 @@ class AnovaOneWay(object):
 
 
 class BartlettsTest(object):
+    r"""
+    Performs Bartlett's Test for Homogenity of Variances of two or more sample groups.
 
+    Parameters
+    ----------
+    group_sample1, group_sample2, ... : array-like
+        Corresponding observation vectors of the group samples. Must be the same length
+        as the group parameter. If the group parameter is None, each observation vector
+        will be treated as a group sample vector.
+    group: array-like, optional
+        One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
+        membership of the dependent variable(s). Must be the same length as the observation vector(s).
+
+    Attributes
+    ----------
+    design_matrix : array-like
+        Numpy ndarray representing the data matrix for the analysis.
+    n : int
+        Total number of samples in all groups.
+    k : int
+        Number of groups.
+    test_statistic : float
+        The computed Levene's Test statistic, typically denoted :math:`\chi^2`.
+    p_value : float
+        The associated p-value of the :math:`\chi^2` test statistic.
+    test_description : str
+        Description of the type of test performed.
+    test_summary : dict
+        Dictionary containing test results.
+
+    Notes
+    -----
+    Bartlett's test, similar to Levene's Test and the Brown-Forsythe Test, is another procedure for determining if
+    two or more sample groups have equal variances. These tests are commonly referred to as 'tests for homogenity of
+    variance'. Bartlett's test is known to be sensitive when the samples are not normally distributed as the test uses
+    mean square of the groups' deviations, also known as the pooled variance. Levene's Test and the Brown-Forsythe test
+    are therefore alternatives to Bartlett's Test that are more performant when samples may depart from normality.
+
+    The test statistic is approximately chi-square distributed with :math:`k - 1` degrees of freedom, where :math:`k`
+    is the number of sample groups. The chi-square approximation does not hold sufficiently when the sample size of
+    a group is :math:`n_i > 5`.
+
+    The test statistic, :math:`\chi^2` is defined as:
+
+    .. math::
+
+        \chi^2 = \frac{(n - k) \ln(S^2_p) - \sum^k_{i=1} (n_i - 1) \ln(S^2_i)}{1 + \frac{1}{3(k - 1)} \left(\sum^k_{i=1} (\frac{1}{n_i - 1}) - \frac{1}{n - k} \right)}
+
+    where :math:`n` is the total number of samples across all groups, :math:`k` is the number of groups, :math:`S^2_i`
+    are the sample variances.
+
+    :math:`S^2_p`, the pooled estimate of the samples' variance, is defined as:
+
+    .. math::
+
+        S^2_p = \frac{1}{n - k} \sum_i (n_i - 1) S^2_i
+
+    Examples
+    --------
+
+    References
+    ----------
+    NIST/SEMATECH e-Handbook of Statistical Methods. Available online, URL:
+        https://www.itl.nist.gov/div898/handbook/eda/section3/eda357.htm
+
+    Snedecor, George W. and Cochran, William G. (1989), Statistical Methods, Eighth Edition,
+        Iowa State University Press.
+
+    Wikipedia contributors. "Bartlett's test." Wikipedia, The Free Encyclopedia.
+        Wikipedia, The Free Encyclopedia, 17 Feb. 2020. Web. 13 Mar. 2020.
+
+    """
     def __init__(self, *args, group):
 
         self.design_matrix = _build_des_mat(*args, group=group)
@@ -450,27 +523,134 @@ class BartlettsTest(object):
         else:
             self.group = self.design_matrix[:, 0]
 
+        self.n = self.design_matrix.shape[0]
+        self.k = len(np.unique(self.design_matrix[:, 0]))
+        self.test_description = "Bartlett's Test for Homogenity of Variances"
+        self.test_statistic = self._bartlett()
+        self.p_value = self._pvalue()
+        self.test_summary = {
+            'test_description': self.test_description,
+            'test_statistic': self.test_statistic,
+            'p_value': self.p_value
+        }
+
+    def _bartlett(self):
+        group_n = np.array([i for _, i in npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], len)])
+        group_variance = np.array([i for _, i in npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], var)])
+
+        pool_var = 1 / (self.n - self.k) * np.sum((group_n - 1) * group_variance)
+
+        x2_num = (self.n - self.k) * np.log(pool_var) - np.sum((group_n - 1) * np.log(group_variance))
+        x2_den = 1 + 1 / (3 * (self.k - 1)) * (np.sum(1 / (group_n - 1)) - 1 / (self.n - self.k))
+
+        x2 = x2_num / x2_den
+
+        return x2
+
+    def _pvalue(self):
+        p = 1 - chi2.cdf(self.test_statistic, self.k - 1)
+
+        return p
+
 
 class LevenesTest(object):
     r"""
+    Performs Levene's Test for Homogenity of Variances of two or more sample groups.
 
     Parameters
     ----------
+    group_sample1, group_sample2, ... : array-like
+        Corresponding observation vectors of the group samples. Must be the same length
+        as the group parameter. If the group parameter is None, each observation vector
+        will be treated as a group sample vector.
+    group: array-like, optional
+        One-dimensional array (Numpy ndarray, Pandas Series, list) that defines the group
+        membership of the dependent variable(s). Must be the same length as the observation vector(s).
+    location : str, {'median', 'mean'}
+        Specifies the procedure used to calculate Levene's Test. The default 'median', performs the standard Levene's
+        Test while 'mean' will perform the Brown-Forsythe test for equality of variances.
 
     Attributes
     ----------
+    design_matrix : array-like
+        Numpy ndarray representing the data matrix for the analysis.
+    n : int
+        Total number of samples in all groups.
+    k : int
+        Number of groups.
+    location : str
+        The location parameter specifying which procedure to perform.
+    test_statistic : float
+        The computed Levene's Test statistic, typically denoted :math:`W`.
+    p_value : float
+        The associated p-value of the :math:`W` test statistic.
+    test_description : str
+        Description of the type of test performed.
+    test_summary : dict
+        Dictionary containing test results.
 
     Raises
     ------
+    ValueError
+        Raised if :code:`location` parameter is not one of 'median' or 'mean'.
 
     Notes
     -----
+    The test statistic, :math:`W` used in Levene's test is defined as:
+
+    .. math::
+
+        W = \frac{(N - k)}{(k - 1)} \frac{\sum^k_{i=1} n_i (Z_{i.} - Z_{..})^2}{\sum^k_{i=1} \sum^{n_i}_{j=1} (Z_{ij} - Z_{i.})^2}
+
+    where,
+
+    - :math: `k` is the number of groups
+    - :math: `n_i` is the number of samples belonging to the i-th group.
+    - :math: `N` is the total number of samples.
+    - :math:`Y_{ij}` is the jth observation from the ith group.
+
+    and,
+
+    .. math::
+
+        Z_{i.} = \frac{1}{n_i} \sum^{n_i}_{j=1} Z_{ij}
+
+        Z_{..} = \frac{1}{N} \sum^k_{i=1} \sum^{n_i}_{j=1} Z_{ij}
+
+    are the mean of the calculated :math:`Z_{ij}` for group i and mean of all :math:`Z_{ij}`, respectively.
+
+    In Levene's Test, :math:`Z_{ij}` is:
+
+    .. math::
+
+        |Y_{ij} - \~Y_i|
+
+    where :math:`\~Y_i` is the median of the ith group.
+
+    In the case of the Brown-Forsythe test, :math:`Z_{ij}` is:
+
+    .. math::
+
+        |Y_{ij} - \bar{Y}_i|
+
+    where :math:`\bar{Y}_i` is the mean of the ith group.
+
+    The :math:`W` test statistic is approximately :math:`F`-distributed with :math:`k - 1` and :math:`n - k` degrees
+    of freedom, :math:`F(\alpha, k-1, n-k)`
 
     Examples
     --------
 
     References
     ----------
+    NIST/SEMATECH e-Handbook of Statistical Methods. Available online, URL:
+        https://www.itl.nist.gov/div898/handbook/eda/section3/eda35a.htm
+
+    Snedecor, George W. and Cochran, William G. (1989), Statistical Methods, Eighth Edition,
+        Iowa State University Press.
+
+    Wikipedia contributors. "Levene's test." Wikipedia, The Free Encyclopedia.
+        Wikipedia, The Free Encyclopedia, 28 Apr. 2019. Web. 13 Mar. 2020.
 
     """
     def __init__(self, *args, group, location='median'):
@@ -489,15 +669,29 @@ class LevenesTest(object):
         self.location = location
         self.test_statistic = self._levenes_test()
         self.p_value = self._p_value()
-        self.test_description = "Levene's Test for Homogenity of Variances"
+
+        if location == 'median':
+            self.test_description = "Levene's Test for Homogenity of Variances"
+        elif location == 'mean':
+            self.test_description = "Brown-Forsythe for Homogenity of Variances"
+
         self.test_summary = {
-            'test_description': "Levene's Test for Homogenity of Variances",
+            'test_description': self.test_description,
             'test_statistic (w)': self.test_statistic,
             'p_value': self.p_value,
             'location': self.location
         }
 
     def _levenes_test(self):
+        r"""
+        Performs Levene's Test or the Brown-Forsythe test (depending on location parameter).
+
+        Returns
+        -------
+        w : float
+            The computed test statistic
+
+        """
         group_obs = np.array([i for _, i in npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], len)])
 
         group_locs = []
@@ -532,6 +726,15 @@ class LevenesTest(object):
         return w
 
     def _p_value(self):
+        r"""
+        Finds the associated p-value of the W test statistic.
+
+        Returns
+        -------
+        p : float
+            The computed p-value of the associated W test statistic.
+
+        """
         p = 1 - f.cdf(self.test_statistic,
                       self.k - 1,
                       self.n - self.k)
