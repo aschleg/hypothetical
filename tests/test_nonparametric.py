@@ -1,9 +1,10 @@
 import pytest
 
 from hypothetical.nonparametric import FriedmanTest, KruskalWallis, MannWhitney, RunsTest, SignTest, tie_correction, \
-    WilcoxonTest, MedianTest
+    WilcoxonTest, MedianTest, VanDerWaerden
 import pandas as pd
 import numpy as np
+from numpy.testing import *
 import os
 from scipy.stats import rankdata, tiecorrect
 
@@ -94,11 +95,11 @@ class TestMannWhitney(object):
 
         test_result = mw.test_summary
 
-        np.testing.assert_equal(test_result['U'], 15710.0)
-        np.testing.assert_almost_equal(test_result['p-value'], 0.0007492490583558276)
-        np.testing.assert_almost_equal(test_result['mu meanrank'], 19548.5)
-        np.testing.assert_almost_equal(test_result['sigma'], 1138.718969482228)
-        np.testing.assert_almost_equal(test_result['z-value'], 3.3708931728303027)
+        assert_equal(test_result['U'], 15710.0)
+        assert_almost_equal(test_result['p-value'], 0.0007492490583558276)
+        assert_almost_equal(test_result['mu meanrank'], 19548.5)
+        assert_almost_equal(test_result['sigma'], 1138.718969482228)
+        assert_almost_equal(test_result['z-value'], 3.3708931728303027)
 
         assert test_result['continuity']
 
@@ -111,11 +112,11 @@ class TestMannWhitney(object):
 
         no_cont_result = mw_no_cont.test_summary
 
-        np.testing.assert_equal(no_cont_result['U'], 15710.0)
-        np.testing.assert_almost_equal(no_cont_result['p-value'], 0.0007504441137706763)
-        np.testing.assert_almost_equal(no_cont_result['mu meanrank'], 19548.0)
-        np.testing.assert_almost_equal(no_cont_result['sigma'], 1138.718969482228)
-        np.testing.assert_almost_equal(no_cont_result['z-value'], 3.370454082928931)
+        assert_equal(no_cont_result['U'], 15710.0)
+        assert_almost_equal(no_cont_result['p-value'], 0.0007504441137706763)
+        assert_almost_equal(no_cont_result['mu meanrank'], 19548.0)
+        assert_almost_equal(no_cont_result['sigma'], 1138.718969482228)
+        assert_almost_equal(no_cont_result['z-value'], 3.370454082928931)
 
         assert no_cont_result['continuity'] is False
 
@@ -138,18 +139,18 @@ class TestWilcoxon(object):
 
         test_result = w.test_summary
 
-        np.testing.assert_equal(test_result['V'], 16471.0)
-        np.testing.assert_almost_equal(test_result['p-value'], np.finfo(float).eps)
-        np.testing.assert_almost_equal(test_result['z-value'], 11.667217617844829)
+        assert_equal(test_result['V'], 16471.0)
+        assert_almost_equal(test_result['p-value'], np.finfo(float).eps)
+        assert_almost_equal(test_result['z-value'], 11.667217617844829)
 
     def test_wilcoxon_multi_sample(self):
         paired_w = WilcoxonTest(self.mult_data[:, 1], self.mult_data[:, 2], paired=True)
 
         paired_result = paired_w.test_summary
 
-        np.testing.assert_equal(paired_result['V'], 1176.0)
-        np.testing.assert_almost_equal(paired_result['p-value'], 1.6310099937300038e-09)
-        np.testing.assert_almost_equal(paired_result['z-value'], 6.030848532388999)
+        assert_equal(paired_result['V'], 1176.0)
+        assert_almost_equal(paired_result['p-value'], 1.6310099937300038e-09)
+        assert_almost_equal(paired_result['z-value'], 6.030848532388999)
 
         assert paired_result['test description'] == 'Wilcoxon signed rank test'
 
@@ -170,10 +171,10 @@ class TestKruskalWallis(object):
         assert test_result['degrees of freedom'] == 2
         assert test_result['test description'] == 'Kruskal-Wallis rank sum test'
 
-        np.testing.assert_almost_equal(test_result['critical chisq value'], 7.988228749443715)
-        np.testing.assert_almost_equal(test_result['least significant difference'], 7.125387208146856)
-        np.testing.assert_almost_equal(test_result['p-value'], 0.018423755731471925)
-        np.testing.assert_almost_equal(test_result['t-value'], 2.0518305164802833)
+        assert_almost_equal(test_result['critical chisq value'], 7.988228749443715)
+        assert_almost_equal(test_result['least significant difference'], 7.125387208146856)
+        assert_almost_equal(test_result['p-value'], 0.018423755731471925)
+        assert_almost_equal(test_result['t-value'], 2.0518305164802833)
 
         del self.data['Unnamed: 0']
 
@@ -218,7 +219,7 @@ class TestSignTest(object):
     def test_sign_test(self):
         s = SignTest(self.f, self.m)
 
-        np.testing.assert_almost_equal(s.p_value, 0.057373046875)
+        assert_almost_equal(s.p_value, 0.057373046875)
         assert s.differences_counts['positive'] == 11
         assert s.differences_counts['negative'] == 3
         assert s.differences_counts['ties'] == 3
@@ -227,17 +228,17 @@ class TestSignTest(object):
 
         s2 = SignTest(np.array(self.f), np.array(self.m))
 
-        np.testing.assert_almost_equal(s.p_value, s2.p_value)
+        assert_almost_equal(s.p_value, s2.p_value)
 
     def test_sign_test_less(self):
         s = SignTest(self.f, self.m, alternative='less')
 
-        np.testing.assert_almost_equal(s.p_value, 0.9935302734375)
+        assert_almost_equal(s.p_value, 0.9935302734375)
 
     def test_sign_test_greater(self):
         s = SignTest(self.f, self.m, alternative='greater')
 
-        np.testing.assert_almost_equal(s.p_value, 0.0286865234375)
+        assert_almost_equal(s.p_value, 0.0286865234375)
 
     def test_sign_test_exceptions(self):
         with pytest.raises(ValueError):
@@ -261,38 +262,38 @@ class TestMedianTest(object):
     def test_mediantest(self):
         m = MedianTest(self.g1, self.g2, self.g3)
 
-        np.testing.assert_almost_equal(m.test_statistic, 4.141505553270259)
-        np.testing.assert_almost_equal(m.p_value, 0.12609082774093244)
-        np.testing.assert_almost_equal(m.grand_median, 34.0)
-        np.testing.assert_array_almost_equal(m.contingency_table, np.array([[5, 10,  7], [11,  5, 10]]))
+        assert_almost_equal(m.test_statistic, 4.141505553270259)
+        assert_almost_equal(m.p_value, 0.12609082774093244)
+        assert_almost_equal(m.grand_median, 34.0)
+        assert_array_almost_equal(m.contingency_table, np.array([[5, 10,  7], [11,  5, 10]]))
 
     def test_median_ties_above(self):
         m = MedianTest(self.g1, self.g2, self.g3, ties='above')
 
-        np.testing.assert_almost_equal(m.test_statistic, 5.5017084398976985)
-        np.testing.assert_almost_equal(m.p_value, 0.06387327606955327)
-        np.testing.assert_array_almost_equal(m.contingency_table, np.array([[5, 11,  9], [11,  4,  8]]))
+        assert_almost_equal(m.test_statistic, 5.5017084398976985)
+        assert_almost_equal(m.p_value, 0.06387327606955327)
+        assert_array_almost_equal(m.contingency_table, np.array([[5, 11,  9], [11,  4,  8]]))
 
     def test_median_ties_ignore(self):
         m = MedianTest(self.g1, self.g2, self.g3, ties='ignore')
 
-        np.testing.assert_almost_equal(m.test_statistic, 4.868277103331452)
-        np.testing.assert_almost_equal(m.p_value, 0.08767324049352121)
-        np.testing.assert_array_almost_equal(m.contingency_table, np.array([[5, 10,  7], [11,  4,  8]]))
+        assert_almost_equal(m.test_statistic, 4.868277103331452)
+        assert_almost_equal(m.p_value, 0.08767324049352121)
+        assert_array_almost_equal(m.contingency_table, np.array([[5, 10,  7], [11,  4,  8]]))
 
     def test_median_continuity(self):
         m = MedianTest(self.g1, self.g2)
 
-        np.testing.assert_almost_equal(m.test_statistic, 2.5996137152777785)
-        np.testing.assert_almost_equal(m.p_value, 0.10688976489998428)
-        np.testing.assert_almost_equal(m.contingency_table, np.array([[5, 10], [11,  5]]))
+        assert_almost_equal(m.test_statistic, 2.5996137152777785)
+        assert_almost_equal(m.p_value, 0.10688976489998428)
+        assert_almost_equal(m.contingency_table, np.array([[5, 10], [11,  5]]))
 
     def test_median_no_continuity(self):
         m = MedianTest(self.g1, self.g2, continuity=False)
 
-        np.testing.assert_almost_equal(m.test_statistic, 3.888454861111112)
-        np.testing.assert_almost_equal(m.p_value, 0.04861913422927604)
-        np.testing.assert_almost_equal(m.contingency_table, np.array([[5, 10], [11,  5]]))
+        assert_almost_equal(m.test_statistic, 3.888454861111112)
+        assert_almost_equal(m.p_value, 0.04861913422927604)
+        assert_almost_equal(m.contingency_table, np.array([[5, 10], [11,  5]]))
 
     def test_median_exceptions(self):
         with pytest.raises(ValueError):
@@ -309,22 +310,32 @@ class TestRunsTest(object):
         r = RunsTest(self.o)
 
         assert r.r == 12
-        np.testing.assert_almost_equal(r.test_summary['probability'], 0.7672105672105671)
-        np.testing.assert_almost_equal(r.test_summary['r critical value 1'], 4)
-        np.testing.assert_almost_equal(r.test_summary['r critical value 2'], 13)
-        np.testing.assert_array_equal(r.runs, [1, 1, 1, 1, 3, 2, 1, 1, 1, 1, 1, 1])
+        assert_almost_equal(r.test_summary['probability'], 0.7672105672105671)
+        assert_almost_equal(r.test_summary['r critical value 1'], 4)
+        assert_almost_equal(r.test_summary['r critical value 2'], 13)
+        assert_array_equal(r.runs, [1, 1, 1, 1, 3, 2, 1, 1, 1, 1, 1, 1])
 
     def test_runs_test_large_sample(self):
         r = RunsTest(self.o2)
 
         assert r.r == 35
-        np.testing.assert_almost_equal(r.test_summary['probability'], 0.7444926712311586)
-        np.testing.assert_almost_equal(r.test_summary['mean of runs'], 25.0)
-        np.testing.assert_almost_equal(r.test_summary['standard deviation of runs'], 3.356382892705923)
-        np.testing.assert_almost_equal(r.test_summary['z-value'], 2.9793978576556204)
-        np.testing.assert_almost_equal(r.test_summary['p-value'], 0.0028881550292776965)
-        np.testing.assert_array_equal(r.runs, [1, 1, 1, 1, 3, 2, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 2, 3, 1, 1,
-                                               1, 1, 1, 1, 2, 1, 2, 1, 4, 1, 1, 1, 2])
+        assert_almost_equal(r.test_summary['probability'], 0.7444926712311586)
+        assert_almost_equal(r.test_summary['mean of runs'], 25.0)
+        assert_almost_equal(r.test_summary['standard deviation of runs'], 3.356382892705923)
+        assert_almost_equal(r.test_summary['z-value'], 2.9793978576556204)
+        assert_almost_equal(r.test_summary['p-value'], 0.0028881550292776965)
+        assert_array_equal(r.runs, [1, 1, 1, 1, 3, 2, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 2, 3, 1, 1,
+                                    1, 1, 1, 1, 2, 1, 2, 1, 4, 1, 1, 1, 2])
+
+
+class TestVanDerWaerden(object):
+    data = plants_test_data()
+
+    def test_van_der_waerden(self):
+        v = VanDerWaerden(self.data['weight'], group=self.data['group'])
+        assert_almost_equal(v.score_variance, 0.8402744001083048)
+        assert_almost_equal(v.test_statistic, 7.925272519897477)
+        assert_almost_equal(v.p_value, 0.019012925151783353)
 
 
 def test_tie_correction():
@@ -336,4 +347,4 @@ def test_tie_correction():
 
     tie_correct = tie_correction(ranks[:, 5])
 
-    np.testing.assert_almost_equal(tie_correct, tiecorrect(ranks[:, 5]))
+    assert_almost_equal(tie_correct, tiecorrect(ranks[:, 5]))

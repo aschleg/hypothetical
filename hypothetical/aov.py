@@ -623,9 +623,9 @@ class LevenesTest(object):
 
     .. math::
 
-        |Y_{ij} - \~Y_i|
+        |Y_{ij} - \tilde{Y}_i|
 
-    where :math:`\~Y_i` is the median of the ith group.
+    where :math:`\tilde{Y}_i` is the median of the ith group.
 
     In the case of the Brown-Forsythe test, :math:`Z_{ij}` is:
 

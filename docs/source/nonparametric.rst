@@ -16,6 +16,7 @@ Nonparametric Methods of Inference
     MedianTest
     RunsTest
     SignTest
+    VanDerWaerden
     WaldWolfowitz
     WilcoxonTest
 

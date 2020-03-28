@@ -1390,7 +1390,7 @@ class VanDerWaerden(object):
 
     .. math::
 
-        A_{ij} = \phi^{-1} \left( \frac{R \left( X_{ij} \right)}{N + 1} \right)
+        A_{ij} = \Phi^{-1} \left( \frac{R \left( X_{ij} \right)}{N + 1} \right)
 
     where :math:`R(X_{ij})` and :math:`phi^{-1}` are the ranks of the :math:`X_{ij}` observation and the normal
     quantile function (percent point function), respectively. The average normal scores can then be calculated as:

@@ -1,4 +1,16 @@
-# Version 0.2.1
+## Version 0.2.2
+
+* New statistical and hypothesis methods have been added, including:
+  * Tests for Homogenity of Variance
+    * Bartlett's Test for Homogenity of Variances
+    * Levene's Test for Homogenity of Variances
+  * Analysis of Variance 
+    * Van Der Waerden's (normal scores) Test
+  * Factor Analysis
+    * Several algorithms for performing Factor Analysis are avaiable, including principal components, principal 
+      factors, and iterated principal factors.
+
+## Version 0.2.1
 
 * Many new statistical and hypothesis testing functions have been added and a ton of refactoring has been performed
   in an effort to create a cohesive library structure that can be utilized as the library grows.

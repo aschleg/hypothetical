@@ -79,7 +79,7 @@ from scipy.linalg import toeplitz
 from hypothetical._lib import _build_summary_matrix
 
 
-def add_noise(cor, epsilon=None, M=None):
+def add_noise(cor, epsilon=None, m=None):
     if isinstance(cor, pd.DataFrame):
         cor = cor.values
     elif isinstance(cor, np.ndarray) is False:
@@ -89,12 +89,12 @@ def add_noise(cor, epsilon=None, M=None):
 
     if epsilon is None:
         epsilon = 0.05
-    if M is None:
-        M = 2
+    if m is None:
+        m = 2
 
     np.fill_diagonal(cor, 1 - epsilon)
 
-    cor = SimulateCorrelationMatrix._generate_noise(cor, n, M, epsilon)
+    cor = SimulateCorrelationMatrix._generate_noise(cor, n, m, epsilon)
 
     return cor
 

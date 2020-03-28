@@ -34,8 +34,6 @@ Contents
 Requirements
 ============
 
-## Requirements
-
 - Python 3.5+
 - :code:`numpy>=1.13.0`
 - :code:`numpy_indexed>=0.3.5`
