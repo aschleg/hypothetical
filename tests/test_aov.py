@@ -1,6 +1,7 @@
 import pytest
 from hypothetical.aov import AnovaOneWay, ManovaOneWay
 import numpy as np
+from numpy.testing import *
 import pandas as pd
 import os
 
@@ -74,15 +75,15 @@ class TestAnovaOneWay():
 
         result = anov.test_summary
 
-        np.testing.assert_almost_equal(result['F-statistic'], 4.846087862380137)
-        np.testing.assert_almost_equal(result['Group DoF'], 2)
-        np.testing.assert_almost_equal(result['Group Mean Squares'], 1.8831700000000007)
-        np.testing.assert_almost_equal(result['Group Sum of Squares'], 3.7663400000000014)
+        assert_almost_equal(result['F-statistic'], 4.846087862380137)
+        assert_almost_equal(result['Group DoF'], 2)
+        assert_almost_equal(result['Group Mean Squares'], 1.8831700000000007)
+        assert_almost_equal(result['Group Sum of Squares'], 3.7663400000000014)
 
-        np.testing.assert_almost_equal(result['p-value'], 0.01590995832562292)
-        np.testing.assert_almost_equal(result['Residual DoF'], 27)
-        np.testing.assert_almost_equal(result['Residual Mean Squares'], 0.38859592592592596)
-        np.testing.assert_almost_equal(result['Residual Sum of Squares'], 10.492090000000001)
+        assert_almost_equal(result['p-value'], 0.01590995832562292)
+        assert_almost_equal(result['Residual DoF'], 27)
+        assert_almost_equal(result['Residual Mean Squares'], 0.38859592592592596)
+        assert_almost_equal(result['Residual Sum of Squares'], 10.492090000000001)
 
         del self.data['Unnamed: 0']
 
@@ -104,15 +105,15 @@ class TestAnovaOneWay():
 
         result2 = anov2.test_summary
 
-        np.testing.assert_almost_equal(result2['F-statistic'], 4.846087862380138)
-        np.testing.assert_almost_equal(result2['Group DoF'], 2)
-        np.testing.assert_almost_equal(result2['Group Mean Squares'], 1.8831700000000007)
-        np.testing.assert_almost_equal(result2['Group Sum of Squares'], 3.766340000000002)
+        assert_almost_equal(result2['F-statistic'], 4.846087862380138)
+        assert_almost_equal(result2['Group DoF'], 2)
+        assert_almost_equal(result2['Group Mean Squares'], 1.8831700000000007)
+        assert_almost_equal(result2['Group Sum of Squares'], 3.766340000000002)
 
-        np.testing.assert_almost_equal(result2['p-value'], 0.01590995832562281)
-        np.testing.assert_almost_equal(result2['Residual DoF'], 27)
-        np.testing.assert_almost_equal(result2['Residual Mean Squares'], 0.38859592592592596)
-        np.testing.assert_almost_equal(result2['Residual Sum of Squares'], 10.492090000000001)
+        assert_almost_equal(result2['p-value'], 0.01590995832562281)
+        assert_almost_equal(result2['Residual DoF'], 27)
+        assert_almost_equal(result2['Residual Mean Squares'], 0.38859592592592596)
+        assert_almost_equal(result2['Residual Sum of Squares'], 10.492090000000001)
 
 
 class TestManovaOneWay(object):
@@ -137,14 +138,14 @@ class TestManovaOneWay(object):
         wilk = result['Wilks Lambda']
         hotelling = result['Hotellings T^2']
 
-        np.testing.assert_almost_equal(pillai['Pillai Statistic'], 1.3054724154813995)
-        np.testing.assert_almost_equal(pillai['Pillai F-value'], 4.069718325783225)
-        np.testing.assert_almost_equal(pillai['Pillai p-value'], 0.004209350934305522)
+        assert_almost_equal(pillai['Pillai Statistic'], 1.3054724154813995)
+        assert_almost_equal(pillai['Pillai F-value'], 4.069718325783225)
+        assert_almost_equal(pillai['Pillai p-value'], 0.004209350934305522)
 
-        np.testing.assert_almost_equal(roy['Roys Statistic'], 1.87567111989616)
+        assert_almost_equal(roy['Roys Statistic'], 1.87567111989616)
 
-        np.testing.assert_almost_equal(wilk["Wilks Lambda F-value"], 4.936888039729538)
-        np.testing.assert_almost_equal(wilk["Wilks Lambda"], 0.15400766733804414)
-        np.testing.assert_almost_equal(wilk["Wilks Lambda p-value"], 0.001210290803741243)
+        assert_almost_equal(wilk["Wilks Lambda F-value"], 4.936888039729538)
+        assert_almost_equal(wilk["Wilks Lambda"], 0.15400766733804414)
+        assert_almost_equal(wilk["Wilks Lambda p-value"], 0.001210290803741243)
 
-        np.testing.assert_almost_equal(hotelling["Hotellings T^2 Statistic"], 2.921368304265692)
+        assert_almost_equal(hotelling["Hotellings T^2 Statistic"], 2.921368304265692)

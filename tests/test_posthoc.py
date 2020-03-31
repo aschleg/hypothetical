@@ -1,7 +1,7 @@
 import os
 import pytest
 from hypothetical import posthoc
-import numpy as np
+from numpy.testing import *
 import pandas as pd
 
 
@@ -66,8 +66,8 @@ class TestGamesHowell(object):
 
         assert res['groups'].tolist() == res_group_vec_expected
 
-        np.testing.assert_allclose(res['mean_difference'], res_group_mean_diff_expected, rtol=1e-3)
-        np.testing.assert_allclose(res['t_value'], res_group_t_value_expected, rtol=1e-3)
+        assert_allclose(res['mean_difference'], res_group_mean_diff_expected, rtol=1e-3)
+        assert_allclose(res['t_value'], res_group_t_value_expected, rtol=1e-3)
 
 
 def test_tukeytest():

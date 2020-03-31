@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+from numpy.testing import *
 import pandas as pd
 from hypothetical.descriptive import covar, pearson, spearman, var, std_dev, variance_condition, \
     kurtosis, skewness, mean_absolute_deviation
@@ -59,24 +60,24 @@ class TestCorrelationCovariance(object):
        [ 6.   ,  1.11 ,  2.469,  3.95 ,  0.952]])
 
     def test_naive_covariance(self):
-        np.testing.assert_allclose(covar(self.d[:, 1:], method='naive'),
+        assert_allclose(covar(self.d[:, 1:], method='naive'),
                                    np.cov(self.d[:, 1:], rowvar=False))
 
-        np.testing.assert_allclose(covar(self.d[:, 1:3], self.d[:, 3:], 'naive'),
+        assert_allclose(covar(self.d[:, 1:3], self.d[:, 3:], 'naive'),
                                    np.cov(self.d[:, 1:], rowvar=False))
 
     def test_shifted_covariance(self):
-        np.testing.assert_allclose(covar(self.d[:, 1:], method='shifted covariance'),
+        assert_allclose(covar(self.d[:, 1:], method='shifted covariance'),
                                    np.cov(self.d[:, 1:], rowvar=False))
 
-        np.testing.assert_allclose(covar(self.d[:, 1:3], self.d[:, 3:], 'shifted covariance'),
+        assert_allclose(covar(self.d[:, 1:3], self.d[:, 3:], 'shifted covariance'),
                                    np.cov(self.d[:, 1:], rowvar=False))
 
     def test_two_pass_covariance(self):
-        np.testing.assert_allclose(covar(self.d[:, 1:], method='two-pass covariance'),
+        assert_allclose(covar(self.d[:, 1:], method='two-pass covariance'),
                                    np.cov(self.d[:, 1:], rowvar=False))
 
-        np.testing.assert_allclose(covar(self.d[:, 1:3], self.d[:, 3:], 'two-pass covariance'),
+        assert_allclose(covar(self.d[:, 1:3], self.d[:, 3:], 'two-pass covariance'),
                                    np.cov(self.d[:, 1:], rowvar=False))
 
     def test_covar_no_method(self):
@@ -84,17 +85,17 @@ class TestCorrelationCovariance(object):
             covar(self.d[:, 1:3], self.d[:, 3:], 'NA_METHOD')
 
     def test_pearson(self):
-        np.testing.assert_allclose(pearson(self.d[:, 1:]),
+        assert_allclose(pearson(self.d[:, 1:]),
                                    np.corrcoef(self.d[:, 1:], rowvar=False))
 
-        np.testing.assert_allclose(pearson(self.d[:, 1:3], self.d[:, 3:]),
+        assert_allclose(pearson(self.d[:, 1:3], self.d[:, 3:]),
                                    np.corrcoef(self.d[:, 1:], rowvar=False))
 
     def test_spearman(self):
-        np.testing.assert_allclose(spearman(self.d[:, 1:]),
+        assert_allclose(spearman(self.d[:, 1:]),
                                    spearmanr(self.d[:, 1:])[0])
 
-        np.testing.assert_allclose(spearman(self.d[:, 1:3], self.d[:, 3:]),
+        assert_allclose(spearman(self.d[:, 1:3], self.d[:, 3:]),
                                    spearmanr(self.d[:, 1:])[0])
 
 
@@ -105,51 +106,51 @@ class TestVariance(object):
     fa = np.array(f)
 
     def test_var_corrected_two_pass(self):
-        np.testing.assert_allclose(np.array(var(self.f)).reshape(4,), np.array([2, 2.25, 0.666667, 2]), rtol=1e-02)
-        np.testing.assert_allclose(np.array(var(self.f, 'corrected two pass')).reshape(4,),
+        assert_allclose(np.array(var(self.f)).reshape(4,), np.array([2, 2.25, 0.666667, 2]), rtol=1e-02)
+        assert_allclose(np.array(var(self.f, 'corrected two pass')).reshape(4,),
                                    np.array([2, 2.25, 0.666667, 2]), rtol=1e-02)
 
-        np.testing.assert_allclose(var(self.h).reshape(4,), np.array([32, 9, 3.666667, 17]), rtol=1e-02)
+        assert_allclose(var(self.h).reshape(4,), np.array([32, 9, 3.666667, 17]), rtol=1e-02)
 
     def test_var_textbook_one_pass(self):
-        np.testing.assert_allclose(np.array(var(self.f, 'textbook one pass')).reshape(4,),
+        assert_allclose(np.array(var(self.f, 'textbook one pass')).reshape(4,),
                                    np.array([2, 2.25, 0.666667, 2]), rtol=1e-02)
 
-        np.testing.assert_allclose(np.array(var(self.h, 'textbook one pass')).reshape(4,),
+        assert_allclose(np.array(var(self.h, 'textbook one pass')).reshape(4,),
                                    np.array([32, 9, 3.666667, 17]), rtol=1e-02)
 
-        np.testing.assert_almost_equal(var(self.fa[:, 2], 'textbook one pass'), 0.66666666666666663)
+        assert_almost_equal(var(self.fa[:, 2], 'textbook one pass'), 0.66666666666666663)
 
     def test_var_standard_two_pass(self):
-        np.testing.assert_allclose(np.array(var(self.f, 'standard two pass')).reshape(4,),
+        assert_allclose(np.array(var(self.f, 'standard two pass')).reshape(4,),
                                    np.array([2, 2.25, 0.666667, 2]), rtol=1e-02)
 
-        np.testing.assert_allclose(np.array(var(self.h, 'standard two pass')).reshape(4,),
+        assert_allclose(np.array(var(self.h, 'standard two pass')).reshape(4,),
                                    np.array([32, 9, 3.666667, 17]), rtol=1e-02)
 
-        np.testing.assert_equal(var(self.fa[:, 1], 'standard two pass'), 2.25)
+        assert_equal(var(self.fa[:, 1], 'standard two pass'), 2.25)
 
     def test_var_youngs_cramer(self):
-        np.testing.assert_allclose(np.array(var(self.f, 'youngs cramer')).reshape(4,),
+        assert_allclose(np.array(var(self.f, 'youngs cramer')).reshape(4,),
                                    np.array([2, 2.25, 0.666667, 2]), rtol=1e-02)
 
-        np.testing.assert_allclose(np.array(var(self.h, 'youngs cramer')).reshape(4,),
+        assert_allclose(np.array(var(self.h, 'youngs cramer')).reshape(4,),
                                    np.array([32, 9, 3.666667, 17]), rtol=1e-02)
 
-        np.testing.assert_equal(var(self.fa[:, 1], 'youngs cramer'), 2.25)
+        assert_equal(var(self.fa[:, 1], 'youngs cramer'), 2.25)
 
     def test_stddev(self):
-        np.testing.assert_equal(std_dev(self.fa[:, 1]), 1.5)
-        np.testing.assert_allclose(std_dev(self.fa), array([ 1.41421356,  1.5       ,  0.81649658,  1.41421356]))
+        assert_equal(std_dev(self.fa[:, 1]), 1.5)
+        assert_allclose(std_dev(self.fa), array([ 1.41421356,  1.5       ,  0.81649658,  1.41421356]))
 
     def test_var_cond(self):
-        np.testing.assert_almost_equal(variance_condition(self.fa[:, 1]), 1.7638342073763937)
-        np.testing.assert_allclose(variance_condition(self.fa), array([2.23606798, 1.76383421, 5.19615242, 2.23606798]))
+        assert_almost_equal(variance_condition(self.fa[:, 1]), 1.7638342073763937)
+        assert_allclose(variance_condition(self.fa), array([2.23606798, 1.76383421, 5.19615242, 2.23606798]))
 
-        np.testing.assert_allclose(variance_condition(pd.DataFrame(self.fa)),
+        assert_allclose(variance_condition(pd.DataFrame(self.fa)),
                                    array([2.23606798, 1.76383421, 5.19615242, 2.23606798]))
 
-        np.testing.assert_allclose(variance_condition(list(self.fa)),
+        assert_allclose(variance_condition(list(self.fa)),
                                    array([2.23606798, 1.76383421, 5.19615242, 2.23606798]))
 
         ff = np.array([np.array(self.f), np.array(self.f)])
@@ -182,8 +183,8 @@ class TestKurtosis(object):
         k1 = kurtosis(self.s1)
         k2 = kurtosis([self.s1, self.s2], axis=1)
 
-        np.testing.assert_almost_equal(k1, -1.4515532544378704)
-        np.testing.assert_allclose(k2, array([-1.45155325, -1.32230624]))
+        assert_almost_equal(k1, -1.4515532544378704)
+        assert_allclose(k2, array([-1.45155325, -1.32230624]))
 
 
 class TestSkewness(object):
@@ -201,8 +202,8 @@ class TestSkewness(object):
         s1 = skewness(self.s1)
         s2 = skewness([self.s1, self.s2], axis=1)
 
-        np.testing.assert_almost_equal(s1, -0.028285981029545847)
-        np.testing.assert_allclose(s2, array([-0.02828598, -0.03331004]))
+        assert_almost_equal(s1, -0.028285981029545847)
+        assert_allclose(s2, array([-0.02828598, -0.03331004]))
 
 
 class TestMeanAbsoluteDeviation(object):

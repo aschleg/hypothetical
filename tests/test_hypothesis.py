@@ -4,6 +4,7 @@ import pytest
 from hypothetical.hypothesis import BinomialTest, tTest
 import pandas as pd
 import numpy as np
+from numpy.testing import *
 import os
 from scipy.stats import t
 
@@ -30,7 +31,7 @@ class TestBinomial(object):
         binomial_test = BinomialTest(n=self.n, x=self.x)
 
         assert binomial_test.alternative == 'two-sided'
-        np.testing.assert_almost_equal(binomial_test.p_value, 2.4913404672588513e-13)
+        assert_almost_equal(binomial_test.p_value, 2.4913404672588513e-13)
 
         agresti_coull_interval = {'conf level': 0.95,
                                   'interval': (0.7079790581519885, 0.7646527304391209),
@@ -51,13 +52,13 @@ class TestBinomial(object):
 
         assert binomial_test.agresti_coull_interval == agresti_coull_interval
 
-        np.testing.assert_almost_equal(binomial_test.arcsine_transform_interval['conf level'],
+        assert_almost_equal(binomial_test.arcsine_transform_interval['conf level'],
                                        arcsine_interval['conf level'])
-        np.testing.assert_almost_equal(binomial_test.arcsine_transform_interval['probability of success'],
+        assert_almost_equal(binomial_test.arcsine_transform_interval['probability of success'],
                                        arcsine_interval['probability of success'])
-        np.testing.assert_almost_equal(binomial_test.arcsine_transform_interval['probability variance'],
+        assert_almost_equal(binomial_test.arcsine_transform_interval['probability variance'],
                                        arcsine_interval['probability variance'])
-        np.testing.assert_array_almost_equal(binomial_test.arcsine_transform_interval['interval'],
+        assert_array_almost_equal(binomial_test.arcsine_transform_interval['interval'],
                                              arcsine_interval['interval'])
 
         assert binomial_test.clopper_pearson_interval == clopper_pearson_interval
@@ -68,16 +69,16 @@ class TestBinomial(object):
         binomial_test = BinomialTest(n=self.n, x=self.x, alternative='less')
 
         assert binomial_test.alternative == 'less'
-        np.testing.assert_almost_equal(binomial_test.p_value, 0.9999999999997509)
+        assert_almost_equal(binomial_test.p_value, 0.9999999999997509)
 
         agresti_coull_interval = {'conf level': 0.95,
                                   'interval': (0.0, 0.7603924379535446),
                                   'probability of success': 0.7366052478060474}
 
-        np.testing.assert_array_almost_equal(binomial_test.agresti_coull_interval['interval'],
+        assert_array_almost_equal(binomial_test.agresti_coull_interval['interval'],
                                              agresti_coull_interval['interval'])
 
-        np.testing.assert_almost_equal(binomial_test.agresti_coull_interval['probability of success'],
+        assert_almost_equal(binomial_test.agresti_coull_interval['probability of success'],
                                        agresti_coull_interval['probability of success'])
 
         arcsine_interval = {'conf level': 0.95,
@@ -85,13 +86,13 @@ class TestBinomial(object):
                             'probability of success': 0.7372972972972973,
                             'probability variance': 0.00020939458669772768}
 
-        np.testing.assert_almost_equal(binomial_test.arcsine_transform_interval['conf level'],
+        assert_almost_equal(binomial_test.arcsine_transform_interval['conf level'],
                                        arcsine_interval['conf level'])
-        np.testing.assert_almost_equal(binomial_test.arcsine_transform_interval['probability of success'],
+        assert_almost_equal(binomial_test.arcsine_transform_interval['probability of success'],
                                        arcsine_interval['probability of success'])
-        np.testing.assert_almost_equal(binomial_test.arcsine_transform_interval['probability variance'],
+        assert_almost_equal(binomial_test.arcsine_transform_interval['probability variance'],
                                        arcsine_interval['probability variance'])
-        np.testing.assert_array_almost_equal(binomial_test.arcsine_transform_interval['interval'],
+        assert_array_almost_equal(binomial_test.arcsine_transform_interval['interval'],
                                              arcsine_interval['interval'])
 
         clopper_pearson_interval = {'conf level': 0.95,
@@ -111,16 +112,16 @@ class TestBinomial(object):
 
         assert binomial_test.alternative == 'greater'
 
-        np.testing.assert_almost_equal(binomial_test.p_value, 1.2569330927920093e-49)
+        assert_almost_equal(binomial_test.p_value, 1.2569330927920093e-49)
 
         agresti_coull_interval = {'conf level': 0.95,
                                   'interval': (0.7603924379535446, 1.0),
                                   'probability of success': 0.7366052478060474}
 
-        np.testing.assert_array_almost_equal(binomial_test.agresti_coull_interval['interval'],
+        assert_array_almost_equal(binomial_test.agresti_coull_interval['interval'],
                                              agresti_coull_interval['interval'])
 
-        np.testing.assert_almost_equal(binomial_test.agresti_coull_interval['probability of success'],
+        assert_almost_equal(binomial_test.agresti_coull_interval['probability of success'],
                                        agresti_coull_interval['probability of success'])
 
         arcsine_interval = {'conf level': 0.95,
@@ -128,13 +129,13 @@ class TestBinomial(object):
                             'probability of success': 0.7372972972972973,
                             'probability variance': 0.00020939458669772768}
 
-        np.testing.assert_almost_equal(binomial_test.arcsine_transform_interval['conf level'],
+        assert_almost_equal(binomial_test.arcsine_transform_interval['conf level'],
                                        arcsine_interval['conf level'])
-        np.testing.assert_almost_equal(binomial_test.arcsine_transform_interval['probability of success'],
+        assert_almost_equal(binomial_test.arcsine_transform_interval['probability of success'],
                                        arcsine_interval['probability of success'])
-        np.testing.assert_almost_equal(binomial_test.arcsine_transform_interval['probability variance'],
+        assert_almost_equal(binomial_test.arcsine_transform_interval['probability variance'],
                                        arcsine_interval['probability variance'])
-        np.testing.assert_array_almost_equal(binomial_test.arcsine_transform_interval['interval'],
+        assert_array_almost_equal(binomial_test.arcsine_transform_interval['interval'],
                                              arcsine_interval['interval'])
 
         clopper_pearson_interval = {'conf level': 0.95,
@@ -158,10 +159,10 @@ class TestBinomial(object):
                                  'interval': (0.66969078194969, 0.7286549168628622),
                                  'probability of success': 0.6991728494062761}
 
-        np.testing.assert_array_almost_equal(binomial_test.wilson_score_interval['interval'],
+        assert_array_almost_equal(binomial_test.wilson_score_interval['interval'],
                                              wilson_score_interval['interval'])
 
-        np.testing.assert_almost_equal(binomial_test.wilson_score_interval['probability of success'],
+        assert_almost_equal(binomial_test.wilson_score_interval['probability of success'],
                                        wilson_score_interval['probability of success'])
 
     def test_binomial_no_continuity_greater(self):
@@ -171,10 +172,10 @@ class TestBinomial(object):
                                  'interval': (0.7241711245792711, 1.0),
                                  'probability of success': 0.6994167236634111}
 
-        np.testing.assert_array_almost_equal(binomial_test.wilson_score_interval['interval'],
+        assert_array_almost_equal(binomial_test.wilson_score_interval['interval'],
                                              wilson_score_interval['interval'])
 
-        np.testing.assert_almost_equal(binomial_test.wilson_score_interval['probability of success'],
+        assert_almost_equal(binomial_test.wilson_score_interval['probability of success'],
                                        wilson_score_interval['probability of success'])
 
     def test_binomial_no_continuity_less(self):
@@ -184,10 +185,10 @@ class TestBinomial(object):
                                  'interval': (0.0, 0.724171124579271),
                                  'probability of success': 0.6994167236634111}
 
-        np.testing.assert_array_almost_equal(binomial_test.wilson_score_interval['interval'],
+        assert_array_almost_equal(binomial_test.wilson_score_interval['interval'],
                                              wilson_score_interval['interval'])
 
-        np.testing.assert_almost_equal(binomial_test.wilson_score_interval['probability of success'],
+        assert_almost_equal(binomial_test.wilson_score_interval['probability of success'],
                                        wilson_score_interval['probability of success'])
 
     def test_binomial_exceptions(self):
@@ -216,11 +217,11 @@ class Test_tTest(object):
 
         test_summary = ttest.test_summary
 
-        np.testing.assert_almost_equal(test_summary['Sample 1 Mean'], np.mean(sal_a))
-        np.testing.assert_almost_equal(test_summary['Sample 2 Mean'], np.mean(sal_b))
-        np.testing.assert_almost_equal(test_summary['t-statistic'], -3.1386989278486013)
-        np.testing.assert_almost_equal(test_summary['degrees of freedom'], 377.89897288941387)
-        np.testing.assert_almost_equal(test_summary['p-value'], t.cdf(test_summary['t-statistic'],
+        assert_almost_equal(test_summary['Sample 1 Mean'], np.mean(sal_a))
+        assert_almost_equal(test_summary['Sample 2 Mean'], np.mean(sal_b))
+        assert_almost_equal(test_summary['t-statistic'], -3.1386989278486013)
+        assert_almost_equal(test_summary['degrees of freedom'], 377.89897288941387)
+        assert_almost_equal(test_summary['p-value'], t.cdf(test_summary['t-statistic'],
                                                                       test_summary['degrees of freedom']) * 2)
 
         assert test_summary['alternative'] == 'two-sided'
@@ -229,11 +230,11 @@ class Test_tTest(object):
         ttest_group = tTest(group=self.data['discipline'], y1=self.data['salary'])
         test_group_summary = ttest_group.test_summary
 
-        np.testing.assert_almost_equal(test_summary['Sample 1 Mean'], test_group_summary['Sample 1 Mean'])
-        np.testing.assert_almost_equal(test_summary['Sample 2 Mean'], test_group_summary['Sample 2 Mean'])
-        np.testing.assert_almost_equal(test_summary['p-value'], test_group_summary['p-value'])
-        np.testing.assert_almost_equal(test_summary['degrees of freedom'], test_group_summary['degrees of freedom'], 5)
-        np.testing.assert_almost_equal(test_summary['t-statistic'], test_group_summary['t-statistic'])
+        assert_almost_equal(test_summary['Sample 1 Mean'], test_group_summary['Sample 1 Mean'])
+        assert_almost_equal(test_summary['Sample 2 Mean'], test_group_summary['Sample 2 Mean'])
+        assert_almost_equal(test_summary['p-value'], test_group_summary['p-value'])
+        assert_almost_equal(test_summary['degrees of freedom'], test_group_summary['degrees of freedom'], 5)
+        assert_almost_equal(test_summary['t-statistic'], test_group_summary['t-statistic'])
 
         assert test_group_summary['alternative'] == 'two-sided'
         assert test_group_summary['test description'] == "Two-Sample Welch's t-test"
@@ -247,10 +248,10 @@ class Test_tTest(object):
 
         test_summary = ttest.test_summary
 
-        np.testing.assert_almost_equal(test_summary['Sample 1 Mean'], np.mean(sal_a))
-        np.testing.assert_almost_equal(test_summary['Sample 2 Mean'], np.mean(sal_b))
-        np.testing.assert_almost_equal(test_summary['t-statistic'], -3.1485647713976195)
-        np.testing.assert_almost_equal(test_summary['p-value'], t.cdf(test_summary['t-statistic'],
+        assert_almost_equal(test_summary['Sample 1 Mean'], np.mean(sal_a))
+        assert_almost_equal(test_summary['Sample 2 Mean'], np.mean(sal_b))
+        assert_almost_equal(test_summary['t-statistic'], -3.1485647713976195)
+        assert_almost_equal(test_summary['p-value'], t.cdf(test_summary['t-statistic'],
                                                                       test_summary['degrees of freedom']) * 2)
 
         assert test_summary['alternative'] == 'two-sided'
@@ -265,9 +266,9 @@ class Test_tTest(object):
 
         test_summary = ttest.test_summary
 
-        np.testing.assert_almost_equal(test_summary['Sample 1 Mean'], np.mean(sal_a))
-        np.testing.assert_almost_equal(test_summary['t-statistic'], 47.95382017797468)
-        np.testing.assert_almost_equal(test_summary['p-value'], 2.220446049250313e-16)
+        assert_almost_equal(test_summary['Sample 1 Mean'], np.mean(sal_a))
+        assert_almost_equal(test_summary['t-statistic'], 47.95382017797468)
+        assert_almost_equal(test_summary['p-value'], 2.220446049250313e-16)
 
         assert test_summary['alternative'] == 'two-sided'
         assert test_summary['test description'] == 'One-Sample t-test'
@@ -278,9 +279,9 @@ class Test_tTest(object):
 
         test_mu_summary = ttest_mu._generate_result_summary()
 
-        np.testing.assert_almost_equal(test_mu_summary['Sample 1 Mean'], np.mean(sal_a))
-        np.testing.assert_almost_equal(test_mu_summary['p-value'], 0.0002159346891279501)
-        np.testing.assert_almost_equal(test_mu_summary['t-statistic'], 3.776470249422699)
+        assert_almost_equal(test_mu_summary['Sample 1 Mean'], np.mean(sal_a))
+        assert_almost_equal(test_mu_summary['p-value'], 0.0002159346891279501)
+        assert_almost_equal(test_mu_summary['t-statistic'], 3.776470249422699)
 
         assert test_mu_summary['alternative'] == 'two-sided'
         assert test_mu_summary['test description'] == 'One-Sample t-test'
@@ -296,9 +297,9 @@ class Test_tTest(object):
 
         test_summary = ttest.test_summary
 
-        np.testing.assert_almost_equal(test_summary['Sample Difference Mean'], np.mean(np.array(sal_a) - np.array(sal_b2)))
-        np.testing.assert_almost_equal(test_summary['t-statistic'], -2.3158121700626406)
-        np.testing.assert_almost_equal(test_summary['p-value'], t.cdf(test_summary['t-statistic'],
+        assert_almost_equal(test_summary['Sample Difference Mean'], np.mean(np.array(sal_a) - np.array(sal_b2)))
+        assert_almost_equal(test_summary['t-statistic'], -2.3158121700626406)
+        assert_almost_equal(test_summary['p-value'], t.cdf(test_summary['t-statistic'],
                                                                       test_summary['degrees of freedom']) * 2)
 
         assert test_summary['alternative'] == 'two-sided'
@@ -314,8 +315,8 @@ class Test_tTest(object):
 
         test_summary = ttest.test_summary
 
-        np.testing.assert_almost_equal(test_summary['p-value'], 0.9990848459959981)
-        np.testing.assert_almost_equal(test_summary['t-statistic'], -3.1386989278486013)
+        assert_almost_equal(test_summary['p-value'], 0.9990848459959981)
+        assert_almost_equal(test_summary['t-statistic'], -3.1386989278486013)
 
         assert test_summary['alternative'] == 'greater'
 
@@ -324,8 +325,8 @@ class Test_tTest(object):
         test_less_summary = ttest_less.test_summary
 
         assert test_less_summary['alternative'] == 'less'
-        np.testing.assert_almost_equal(test_less_summary['t-statistic'], -3.1386989278486013)
-        np.testing.assert_almost_equal(test_less_summary['p-value'], 0.0009151540040019292)
+        assert_almost_equal(test_less_summary['t-statistic'], -3.1386989278486013)
+        assert_almost_equal(test_less_summary['p-value'], 0.0009151540040019292)
 
     def test_ttest_exceptions(self):
         sal_a = self.data.loc[self.data['discipline'] == 'A']['salary']

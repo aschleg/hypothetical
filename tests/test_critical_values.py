@@ -1,6 +1,7 @@
 import pytest
 from hypothetical import critical as c
 import numpy as np
+from numpy.testing import *
 
 
 class TestChiSquareCritical(object):
@@ -72,8 +73,8 @@ class TestRCritical(object):
         r_crit1, r_rcrit2 = c.r_critical_value(self.n1, self.n2)
         r_crit3, r_rcrit4 = c.r_critical_value(self.n3, self.n4)
 
-        np.testing.assert_allclose([r_crit1, r_rcrit2], [4, np.nan])
-        np.testing.assert_allclose([r_crit3, r_rcrit4], [6, 15])
+        assert_allclose([r_crit1, r_rcrit2], [4, np.nan])
+        assert_allclose([r_crit3, r_rcrit4], [6, 15])
 
     def test_exceptions(self):
         with pytest.raises(ValueError):
