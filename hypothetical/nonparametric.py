@@ -1714,13 +1714,13 @@ class WaldWolfowitz(object):
 
     .. math::
 
-        p(r \geq r^{\prime}) = \frac{1}{\binom{n_1 + n_2}{n_1} \sum^{r^{\prime}}_{r=2} (2) \binom{n_1 - 1}{\frac{r}{2} - 1} \binom{n_2 - 1}{\frac{r}{2} - 1}
+        p(r \geq r^{\prime}) = \frac{1}{\binom{n_1 + n_2}{n_1}} \sum^{r^{\prime}}_{r=2} (2) \binom{n_1 - 1}{\frac{r}{2} - 1} \binom{n_2 - 1}{\frac{r}{2} - 1}
 
     When :math:`r` is odd, the probability is defined as:
 
     .. math::
 
-        p(r \geq r^{\prime}) = \frac{1}{\binom{n_1 + n_2}{n_1} \sum^{r^{\prime}}_{r=2} \large[ \binom{n_1 - 1}{k - 1} \binom{n_2 - 1}{k - 2} + \binom{n_1 - 1}{k - 2} \binom{n_2 - 1}{k - 1} \large]
+        p(r \geq r^{\prime}) = \frac{1}{\binom{n_1 + n_2}{n_1}} \sum^{r^{\prime}}_{r=2} \Bigg[ \binom{n_1 - 1}{k - 1} \binom{n_2 - 1}{k - 2} + \binom{n_1 - 1}{k - 2} \binom{n_2 - 1}{k - 1} \Bigg]
 
     where :math:`r = 2k - 1`
 
@@ -1757,7 +1757,7 @@ class WaldWolfowitz(object):
     (large unfortunately still being somewhat subjective; however, generally this implies that the sample size is not
     large enough for the assumption of an approximately normally distributed sample to hold), a continuity correction
     is recommended (and in some cases required). The continuity correction is performed by subtracting :math:`0.5`
-    from the absolute difference between the observed runs :math:`r` and the mean :`\mu_r` in the z-score computation.
+    from the absolute difference between the observed runs :math:`r` and the mean :math:`\mu_r` in the z-score computation.
 
     .. math::
 

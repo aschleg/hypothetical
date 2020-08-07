@@ -1,7 +1,7 @@
 import pytest
 
 from hypothetical.nonparametric import FriedmanTest, KruskalWallis, MannWhitney, RunsTest, SignTest, tie_correction, \
-    WilcoxonTest, MedianTest, VanDerWaerden
+    WaldWolfowitz, WilcoxonTest, MedianTest, VanDerWaerden
 import pandas as pd
 import numpy as np
 from numpy.testing import *
@@ -336,6 +336,16 @@ class TestVanDerWaerden(object):
         assert_almost_equal(v.score_variance, 0.8402744001083048)
         assert_almost_equal(v.test_statistic, 7.925272519897477)
         assert_almost_equal(v.p_value, 0.019012925151783353)
+
+
+class TestWaldWolfowitz(object):
+
+    e = [20, 55, 29, 24, 75, 56, 31, 45]
+    c = [23, 8, 24, 15, 8, 6, 15, 15, 21, 23, 16, 15, 24, 15, 21, 15, 18, 14, 22, 15, 14]
+
+    def test_wald_wolfowitz(self):
+        #w = WaldWolfowitz()
+        pass
 
 
 def test_tie_correction():

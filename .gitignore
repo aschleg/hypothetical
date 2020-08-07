@@ -4,6 +4,7 @@ $ cat .gitignore
 .idea/
 build/
 dist/
+venv/
 *.egg-info
 notebooks/
 *.xml

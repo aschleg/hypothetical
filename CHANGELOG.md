@@ -9,6 +9,10 @@
   * Factor Analysis
     * Several algorithms for performing Factor Analysis are avaiable, including principal components, principal 
       factors, and iterated principal factors.
+      
+* Fixes and Updates:
+  * One-Sample Runs Test
+    * The test now excepts arrays with more than two unique values.
 
 ## Version 0.2.1
 

@@ -459,11 +459,11 @@ class TukeysTest(object):
 
         groups['significant difference'] = np.where(np.abs(groups['mean difference']) >= self.hsd, True, False)
 
-        groups['upper interval'] = groups['mean difference'] + \
-                                   self.tukey_q_value * np.sqrt(self.mse / 2. * (2. / (self.n / self.k)))
+        groups['upper interval'] = groups['mean difference'] + self.tukey_q_value * np.sqrt(
+            self.mse / 2. * (2. / (self.n / self.k)))
 
-        groups['lower interval'] = groups['mean difference'] - \
-                                   self.tukey_q_value * np.sqrt(self.mse / 2. * (2. / (self.n / self.k)))
+        groups['lower interval'] = groups['mean difference'] - self.tukey_q_value * np.sqrt(
+            self.mse / 2. * (2. / (self.n / self.k)))
 
         q_values = groups['mean difference'] / group_sd
 
