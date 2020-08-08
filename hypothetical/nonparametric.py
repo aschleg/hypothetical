@@ -1687,6 +1687,17 @@ class WaldWolfowitz(object):
 
     Examples
     --------
+    >>> x = [20, 55, 29, 24, 75, 56, 31, 45]
+    >>> y = [23, 8, 24, 15, 8, 6, 15, 15, 21, 23, 16, 15, 24, 15, 21, 15, 18, 14, 22, 15, 14]
+    >>> w = nonparametric.WaldWolfowitz(x=x, y=y)
+    >>> w.test_summary
+    {'probability': 0.051136902411265235,
+     'runs': 6,
+     'mean of runs': 12.586206896551724,
+     'standard deviation of runs': 2.0929642628266922,
+     'z-value': 2.907936367882308,
+     'p-value': 0.0018191117963075613,
+     'continuity': True}
 
     Notes
     -----

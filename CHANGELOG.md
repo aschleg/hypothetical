@@ -9,10 +9,9 @@
   * Factor Analysis
     * Several algorithms for performing Factor Analysis are avaiable, including principal components, principal 
       factors, and iterated principal factors.
-      
-* Fixes and Updates:
-  * One-Sample Runs Test
-    * The test now functions appropriately and does not require an array of binary responses (True/False, Yes/No, etc.)
+  * Wald-Wolfowitz Two Sample Nonparametric Runs Test
+    * A nonparametric test for determining if two independent samples have been drawn from the same population or 
+      that they differ in any respect.      
 
 ## Version 0.2.1
 
