@@ -12,7 +12,7 @@
       
 * Fixes and Updates:
   * One-Sample Runs Test
-    * The test now excepts arrays with more than two unique values.
+    * The test now functions appropriately and does not require an array of binary responses (True/False, Yes/No, etc.)
 
 ## Version 0.2.1
 

@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='hypothetical',
-    version='0.2.1',
+    version='0.2.2',
     author='Aaron Schlegel',
     author_email='aaron@aaronschlegel.me',
     description='Hypothesis testing and other testing methods',
