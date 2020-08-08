@@ -1168,7 +1168,7 @@ class RunsTest(object):
         self.continuity = continuity
         self.test_summary = self._runs_test()
 
-    def _runs_test(self, n1=None, n2=None):
+    def _runs_test(self):
         r"""
         Primary method for performing the one-sample runs test.
 
@@ -1775,8 +1775,7 @@ class WaldWolfowitz(object):
         self.n1, self.n2 = len(x), len(y)
         self.a = np.sort(np.array(self.x + self.y))
         self.continuity = continuity
-        self.r = count_runs(self.a)[1]
-        self.test_summary = self._test()
+        self.r, self.test_summary = self._test()
         self.p_value = self.test_summary['p-value']
         self.probability = self.test_summary['probability']
         self.description = 'Wald-Wolfowitz Runs Test for Two Independent Samples'
@@ -1787,7 +1786,13 @@ class WaldWolfowitz(object):
             pass
 
     def _test(self):
-        r_range = np.arange(2, self.r + 1)
+        a = pd.DataFrame({'a': list(np.repeat('A', len(self.x))), 'b': self.x})
+        b = pd.DataFrame({'a': list(np.repeat('B', len(self.y))), 'b': self.y})
+        c = a.append(b)
+        d = c.sort_values('b')['a']
+
+        r = count_runs(d)[1]
+        r_range = np.arange(2, r + 1)
         evens = r_range[r_range % 2 == 0]
         odds = r_range[r_range % 2 != 0]
 
@@ -1807,20 +1812,20 @@ class WaldWolfowitz(object):
 
             test_summary = {
                 'probability': p,
+                'runs': r,
                 'r critical value 1': r_crit_1,
                 'r critical value 2': r_crit_2
             }
-            return test_summary
-
         else:
             mean = (2 * self.n1 * self.n2) / (self.n1 + self.n2) + 1
             sd = np.sqrt((2 * self.n1 * self.n2 * (2 * self.n1 * self.n2 - self.n1 - self.n2)) /
                          ((self.n1 + self.n2) ** 2 * (self.n1 + self.n2 - 1)))
-            z = (np.abs(self.r - mean) - self.continuity * 0.5) / sd
-            p_val = norm.sf(z) * 2
+            z = (np.abs(r - mean) - self.continuity * 0.5) / sd
+            p_val = norm.sf(z)
 
             test_summary = {
                 'probability': p,
+                'runs': r,
                 'mean of runs': mean,
                 'standard deviation of runs': sd,
                 'z-value': z,
@@ -1828,7 +1833,7 @@ class WaldWolfowitz(object):
                 'continuity': self.continuity
             }
 
-            return test_summary
+        return r, test_summary
 
 
 class WilcoxonTest(object):
@@ -2201,6 +2206,6 @@ def count_runs(x, index=1):
     """
     runs = np.array([sum(1 for _ in r) for _, r in groupby(np.array(x))])
 
-    run_count = np.sum(runs > 1)
+    run_count = len(runs)
 
     return runs, run_count
