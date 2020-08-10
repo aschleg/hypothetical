@@ -1799,10 +1799,9 @@ class WaldWolfowitz(object):
     def _test(self):
         a = pd.DataFrame({'a': list(np.repeat('A', len(self.x))), 'b': self.x})
         b = pd.DataFrame({'a': list(np.repeat('B', len(self.y))), 'b': self.y})
-        c = a.append(b)
-        d = c.sort_values('b')['a']
+        c = a.append(b).sort_values('b')['a']
 
-        r = count_runs(d)[1]
+        r = count_runs(c)[1]
         r_range = np.arange(2, r + 1)
         evens = r_range[r_range % 2 == 0]
         odds = r_range[r_range % 2 != 0]
