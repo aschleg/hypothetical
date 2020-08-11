@@ -969,16 +969,48 @@ class MannWhitney(object):
 
 class MedianTest(object):
     r"""
-    Performs Mood's Median test for a 2x2 contingency table.
+    Performs Mood's Median test for k samples.
 
     Parameters
     ----------
     sample1, sample2, ... : array-like
         One-dimensional array-like objects (numpy array, list, pandas DataFrame or pandas Series) containing the
         observed sample data. Each sample may be of different lengths.
+    ties : str, {'below', 'above', 'ignore'}
+        Method for handling tied observations when sorting the observations into the above and below rows of the
+        contingency table. If 'below' (default), values less than or equal to the median are added to the bottom
+        row of the contingency table. If 'above', values less than to median are used.
+    continuity : bool, default True
+        If True, a continuity correction was applied when the Median test is performed. If False, no continuity
+        correction is applied.
 
     Attributes
     ----------
+    observation_vectors : list
+        The passed observation vectors.
+    combined_array : array-like
+        One-dimensional array of all the observation vectors combined.
+    grand_median : int
+        Grand median of the arrays.
+    n : int
+        The total sample size.
+    degrees_of_freedom : int
+        Degrees of freedom, defined as the number of observations vectors - 1.
+    ties : str
+        The tie decision method.
+    continuity : bool
+        If True, a continuity correction was applied when the Median test was performed. If False, no continuity
+        correction is applied.
+    contingency_table : array-like
+        The computed :math:`2 \times k` table of the number of samples above the grand median (in the first row) and
+        below the grand median (second row).
+    test_statistic : float
+        The computed chi-square test statistic.
+    p_value : float
+        The associated p-value of the test statistic.
+    test_summary : dict
+        A dictionary containing the test summary statistics including the contigency table, grand median, p-value, and
+        test statistic.
 
     Notes
     -----
@@ -998,10 +1030,12 @@ class MedianTest(object):
 
     References
     ----------
-    Gibbons, J. D., & Chakraborti, S. (2010). Nonparametric statistical inference. London: Chapman & Hall.
-
     Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
         McGraw-Hill. ISBN 07-057348-4
+
+    https://www.itl.nist.gov/div898/software/dataplot/refman1/auxillar/meditest.htm
+
+    https://psych.unl.edu/psycrs/handcomp/hcmedian.PDF
 
     Wikipedia contributors. (2017, June 27). Median test. In Wikipedia, The Free Encyclopedia.
         Retrieved 12:23, August 19, 2018, from https://en.wikipedia.org/w/index.php?title=Median_test&oldid=787822318
