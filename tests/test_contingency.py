@@ -17,10 +17,11 @@ class TestChiSquareContingency(object):
         assert_almost_equal(c.chi_square, 69.07632536255964)
         assert_almost_equal(c.p_value, 6.323684774702373e-13)
 
-        assert_almost_equal(c.association_measures['C'], 0.38790213046235816)
-        assert_almost_equal(c.association_measures['Cramers V'], 0.2975893000268341)
-        assert_almost_equal(np.absolute(c.association_measures['phi-coefficient']),
-                                       np.absolute(-0.4208548241150648))
+        assert_almost_equal(c.contigency_coefficient, 0.38790213046235816)
+        assert_almost_equal(c.cramers_v, 0.2975893000268341)
+        assert_almost_equal(np.absolute(c.phi_coefficient),
+                            np.absolute(-0.4208548241150648))
+        assert_almost_equal(c.tschuprow_coefficient, 0.25873655997832995)
 
         assert c.continuity
         assert c.degrees_freedom == 6
@@ -42,9 +43,9 @@ class TestChiSquareContingency(object):
         assert_almost_equal(c.p_value, 2.466522494156712e-10)
         assert_almost_equal(c.degrees_freedom, 1)
 
-        assert_almost_equal(c.association_measures['C'], 0.4603022164252613)
-        assert_almost_equal(c.association_measures['Cramers V'], 0.5184971536820822)
-        assert_almost_equal(c.association_measures['phi-coefficient'], 0.5184971536820822)
+        assert_almost_equal(c.contigency_coefficient, 0.4603022164252613)
+        assert_almost_equal(c.cramers_v, 0.5184971536820822)
+        assert_almost_equal(c.phi_coefficient, 0.5184971536820822)
 
         assert not c.continuity
 

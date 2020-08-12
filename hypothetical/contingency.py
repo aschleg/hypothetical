@@ -19,7 +19,7 @@ Other Functions
 .. autosummary::
     :toctree: generated/
 
-    table_margin
+    table_margins
     expected_frequencies
 
 References
@@ -83,12 +83,20 @@ class ChiSquareContingency(object):
     degrees_freedom : int
         Degrees of freedom, calculated as :math:`dof = (k - 1)(r - 1)` where :math:`k` is the number of columns
         and :math:`r` is the number of rows in the contingency table.
+    n : int
+        Total number of samples
     chi_square : float
         The calculated chi-square value.
     p_value : float
         The associated p-value.
-    association_measures : dict
-        A dictionary containing the phi-coefficient, C, and Cramer's V association measures.
+    cramers_v : float
+        Cramer's V measure of association (dependence) inherent in the data contingency table.
+    contingency_coefficient : float
+        Contingency coefficient measure of association.
+    phi_coefficient : float
+        Phi coefficient of association in the data.
+    tschuprows_coefficient : float
+        Tschuprows coefficient for measure of association in the data.
     test_summary : dict
         A dictionary containing the relevant test results.
 
@@ -160,11 +168,17 @@ class ChiSquareContingency(object):
 
         C = \sqrt{\frac{\chi^2}{N + \chi^2}}
 
-    Lastly, Cramer's V is defined as:
+    Cramer's V is defined as:
 
     .. math::
 
         V = \sqrt{\frac{\chi^2}{N(k-1}}
+
+    Lastly, Tschuprow's T is defined as:
+
+    .. math::
+
+        T = \sqrt{\frac{\phi^2}{\sqrt{(r - 1)(c - 1)}}}
 
     References
     ----------
@@ -201,14 +215,20 @@ class ChiSquareContingency(object):
 
         self.continuity = continuity
         self.degrees_freedom = (self.observed.shape[0] - 1) * (self.observed.shape[1] - 1)
-
+        self.n = np.sum(self.observed)
         self.chi_square = self._chi_square()
         self.p_value = self._p_value()
-        self.association_measures = self._assoc_measure()
+        self.cramers_v = self._cramers_v()
+        self.contigency_coefficient = self._cont_coeff()
+        self.phi_coefficient = self._phi_coeff()
+        self.tschuprow_coefficient = self._tschuprows_coeff()
         self.test_summary = {
             'chi-square': self.chi_square,
             'p-value': self.p_value,
-            'association measures': self.association_measures,
+            "Cramer's V": self.cramers_v,
+            'Contingency Coefficient': self.contigency_coefficient,
+            'Phi Coefficient': self.phi_coefficient,
+            'Tschuprow Coefficient': self._tschuprows_coeff(),
             'degrees of freedom': self.degrees_freedom,
             'continuity': self.continuity
         }
@@ -246,39 +266,33 @@ class ChiSquareContingency(object):
 
         return pval
 
-    def _assoc_measure(self):
-        r"""
-        Computes several contingency table association measures.
+    def _cramers_v(self):
+        v = np.sqrt(self.chi_square / (self.n * (np.minimum(self.observed.shape[0], self.observed.shape[1]) - 1)))
 
-        Returns
-        -------
-        assocation_measures : dict
-            A dictionary containing the calculated association measures, including the phi coefficient, C, and
-            Cramer's V.
+        return v
 
-        """
-        n = np.sum(self.observed)
-
+    def _phi_coeff(self):
         filled_diag = self.observed.copy()
         np.fill_diagonal(filled_diag, 1)
 
         phi_sign = np.prod(np.diagonal(self.observed)) - np.prod(filled_diag)
 
-        phi_coeff = np.sqrt(self.chi_square / n)
+        phi_coeff = np.sqrt(self.chi_square / self.n)
         if phi_sign < 0 and phi_coeff > 0:
             phi_coeff = -phi_coeff
 
-        c = np.sqrt(self.chi_square / (n + self.chi_square))
+        return phi_coeff
 
-        v = np.sqrt(self.chi_square / (n * (np.minimum(self.observed.shape[0], self.observed.shape[1]) - 1)))
+    def _cont_coeff(self):
+        c = np.sqrt(self.chi_square / (self.n + self.chi_square))
 
-        association_measures = {
-            'phi-coefficient': phi_coeff,
-            'C': c,
-            'Cramers V': v
-        }
+        return c
 
-        return association_measures
+    def _tschuprows_coeff(self):
+        t = np.sqrt(self.chi_square
+                    / (self.n * np.sqrt((self.observed.shape[0] - 1) * (self.observed.shape[1]) - 1)))
+
+        return t
 
 
 class CochranQ(object):
@@ -774,7 +788,7 @@ def expected_frequencies(observed):
     Notes
     -----
     The expected frequency, here denoted as :math:`E_{cr}`, where :math:`c` is the column index and :math:`r` is the
-    row index. Stated more formally, the expected frequency can be defined as:
+    row index. Stated more formally, the expected frequency is defined as:
 
     .. math::
 

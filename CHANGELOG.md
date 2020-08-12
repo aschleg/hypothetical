@@ -11,7 +11,17 @@
       factors, and iterated principal factors.
   * Wald-Wolfowitz Two Sample Nonparametric Runs Test
     * A nonparametric test for determining if two independent samples have been drawn from the same population or 
-      that they differ in any respect.      
+      that they differ in any respect.
+  * Chi Square Test of Dependence
+    * Updates to methods in `ChiSquareContingency`.
+      - The previous measures of association method has been removed in favor 
+        of specific methods for each measure of association. These include:
+          * Cramer's $V$
+          * Phi Coefficient, $\phi$
+          * Contingency Coefficient, $C$
+          * Tschuprow's Coefficient, $T$ (new)
+      - The `test_summary` attribute of an initialized `ChiSquareContingency` class 
+        now has separate key-value pairs for each computed association measure.      
 
 ## Version 0.2.1
 
