@@ -178,7 +178,7 @@ class ChiSquareContingency(object):
 
     .. math::
 
-        T = \sqrt{\frac{\phi^2}{\sqrt{(r - 1)(c - 1)}}}
+        T = \sqrt{\frac{\phi^2}{\sqrt{(r - 1)(c - 1)}}} = \sqrt{\frac{\frac{\chi^2}{n}}{\sqrt{(r - 1)(c - 1)}}}
 
     References
     ----------
@@ -191,9 +191,27 @@ class ChiSquareContingency(object):
         Retrieved 12:08, August 28, 2018,
         from https://en.wikipedia.org/w/index.php?title=Contingency_table&oldid=854973657
 
+    Wikipedia contributors. (2020, April 14). Cramér's V. In Wikipedia, The Free Encyclopedia.
+        Retrieved 13:41, August 12, 2020,
+        from https://en.wikipedia.org/w/index.php?title=Cram%C3%A9r%27s_V&oldid=950837942
+
+    Wikipedia contributors. (2020, August 9). Phi coefficient. In Wikipedia, The Free Encyclopedia.
+        Retrieved 13:40, August 12, 2020,
+        from https://en.wikipedia.org/w/index.php?title=Phi_coefficient&oldid=971906217
+
+    Wikipedia contributors. (2019, January 14). Tschuprow's T. In Wikipedia, The Free Encyclopedia.
+        Retrieved 13:40, August 12, 2020,
+        from https://en.wikipedia.org/w/index.php?title=Tschuprow%27s_T&oldid=878279875
+
     Wikipedia contributors. (2017, October 20). Yates's correction for continuity. In Wikipedia, The Free Encyclopedia.
         Retrieved 12:23, September 1, 2018,
         from https://en.wikipedia.org/w/index.php?title=Yates%27s_correction_for_continuity&oldid=806197753
+
+    https://www.empirical-methods.hslu.ch/decisiontree/relationship/chi-square-contingency/
+
+    http://stats.lse.ac.uk/bergsma/pdf/cramerV3.pdf
+
+    http://uregina.ca/~gingrich/ch11a.pdf
 
     """
     def __init__(self, observed, expected=None, continuity=True):
@@ -219,14 +237,14 @@ class ChiSquareContingency(object):
         self.chi_square = self._chi_square()
         self.p_value = self._p_value()
         self.cramers_v = self._cramers_v()
-        self.contigency_coefficient = self._cont_coeff()
+        self.contingency_coefficient = self._cont_coeff()
         self.phi_coefficient = self._phi_coeff()
-        self.tschuprow_coefficient = self._tschuprows_coeff()
+        self.tschuprows_coefficient = self._tschuprows_coeff()
         self.test_summary = {
             'chi-square': self.chi_square,
             'p-value': self.p_value,
             "Cramer's V": self.cramers_v,
-            'Contingency Coefficient': self.contigency_coefficient,
+            'Contingency Coefficient': self.contingency_coefficient,
             'Phi Coefficient': self.phi_coefficient,
             'Tschuprow Coefficient': self._tschuprows_coeff(),
             'degrees of freedom': self.degrees_freedom,
@@ -267,11 +285,27 @@ class ChiSquareContingency(object):
         return pval
 
     def _cramers_v(self):
+        r"""
+        Computes Cramer's V measure of association between two data variables.
+
+        Returns
+        -------
+        v : float
+
+        """
         v = np.sqrt(self.chi_square / (self.n * (np.minimum(self.observed.shape[0], self.observed.shape[1]) - 1)))
 
         return v
 
     def _phi_coeff(self):
+        r"""
+        Computes the Phi (:math:`\phi`) coefficient measure of association.
+
+        Returns
+        -------
+        phi_coeff : float
+
+        """
         filled_diag = self.observed.copy()
         np.fill_diagonal(filled_diag, 1)
 
@@ -284,11 +318,27 @@ class ChiSquareContingency(object):
         return phi_coeff
 
     def _cont_coeff(self):
+        r"""
+        Returns the contingency coefficient :math:`C` measure of association.
+
+        Returns
+        -------
+        c : float
+
+        """
         c = np.sqrt(self.chi_square / (self.n + self.chi_square))
 
         return c
 
     def _tschuprows_coeff(self):
+        r"""
+        Returns Tschuprow's :math:`T` measure of association.
+
+        Returns
+        -------
+        t : float
+
+        """
         t = np.sqrt(self.chi_square
                     / (self.n * np.sqrt((self.observed.shape[0] - 1) * (self.observed.shape[1]) - 1)))
 

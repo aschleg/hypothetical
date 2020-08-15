@@ -59,14 +59,13 @@ Wikipedia contributors. (2018, August 22). Wald–Wolfowitz runs test. In Wikipe
 
 """
 
-from itertools import groupby
+from itertools import groupby, combinations
 from collections import Counter
 import numpy as np
 import numpy_indexed as npi
 import pandas as pd
 from scipy.stats import chi2, norm, rankdata, t, find_repeats
 from scipy.special import comb
-from itertools import combinations
 
 from hypothetical._lib import _build_des_mat, _rank, _group_rank_sums
 from hypothetical.descriptive import var
@@ -983,6 +982,8 @@ class MedianTest(object):
     continuity : bool, default True
         If True, a continuity correction was applied when the Median test is performed. If False, no continuity
         correction is applied.
+    posthoc : bool, default False
+    names : array-like, default None
 
     Attributes
     ----------
@@ -1008,12 +1009,47 @@ class MedianTest(object):
         The computed chi-square test statistic.
     p_value : float
         The associated p-value of the test statistic.
+    posthoc : pandas DataFrame
     test_summary : dict
         A dictionary containing the test summary statistics including the contigency table, grand median, p-value, and
         test statistic.
 
+    Raises
+    ------
+    ValueError
+        Raised if the :code:`ties` parameter is not one of {'below' (default), 'above', 'ignore'}
+    ValueError
+        Raised the :code:`names` parameter does not have the same length as the number of observation vectors when
+        performing a post-hoc test.
+         
     Notes
     -----
+    The median test, sometimes referred to as Mood's median test, is a nonparametric procedure for investigating
+    whether the median of the populations from which :math:`k` sample groups are drawn is equal. The test is a special
+    case of the chi-square test of dependence. The null and alternative hypotheses when employing the median test may
+    be written similarly as:
+
+    .. math::
+
+        $H_0$: All $k$ populations have the same median.
+        $H_A$: At least two of the $k$ populations have the different medians.
+
+    Given :math:`k` samples with :math:`n_1, n_2, \cdots, n_k` data observations, the median test proceeds by computing
+    the grand median of the combined observations. A :math:`2 \times k` contingency table is then constructed, where
+    the top row contains the number of total observations above the grand median for each of the :math:`k` sample
+    groups and the bottom row is the number of observations below the grand median. Ties between the individual
+    observations and the grand median are either put in the top or bottom row, or discarded entirely. A chi-square test
+    of independence is then performed on the constructed :math:`2 \times k` contingency table.
+
+    The test statistic of the median test, typically denoted :math:`T`, is defined as:
+
+    .. math
+
+        T = \frac{N^2}{ab} \sum \frac{\left ( O_{1i} - \frac{n_i a}{N} \right )^2}{n_i}
+
+    Where :math:`a` is the marginal total of the :math:`2 \times k` contingency table for observations above the grand
+    median while $b$ is the marginal total for those observations below the grand median. The test statistic is assumed
+    to have a chi-square distribution where the degrees of freedom is defined as :math:`k - 1`.
 
     Examples
     --------
@@ -1041,12 +1077,13 @@ class MedianTest(object):
         Retrieved 12:23, August 19, 2018, from https://en.wikipedia.org/w/index.php?title=Median_test&oldid=787822318
 
     """
-    def __init__(self, *args, ties='below', continuity=True):
+    def __init__(self, *args, ties='below', continuity=True, posthoc=False, names=None):
         self.observation_vectors = list([*args])
-        self.combined_array = np.hstack(self.observation_vectors)
-        self.grand_median = np.median(self.combined_array)
 
-        self.n = self.combined_array.shape[0]
+        combined_array = np.hstack(self.observation_vectors)
+        self.grand_median = np.median(combined_array)
+        self.n = combined_array.shape[0]
+
         self.degrees_of_freedom = len(self.observation_vectors) - 1
 
         if ties not in ('below', 'above', 'ignore'):
@@ -1056,12 +1093,21 @@ class MedianTest(object):
         self.continuity = continuity
         self.contingency_table = self._cont_table()
         self.test_statistic, self.p_value = self._chi_test()
+
         self.test_summary = {
             'test_statistic': self.test_statistic,
             'p-value': self.p_value,
             'grand median': self.grand_median,
-            'contingency_table': self.contingency_table
+            'contingency_table': self.contingency_table,
         }
+
+        if posthoc:
+            self.posthoc = self._multiple_comparisons(names=names)
+
+        else:
+            self.posthoc = 'None'
+
+        self.test_summary['posthoc'] = self.posthoc
 
     def _cont_table(self):
         above = []
@@ -1092,6 +1138,42 @@ class MedianTest(object):
         c = ChiSquareContingency(self.contingency_table, continuity=self.continuity)
 
         return c.chi_square, c.p_value
+
+    def _multiple_comparisons(self, names=None):
+        if names is not None:
+            if len(names) != len(self.observation_vectors):
+                raise ValueError('group names array must be the same length as the number of sample groups.')
+
+        else:
+            names = []
+            for i in range(0, len(self.observation_vectors)):
+                names.append('Group {num}'.format(num=i))
+
+        dat = dict(zip(names, self.observation_vectors))
+        combs = [{j: dat[j] for j in i} for i in combinations(dat, 2)]
+
+        group_comb = []
+        t_stat = []
+        p_val = []
+        grand_med = []
+
+        for comb in combs:
+            name1, group1 = list(comb.keys())[0], list(comb.values())[0]
+            name2, group2 = list(comb.keys())[1], list(comb.values())[1]
+
+            m = MedianTest(group1, group2, names=[name1, name2])
+
+            group_comb.append(str(name1) + ' : ' + str(name2))
+            t_stat.append(m.test_statistic)
+            p_val.append(m.p_value)
+            grand_med.append(m.grand_median)
+
+        result_df = pd.DataFrame({'groups': group_comb,
+                                  'test statistic': t_stat,
+                                  'p-value': p_val,
+                                  'grand median': grand_med})
+
+        return result_df
 
 
 class RunsTest(object):

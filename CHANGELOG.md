@@ -21,7 +21,10 @@
           * Contingency Coefficient, $C$
           * Tschuprow's Coefficient, $T$ (new)
       - The `test_summary` attribute of an initialized `ChiSquareContingency` class 
-        now has separate key-value pairs for each computed association measure.      
+        now has separate key-value pairs for each computed association measure.
+  * Median Test 
+    * A multiple comparisons posthoc test is now available.      
+* Many updates to documentation and docstrings.
 
 ## Version 0.2.1
 
