@@ -541,7 +541,7 @@ class McNemarTest(object):
 
     .. math::
 
-        z = \frac{|n_{12} - n_{21}| - 1}{\sqrt{n_{12} + n_{21}}
+        z = \frac{|n_{12} - n_{21}| - 1}{\sqrt{n_{12} + n_{21}}}
 
     Fagerland et al [1] recommend the asymptotic McNemar test in most cases. The continuity corrected version is
     not recommended as it has been shown to be overly conservative.

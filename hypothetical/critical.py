@@ -12,6 +12,7 @@ Critical Value Lookup Functions
     :toctree: generated/
 
     chi_square_critical_value
+    d_critical_value
     r_critical_value
     u_critical_value
     w_critical_value
@@ -77,6 +78,17 @@ def chi_square_critical_value(alpha, dof):
     return chi_crit
 
 
+def d_critical_value(n, alpha):
+    if n > 35:
+        raise ValueError('critical values of D are only defined for n <= 35.')
+    if alpha not in (0.01, 0.05, 0.10, 0.15, 0.20):
+        raise ValueError('U critical values are only defined for alpha-levels 0.10, 0.05, 0.025, and 0.01.')
+
+    d_crit = _d_critical_value_table[alpha][n]
+
+    return d_crit
+
+
 def r_critical_value(n1, n2):
     if not all(array([n1, n2]) <= 20):
         raise ValueError('critical values of the r-statistic are only defined for samples of size 20 or less.')
@@ -111,8 +123,6 @@ def u_critical_value(n, m, alpha):
         If parameters :code:`n` or :code:`m` are greater than 20.
     ValueError
         If parameter :code:`alpha` is not one of 0.10, 0.05, 0.025, or 0.01.
-    KeyError
-        If critical values are not defined for chosen values of :code:`n` or :code:`m`.
 
     Examples
     --------
@@ -142,10 +152,7 @@ def u_critical_value(n, m, alpha):
     if alpha not in (0.10, 0.05, 0.025, 0.01):
         raise ValueError('U critical values are only defined for alpha-levels 0.10, 0.05, 0.025, and 0.01.')
 
-    try:
-        u_crit = _u_critical_value_table[alpha][(n, m)]
-    except KeyError:
-        raise KeyError('critical values not defined for selected values of n and m.')
+    u_crit = _u_critical_value_table[alpha][(n, m)]
 
     return u_crit
 
@@ -530,6 +537,135 @@ _chi_square_critical_value_table = {
         28: 50.993,
         29: 52.336,
         30: 53.672
+    }
+}
+
+
+_d_critical_value_table = {
+    .01: {
+        1: .995,
+        2: .929,
+        3: .828,
+        4: .733,
+        5: .669,
+        6: .618,
+        7: .577,
+        8: .543,
+        9: .514,
+        10: .490,
+        11: .468,
+        12: .450,
+        13: .433,
+        14: .418,
+        15: .404,
+        16: .392,
+        17: .381,
+        18: .371,
+        19: .363,
+        20: .356,
+        25: .320,
+        30: .290,
+        35: .270
+    },
+    .05: {
+        1: .975,
+        2: .842,
+        3: .708,
+        4: .624,
+        5: .565,
+        6: .521,
+        7: .486,
+        8: .457,
+        9: .432,
+        10: .410,
+        11: .391,
+        12: .375,
+        13: .361,
+        14: .349,
+        15: .338,
+        16: .328,
+        17: .318,
+        18: .309,
+        19: .301,
+        20: .294,
+        25: .270,
+        30: .240,
+        35: .230
+    },
+    .10: {
+        1: .950,
+        2: .776,
+        3: .642,
+        4: .564,
+        5: .510,
+        6: .470,
+        7: .438,
+        8: .411,
+        9: .388,
+        10: .368,
+        11: .352,
+        12: .338,
+        13: .325,
+        14: .314,
+        15: .304,
+        16: .295,
+        17: .286,
+        18: .278,
+        19: .272,
+        20: .264,
+        25: .240,
+        30: .220,
+        35: .210
+    },
+    .15: {
+        1: .925,
+        2: .726,
+        3: .597,
+        4: .525,
+        5: .474,
+        6: .436,
+        7: .405,
+        8: .381,
+        9: .360,
+        10: .342,
+        11: .326,
+        12: .313,
+        13: .302,
+        14: .292,
+        15: .283,
+        16: .274,
+        17: .266,
+        18: .259,
+        19: .252,
+        20: .246,
+        25: .220,
+        30: .200,
+        35: .190
+    },
+    .20: {
+        1: .900,
+        2: .684,
+        3: .565,
+        4: .494,
+        5: .446,
+        6: .410,
+        7: .381,
+        8: .358,
+        9: .339,
+        10: .322,
+        11: .307,
+        12: .295,
+        13: .284,
+        14: .274,
+        15: .266,
+        16: .258,
+        17: .250,
+        18: .244,
+        19: .237,
+        20: .231,
+        25: .210,
+        30: .190,
+        35: .180
     }
 }
 

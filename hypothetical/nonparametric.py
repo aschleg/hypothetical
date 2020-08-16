@@ -1021,7 +1021,7 @@ class MedianTest(object):
     ValueError
         Raised the :code:`names` parameter does not have the same length as the number of observation vectors when
         performing a post-hoc test.
-         
+
     Notes
     -----
     The median test, sometimes referred to as Mood's median test, is a nonparametric procedure for investigating

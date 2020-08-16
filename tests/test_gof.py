@@ -3,7 +3,7 @@ from numpy.testing import *
 import pytest
 from scipy.stats import chisquare
 
-from hypothetical.normality import ChiSquareTest, JarqueBera
+from hypothetical.gof import ChiSquareTest, JarqueBera
 
 
 class TestChiSquare(object):

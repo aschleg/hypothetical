@@ -5,5 +5,5 @@ from hypothetical import aov, \
     fa, \
     hypothesis, \
     nonparametric, \
-    normality, \
+    gof, \
     posthoc

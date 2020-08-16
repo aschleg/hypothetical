@@ -43,8 +43,6 @@ class TestUCritical(object):
             c.u_critical_value(10, 31, 0.05)
         with pytest.raises(ValueError):
             c.u_critical_value(10, 10, 0.50)
-        with pytest.raises(KeyError):
-            c.u_critical_value(10, 8, 0.05)
 
 
 class TestWCritical(object):

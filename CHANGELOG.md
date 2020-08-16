@@ -1,4 +1,4 @@
-## Version 0.2.2
+## Version 0.3.0
 
 * New statistical and hypothesis methods have been added, including:
   * Tests for Homogenity of Variance
@@ -12,6 +12,10 @@
   * Wald-Wolfowitz Two Sample Nonparametric Runs Test
     * A nonparametric test for determining if two independent samples have been drawn from the same population or 
       that they differ in any respect.
+  * Critical Value Tables and Lookup Functions
+  * D critical value (used in the Kolomogorov-Smirnov Goodness-of-Fit test) table and lookup function have been added.
+      
+* Updates and changes:
   * Chi Square Test of Dependence
     * Updates to methods in `ChiSquareContingency`.
       - The previous measures of association method has been removed in favor 
@@ -23,8 +27,8 @@
       - The `test_summary` attribute of an initialized `ChiSquareContingency` class 
         now has separate key-value pairs for each computed association measure.
   * Median Test 
-    * A multiple comparisons posthoc test is now available.      
-* Many updates to documentation and docstrings.
+    * A multiple comparisons posthoc test is now available.       
+  * Many updates to documentation and docstrings.
 
 ## Version 0.2.1
 
