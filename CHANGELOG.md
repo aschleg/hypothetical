@@ -1,3 +1,9 @@
+## Version 0.3.1
+
+This release is a quick fix for McNemar's test in the `contingency` module. There was some misleading literature in one 
+of the references which led to some incorrect changes in the previous release. This should be resolved now and an 
+update to the tests is coming up soon as well.
+
 ## Version 0.3.0
 
 ### New Additions:

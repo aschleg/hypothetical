@@ -580,7 +580,7 @@ class McNemarTest(object):
 
     Examples
     --------
-    >>> m = McNemarTest([[59, 6], [16, 80]])
+    >>> m = McNemarTest([[59, 6], [16, 80]], continuity=False)
     >>> m.test_summary
     {'Asymptotic z-statistic': 2.1320071635561044,
      'Exact p-value': 0.052478790283203125,
@@ -589,7 +589,7 @@ class McNemarTest(object):
      'Mid p-value': 0.034689664840698256,
      'N': 161,
      'continuity': False}
-    >>> m2 = McNemarTest([[59, 6], [16, 80]], continuity=True)
+    >>> m2 = McNemarTest([[59, 6], [16, 80]])
     >>> m2.test_summary
     {'Asymptotic z-statistic': 1.9188064472004938,
      'Exact p-value': 0.052478790283203125,
@@ -611,8 +611,9 @@ class McNemarTest(object):
 
     Gibbons, J. D., & Chakraborti, S. (2010). Nonparametric statistical inference. London: Chapman & Hall.
 
-    Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
-        McGraw-Hill. ISBN 07-057348-4
+    Wikipedia contributors. (2018, April 29). McNemar's test. In Wikipedia, The Free Encyclopedia.
+        Retrieved 12:24, August 15, 2018,
+        from https://en.wikipedia.org/w/index.php?title=McNemar%27s_test&oldid=838855782
 
     """
     def __init__(self, table, continuity=True):
@@ -668,9 +669,9 @@ class McNemarTest(object):
 
         """
         if not self.continuity:
-            x2 = (self.table[0, 0] - self.table[1, 1]) ** 2 / (self.table[0, 1] + self.table[1, 0])
+            x2 = (self.table[0, 1] - self.table[1, 0]) ** 2 / (self.table[0, 1] + self.table[1, 0])
         else:
-            x2 = (np.absolute(self.table[0, 0] - self.table[1, 1]) - 1) ** 2 / (self.table[0, 0] + self.table[1, 1])
+            x2 = (np.absolute(self.table[0, 1] - self.table[1, 0]) - 1) ** 2 / (self.table[0, 1] + self.table[1, 0])
 
         return x2
 
@@ -703,9 +704,9 @@ class McNemarTest(object):
 
         """
         if not self.continuity:
-            z_asymptotic = (self.table[1, 0] - self.table[0, 1]) / np.sqrt(self.table[0, 1] + self.table[1, 0])
+            z_asymptotic = (self.table[0, 1] - self.table[1, 0]) / np.sqrt(self.table[0, 1] + self.table[1, 0])
         else:
-            z_asymptotic = (np.absolute(self.table[1, 0] - self.table[0, 1]) - 1) / \
+            z_asymptotic = (np.absolute(self.table[0, 1] - self.table[1, 0]) - 1) / \
                            np.sqrt(self.table[0, 1] + self.table[1, 0])
 
         return z_asymptotic
