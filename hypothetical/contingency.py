@@ -463,7 +463,7 @@ class McNemarTest(object):
     ----------
     table : array-like
         Array-like object representing a 2x2 paired contingency table.
-    continuity : bool, False
+    continuity : bool, True
         Use continuity-corrected version of McNemar's chi-square test statistic as proposed by Edwards. Defaults to
         False as simulations performed by Fagerland (et al.) have shown the continuity-corrected version of
         McNemar's test to be overly conservative compared to the original McNemar test statistic.
@@ -614,12 +614,8 @@ class McNemarTest(object):
     Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
         McGraw-Hill. ISBN 07-057348-4
 
-    Wikipedia contributors. (2018, April 29). McNemar's test. In Wikipedia, The Free Encyclopedia.
-        Retrieved 12:24, August 15, 2018,
-        from https://en.wikipedia.org/w/index.php?title=McNemar%27s_test&oldid=838855782
-
     """
-    def __init__(self, table, continuity=False):
+    def __init__(self, table, continuity=True):
 
         if not isinstance(table, np.ndarray):
             self.table = np.array(table)
@@ -672,9 +668,9 @@ class McNemarTest(object):
 
         """
         if not self.continuity:
-            x2 = (self.table[0, 1] - self.table[1, 0]) ** 2 / (self.table[0, 1] + self.table[1, 0])
+            x2 = (self.table[0, 0] - self.table[1, 1]) ** 2 / (self.table[0, 1] + self.table[1, 0])
         else:
-            x2 = (np.absolute(self.table[0, 1] - self.table[1, 0]) - 1) ** 2 / (self.table[0, 1] + self.table[1, 0])
+            x2 = (np.absolute(self.table[0, 0] - self.table[1, 1]) - 1) ** 2 / (self.table[0, 0] + self.table[1, 1])
 
         return x2
 

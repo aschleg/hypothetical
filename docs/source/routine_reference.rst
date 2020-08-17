@@ -12,7 +12,7 @@ API Reference
     contingency.rst
     critical.rst
     descriptive.rst
+    gof.rst
     hypothesis.rst
     nonparametric.rst
-    normality.rst
     posthoc.rst

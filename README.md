@@ -32,6 +32,9 @@ python setup.py install
 
 * One-way Analysis of Variance (ANOVA)
 * One-way Multivariate Analysis of Variance (MANOVA)
+* Bartlett's Test for Homogenity of Variances
+* Levene's Test for Homogenity of Variances
+* Van Der Waerden's (normal scores) Test
 
 ### Contingency Tables and Related Tests
 
@@ -39,6 +42,14 @@ python setup.py install
 * Fisher's Exact Test
 * McNemar's Test of paired nominal data
 * Cochran's Q test
+* D critical value (used in the Kolomogorov-Smirnov Goodness-of-Fit test).
+
+### Critical Value Tables and Lookup Functions
+
+* Chi-square statistic
+* r (one-sample runs test and Wald-Wolfowitz runs test) statistic 
+* Mann-Whitney U-statistic
+* Wilcoxon Rank Sum W-statistic
 
 ### Descriptive Statistics
 
@@ -55,12 +66,10 @@ python setup.py install
 * Simulation of Correlation Matrices
   - Multiple simulation algorithms are available for generating correlation matrices.
 
-### Critical Value Tables and Lookup Functions
+### Factor Analysis
 
-* Chi-square statistic
-* r (one-sample runs test and Wald-Wolfowitz runs test) statistic 
-* Mann-Whitney U-statistic
-* Wilcoxon Rank Sum W-statistic
+* Several algorithms for performing Factor Analysis are available, including principal components, principal 
+      factors, and iterated principal factors.
 
 ### Hypothesis Testing
 
