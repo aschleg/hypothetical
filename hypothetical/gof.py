@@ -329,3 +329,9 @@ class JarqueBera(object):
         p_value = chi2.sf(self.test_statistic, 2)
 
         return p_value
+
+
+class KolmogorovSmirnov(object):
+
+    def __init__(self):
+        pass

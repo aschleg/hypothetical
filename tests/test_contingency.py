@@ -77,6 +77,12 @@ class TestCochranQ(object):
         assert_almost_equal(c.p_value, 0.00024036947641951404)
         assert c.degrees_freedom == 2
 
+    def test_cochranq_exceptions(self):
+        r1, r2, r3 = [0, 1, 1], [1, 1, 0], [0, 0, 1, 1]
+
+        with pytest.raises(ValueError):
+            CochranQ(r1, r2, r3)
+
 
 class TestMcNemarTest(object):
     sample_data = np.array([[59, 6], [16, 80]])

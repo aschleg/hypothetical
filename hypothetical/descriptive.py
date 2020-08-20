@@ -20,7 +20,7 @@ Variance and Covariance
 .. autosummary::
     :toctree: generated/
 
-    covariance
+    covar
     var
     std_dev
 

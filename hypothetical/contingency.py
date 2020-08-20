@@ -47,6 +47,7 @@ Wikipedia contributors. (2018, May 20). Fisher's exact test. In Wikipedia, The F
 """
 
 from functools import reduce
+from itertools import combinations
 import numpy as np
 import numpy_indexed as npi
 import pandas as pd
@@ -400,22 +401,31 @@ class CochranQ(object):
     Siegel, S. (1956). Nonparametric statistics: For the behavioral sciences.
         McGraw-Hill. ISBN 07-057348-4
 
+    https://ncss-wpengine.netdna-ssl.com/wp-content/themes/ncss/pdf/Procedures/NCSS/Cochrans_Q_Test.pdf
+
     Wikipedia contributors. (2017, August 8). Cochran's Q test. In Wikipedia, The Free Encyclopedia.
         Retrieved 15:05, August 26, 2018,
         from https://en.wikipedia.org/w/index.php?title=Cochran%27s_Q_test&oldid=794571272
-
+        
     """
-    def __init__(self, *args):
+    def __init__(self, *args, posthoc=False, names=None):
+        self.design_matrix = _build_des_mat(*args, group=None)
         self.q_statistic, self.degrees_freedom = self._q_test(*args)
         self.p_value = self._p_value()
+
         self.test_summary = {
             'q-statistic': self.q_statistic,
             'p-value': self.p_value,
             'degrees of freedom': self.degrees_freedom,
         }
 
-    @staticmethod
-    def _q_test(*args):
+        if posthoc:
+            self.posthoc = self._multiple_comparisons(*args, names=names)
+
+        else:
+            self.posthoc = 'None'
+
+    def _q_test(self, *args):
         r"""
 
         Parameters
@@ -430,13 +440,18 @@ class CochranQ(object):
             Tuple containing the computed Q test statistic and the degrees of freedom.
 
         """
-        design_matrix = _build_des_mat(*args, group=None)
-        sample_counts = npi.group_by(design_matrix[:, 0], design_matrix[:, 1], np.sum)
-        sample_size = design_matrix.shape[0] / len(np.unique(design_matrix[:, 0]))
+        sample_lengths = []
+        for i in args:
+            sample_lengths.append(len(i))
+
+        if len(set(sample_lengths)) != 1:
+            raise ValueError('all sample observation vectors must have the same length.')
+
+        sample_counts = npi.group_by(self.design_matrix[:, 0], self.design_matrix[:, 1], np.sum)
+        sample_size = self.design_matrix.shape[0] / len(np.unique(self.design_matrix[:, 0]))
 
         summary_table = pd.DataFrame(sample_counts, columns=['sample', '1s'])
-        summary_table['sample_size'] = sample_size
-        summary_table['0s'] = summary_table['sample_size'] - summary_table['1s']
+        summary_table['0s'] = sample_size - summary_table['1s']
 
         li2 = np.sum(np.sum(np.vstack([args]), axis=0) ** 2)
 
@@ -453,6 +468,38 @@ class CochranQ(object):
         pval = chi2.sf(self.q_statistic, self.degrees_freedom)
 
         return pval
+
+    def _multiple_comparisons(self, *args, names=None):
+        if names is not None:
+            if len(names) != len(np.unique(self.design_matrix[:, 0])):
+                raise ValueError('group names array must be the same length as the number of sample groups.')
+
+        else:
+            names = np.unique(self.design_matrix[:, 0] + 1)
+
+        dat = dict(zip(names, args))
+
+        combs = [{j: dat[j] for j in i} for i in combinations(dat, 2)]
+
+        group_comb = []
+        q_stat = []
+        p_val = []
+
+        for comb in combs:
+            name1, group1 = list(comb.keys())[0], list(comb.values())[0]
+            name2, group2 = list(comb.keys())[1], list(comb.values())[1]
+
+            c = CochranQ(group1, group2, names=[name1, name2])
+
+            group_comb.append(str(name1) + ' : ' + str(name2))
+            q_stat.append(c.q_statistic)
+            p_val.append(c.p_value)
+
+        result_df = pd.DataFrame({'groups': group_comb,
+                                  'Q statistic': q_stat,
+                                  'p-value': p_val})
+
+        return result_df
 
 
 class McNemarTest(object):

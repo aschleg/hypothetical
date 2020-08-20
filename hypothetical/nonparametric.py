@@ -1107,8 +1107,6 @@ class MedianTest(object):
         else:
             self.posthoc = 'None'
 
-        self.test_summary['posthoc'] = self.posthoc
-
     def _cont_table(self):
         above = []
         below = []

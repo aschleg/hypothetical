@@ -1,3 +1,9 @@
+## Version 0.3.2
+
+* Cochran's Q Test
+  * Multiple comparisons are now available by specifying `posthoc=True` when performing the Cochran Q test. 
+  * The test now checks that all passed sample observation vectors are the same length before proceeding to the test.
+
 ## Version 0.3.1
 
 This release is a quick fix for McNemar's test in the `contingency` module. There was some misleading literature in one 
